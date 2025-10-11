@@ -26,22 +26,15 @@ jobs:
           chmod +x /usr/local/bin/crcgen
           echo "Finished crcgen Install"
 
-  # Clone the source of our repository so we can get into doc/crc.
-  # Here we are only fetching the most recent commit and even then 
-  # only grabbing docs. So should be pretty quick.
-  clone-repo:
-    runs-on: ubuntu-latest
-    steps:
+      # Clone the source of our repository so we can get into doc/crc.
+      # Here we are only fetching the most recent commit and even then 
+      # only grabbing docs. So should be pretty quick.
       - uses: actions/checkout@v5
         with:
           sparse-checkout: doc
 
-  # As soon as we have the binary and docs we can generate the 
-  # rendered cards. Outputs: $GITHUB_WORKSPACE/CRC.md
-  build-cards:
-    needs: [install-crcgen, clone-repo]
-    runs-on: ubuntu-latest
-    steps:
+      # As soon as we have the binary and docs we can generate the 
+      # rendered cards. Outputs: $GITHUB_WORKSPACE/CRC.md
       - name: Build Cardpage from `doc/crc`
         shell: bash
         run: |
@@ -50,20 +43,13 @@ jobs:
           shopt -s globstar
           /usr/local/bin/crcgen -o CRC.md rocket-radar/doc/crc/**/*.yml
 
-  # Clone the wiki into the $GITHUB_WORKSPACE/wiki (where $GITHUB_WORKSPACE is
-  # the default working directory for scripts.
-  clone-wiki:
-    runs-on: ubuntu-latest
-    steps:
+      # Clone the wiki into the $GITHUB_WORKSPACE/wiki (where $GITHUB_WORKSPACE is
+      # the default working directory for scripts.
       - uses: actions/checkout@v5
         with:
           repository: ${{ github.repository }}.wiki
           path: wiki
 
-  update-wiki:
-    needs: [clone-wiki, build-cards]
-    runs-on: ubuntu-latest
-    steps:
       - name: Update the wiki page
         shell: bash
         run: |
@@ -74,6 +60,4 @@ jobs:
           git commit -m "chore: mirror crc cards"
           git push origin main
           cd ..
-
-
 
