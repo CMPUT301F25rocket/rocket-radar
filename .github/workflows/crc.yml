@@ -53,11 +53,10 @@ jobs:
       - name: Update the wiki page
         shell: bash
         run: |
-          # NOTE: mv overwrite by default.
           mv CRC.md wiki/
-          cd wiki
-          git add CRC.md
-          git commit -m "chore: mirror crc cards"
-          git push origin main
-          cd ..
 
+      # Deal with configuring dummy git user and email.
+      - uses: stefanzweifel/git-auto-commit-action@v6
+        with:
+          commit_message: "chore: mirror crc cards"
+          repository: wiki
