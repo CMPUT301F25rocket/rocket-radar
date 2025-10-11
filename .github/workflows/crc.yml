@@ -31,6 +31,7 @@ jobs:
       # only grabbing docs. So should be pretty quick.
       - uses: actions/checkout@v5
         with:
+          path: rocket-radar
           sparse-checkout: doc
 
       # As soon as we have the binary and docs we can generate the 
