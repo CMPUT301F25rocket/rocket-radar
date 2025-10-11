@@ -1,0 +1,6 @@
+EventFeed:
+  role:
+    - I used role instead of responsibility since it's shorter to write
+  collab:
+    - And we can add collaborators
+    - One per line

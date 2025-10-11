@@ -1,0 +1,79 @@
+name: Mirror CRC cards to the Wiki
+
+# We run anytime changes to the crc folder are pushed to main
+on:
+  push: 
+    branch: 
+      - main
+    paths:
+      - 'doc/crc/**/*.yml'
+
+
+# https://github.com/orgs/community/discussions/56893#discussioncomment-6054377
+# Turns out
+permissions:
+  contents: write
+
+jobs:
+  install-crcgen:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download crcgen Binary 
+        shell: bash
+        run: |
+          echo "Started crcgen Install"
+          wget -q -O /usr/local/bin/crcgen "https://github.com/GenericConfluent/crcgen/releases/download/v0.1.0/crcgen"
+          chmod +x /usr/local/bin/crcgen
+          echo "Finished crcgen Install"
+
+  # Clone the source of our repository so we can get into doc/crc.
+  # Here we are only fetching the most recent commit and even then 
+  # only grabbing docs. So should be pretty quick.
+  clone-repo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: doc
+
+  # As soon as we have the binary and docs we can generate the 
+  # rendered cards. Outputs: $GITHUB_WORKSPACE/CRC.md
+  build-cards:
+    needs: [install-crcgen, clone-repo]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build Cardpage from `doc/crc`
+        shell: bash
+        run: |
+          # I need this to get the recursive glob to grab stuff
+          # in the current dir.
+          shopt -s globstar
+          /usr/local/bin/crcgen -o CRC.md rocket-radar/doc/crc/**/*.yml
+
+  # Clone the wiki into the $GITHUB_WORKSPACE/wiki (where $GITHUB_WORKSPACE is
+  # the default working directory for scripts.
+  clone-wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          repository: ${{ github.repository }}.wiki
+          path: wiki
+
+  update-wiki:
+    needs: [clone-wiki, build-cards]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update the wiki page
+        shell: bash
+        run: |
+          # NOTE: mv overwrite by default.
+          mv CRC.md wiki/
+          cd wiki
+          git add CRC.md
+          git commit -m "chore: mirror crc cards"
+          git push origin main
+          cd ..
+
+
+
