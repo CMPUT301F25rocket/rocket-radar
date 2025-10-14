@@ -22,7 +22,7 @@ jobs:
         shell: bash
         run: |
           echo "Started crcgen Install"
-          wget -q -O /usr/local/bin/crcgen "https://github.com/GenericConfluent/crcgen/releases/download/v0.1.0/crcgen"
+          wget -q -O /usr/local/bin/crcgen "https://github.com/CMPUT301F25rocket/crcgen/releases/download/v0.1.0/crcgen"
           chmod +x /usr/local/bin/crcgen
           echo "Finished crcgen Install"
 
