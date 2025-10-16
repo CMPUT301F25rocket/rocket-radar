@@ -1,7 +1,8 @@
 EventFeed:
   role:
     - I used role instead of responsibility since it's shorter to write
-    - Test crc workflow 4
+    - My crc change.
+    - Another value.
   collab:
     - And we can add collaborators
     - One per line
