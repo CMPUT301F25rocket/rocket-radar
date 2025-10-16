@@ -1,0 +1,10 @@
+User:
+  role:
+    - Store and manage personal information (name, email, optional phone number).
+    - Update profile information.
+    - Delete profile.
+    - Be uniquely identified by device ID (no login required).
+    - Receive or opt out of notifications.
+ collab:
+    - EventView
+    - ProfileView
