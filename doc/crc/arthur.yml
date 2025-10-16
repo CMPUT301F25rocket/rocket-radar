@@ -5,6 +5,6 @@ User:
     - Delete profile.
     - Be uniquely identified by device ID (no login required).
     - Receive or opt out of notifications.
- collab:
+  collab:
     - EventView
     - ProfileView
