@@ -1,0 +1,26 @@
+Event:
+  role:
+    - Represent key features of event including name, participating users, 
+      lottery limits, etc.
+  collab:
+    - EventView
+    - ProfileView
+
+EventView:
+  role:
+    - Show a preview of details to the user with the name, date, and
+      description.
+
+    - When clicked should go to the EventFragment with this event filled.
+  collab:
+    - EventFragment
+
+EventFragment:
+  role:
+    - Allows entrants to view event details, join the waitlist, leave the waitlist.
+    - Organizer can move to the EditFragment for the contained event.
+    - Organizer can manage the lottery selection.
+    - Admins in this fragment are able to see notifications sent out and delete the 
+      event if they need.
+  collab:
+    - EventView
