@@ -47,6 +47,10 @@ CreateWizardNavbar:
   collab:
     - 
 
-
-
+EventLotteryStatus:
+  role:
+    - Be visually interesting.
+    - Convey to the user the current state of the event's lottery.
+  collab:
+    - Event
 
