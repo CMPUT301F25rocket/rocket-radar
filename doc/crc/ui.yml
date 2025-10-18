@@ -1,0 +1,52 @@
+ColorSelector:
+  role:
+    - Switch between custom and default color selection.
+    - Allow the definition of a list of default colors in a resource file.
+    - Allow the code that spawned this color selector to specify a callback which 
+      the selector can use to immediatly notify the caller when a new color is chosen.
+    - Close the selector when the user clicks off of the bottom sheet.
+    - Allows self to be attached to any view.
+  collab:
+    - Color
+    - Event
+    - EventManagementFragment
+
+MainFragmentMenu:
+  role:
+    - For Entrant/Organizer allow navigation between an event feed, event creation
+      area and profile/settings management area.
+    - Change navigation options when the user is in Admin mode to the differnt content
+      types admins can browse and delete.
+  collab:
+    - EventFeedView
+
+MapChart:
+  role:
+    - Given a list of lat and long coord display a map with those points drawn
+      on the map.
+    - Allow the organizer to pan around the map.
+    - Allow the organizer to click on a point and see which user it is associated with.
+  collab:
+    - Event
+    - User
+    - EventFragment
+
+AppData:
+  role:
+    - Store the global data associated to the app.
+    - Who if anybody is logged in?
+    - Are we currently in admin mode?
+  collab:
+    - User
+
+# Ideally this can be general.
+CreateWizardNavbar:
+  role:
+    - Allow the user to move between consecutive wizard pages.
+    - Restrict forward movement when required field of the page are empty.
+  collab:
+    - 
+
+
+
+
