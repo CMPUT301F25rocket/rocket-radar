@@ -23,6 +23,13 @@ NotificationList:
 
 NotificationFragment:
   role:
-    - ?
+    - Allow the specification of a NotificationFilter
+    - When in the fragment is not in admin mode we should add a filter for the 
+      specific users event notifications.
+    - When in admin mode we can see all notifications.
+    - When in admin mode allow filtering notifications by what has been flagged.
   collab:
-    - ?
+    - NotificationList
+    - NotificationFilter
+    - NotificationView
+
