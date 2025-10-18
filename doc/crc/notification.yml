@@ -1,0 +1,28 @@
+NotificationView:
+  role:
+    - Display a notification to the user from organizer.
+    - Be easily associated with the event that creates it.
+    - Be clickable and bring the user to the event that created it.
+
+  collab:
+    - NotificationList
+    - EventFragment
+
+NotificationFilter:
+  role:
+    - Be a predicate for notifications
+  collab:
+    - NotificationList
+
+NotificationList:
+  role:
+    - Show the user many notifications.
+  collab:
+    - NotificationFilter
+    - NotificationView
+
+NotificationFragment:
+  role:
+    - ?
+  collab:
+    - ?
