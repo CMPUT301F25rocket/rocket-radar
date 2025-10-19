@@ -1,0 +1,30 @@
+User:
+  role:
+    - Edit optional personal information.
+    - Delete profile.
+    - Receive or opt out of notifications.
+    - Create events.
+  collab:
+    - EventView
+    - ProfileView
+
+ProfileFragment:
+  role:
+    - Display profile photo and user information
+    - Display My Events (active or waitlisted events)
+    - Display My History (past events the user interacted with)
+    - Navigate to AccountSettingsFragment
+  collab:
+    - User
+    - AccountSettingsFragment
+    - Event
+
+AccountSettingsFragment:
+  role:
+    - Edit personal information (name, email, phone number)
+    - Toggle notifications and geo-location settings
+    - Switch to moderator mode if applicable
+    - Delete user account and update User model
+  collab:
+    - User
+    - ProfileFragment
