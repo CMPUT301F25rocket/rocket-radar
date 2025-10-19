@@ -1,0 +1,20 @@
+DrawReplacement:
+  role:
+    - Draw a replacement entrant from the waiting pool when needed.
+    - Show a brief summary of the selection outcome.
+  collab:
+    - Event
+
+DrawReplacementConfirm:
+  role:
+    - Confirm the replacement draw action before it executes.
+  collab:
+    - DrawReplacement
+    - Event
+
+EventFeedView/Waitlist:
+  role:
+    - (For reference) show simple status chips next to each event item.
+    - Avoid promising real-time updates beyond basic refresh.
+  collab:
+    - Event

@@ -50,6 +50,159 @@ EventFilter:
   collab:
     - Event
 
+EventDisplay:
+  role:
+    - Present key event details (poster, name, date, description, organizer).
+    - Provide primary CTA based on role (Join/Leave waitlist for entrants).
+    - Surface current waitlist count when available.
+  collab:
+    - Event
+    - EventFragment
+
+# Event Feeds
+
+EventFeedView:
+  role:
+    - Display discoverable events for entrants.
+    - Updates on every visit to show new events.
+    - Open EventDetailView on card tap.
+  collab:
+    - EventList
+    - EventView
+    - EventFilter
+
+EventFeedView/Attending:
+  role:
+    - List events the user is currently selected/enrolled in.
+    - Open EventFragment for details.
+  collab:
+    - Event
+    - EventFragment
+
+EventFeedView/Discover:
+  role:
+    - Show discoverable events in a scrolling list.
+    - Each card shows name, date, short description, and poster thumbnail.
+    - On click, open EventFragment for details.
+  collab:
+    - Event
+    - EventFragment
+    - EventFilter
+
+EventFeed/FilterChips:
+  role:
+    - Toggle interest, date, availability, and nearby filters as chips.
+  collab:
+    - EventFilter
+    - EventFeedView
+    - User
+
+EventFeedView/QRCodeGen:
+  role:
+    - Shortcut surface to generate/share an event QR code.
+    - Display QR preview and share options.
+  collab:
+    - Event
+    - QRCodeGeneratorController
+    - QRCodeGeneratorView
+
+EventFeedView/Search:
+  role:
+    - Provide a calendar for date-based event searching.
+    - Show possible filter options for events.
+  collab:
+    - EventList
+    - EventView
+    - EventFeedView
+    - EventFilter
+
+EventView/Organizer:
+  role:
+    - Organizer-facing summary card with quick actions to manage the event.
+    - Navigate to EventManagementFragment.
+  collab:
+    - Event
+    - EventManagementFragment
+
+# Create Events
+
+# DNE
+CreateWizardNavbar:
+  role:
+    - Allow the user to move between consecutive wizard pages.
+    - Restrict forward movement when required field of the page are empty.
+  collab:
+    - Event
+    - EventManagementFragment
+
+CreateEventLottery:
+  role:
+    - Configure basic lottery options (e.g., optional waitlist size limit).
+    - Do not promise complex rules or weighted draws.
+  collab:
+    - Event
+    - CreateWizardNavbar
+
+CreateEventStatusDate:
+  role:
+    - Choose/preview registration “opens” and “closes” dates.
+    - Indicate when registration is not yet open or closed.
+  collab:
+    - Event
+    - CreateWizardNavbar
+
+CreateEventBasic:
+  role:
+    - Capture name, description, and optional poster upload.
+    - Validate minimal required fields before moving forward.
+  collab:
+    - Event
+    - CreateWizardNavbar
+
+CreateEventDateTime:
+  role:
+    - Set event date/time and registration period.
+    - Provide simple validation (start <= end).
+  collab:
+    - Event
+    - CreateWizardNavbar
 
 
+CreateEventDateTime/EditDate:
+  role:
+    - Edit a previously set date/time within the wizard or edit mode.
+  collab:
+    - Event
+    - CreateWizardNavbar
 
+CreateEventStyle/Initial:
+  role:
+    - Show default style preview for the event card/poster.
+  collab:
+    - Event
+    - ColorSelector
+
+CreateEventStyle/CustomColorPick:
+  role:
+    - Allow choosing a custom color using ColorSelector.
+  collab:
+    - Event
+    - ColorSelector
+
+CreateEventStyle/DefaultColorPick:
+  role:
+    - Allow choosing one of the predefined default colors.
+  collab:
+    - Event
+    - ColorSelector
+
+ColorSelector:
+    role:
+        - Switch between custom and default color selection.
+        - Allow the definition of a list of default colors in a resource file.
+        - Close the selector when the user clicks off of the bottom sheet.
+        - Allows self to be attached to any view.
+    collab:
+        - Color
+        - Event
+        - EventManagementFragment

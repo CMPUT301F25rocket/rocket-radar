@@ -1,0 +1,41 @@
+EntrantListView:
+  role:
+    - Show entrants who joined the waiting list or were selected.
+    - Provide basic tabs or filters for Selected / Cancelled / Final.
+    - Read-only by default; destructive actions go through dedicated screens.
+  collab:
+    - Event
+    - User
+
+EntrantMapView:
+  role:
+    - Show locations where entrants joined (if geo enabled).
+    - Pan/zoom map; select a point to see minimal entrant info.
+  collab:
+    - MapChart
+    - Event
+    - User
+
+InvitedEntrants:
+  role:
+    - List entrants who received invitations to sign up.
+    - Provide simple status indicators (accepted / declined / pending).
+  collab:
+    - Event
+    - User
+
+CancelInvitedEntrant:
+  role:
+    - Let organizer cancel an invitation for a specific entrant.
+    - Require confirmation before applying.
+  collab:
+    - Event
+    - InvitedEntrants
+
+SendNotificationScreenFragment:
+  role:
+    - Send a simple message to a chosen group: waiting list, selected, or cancelled.
+    - Do not promise templates or rich formatting.
+  collab:
+    - Event
+    - NotificationFragment

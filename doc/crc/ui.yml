@@ -54,3 +54,23 @@ EventLotteryStatus:
   collab:
     - Event
 
+MainNavigationBar:
+  role:
+    - Provide bottom/top navigation between Event Feed, Create/Edit, Notifications, and Profile.
+    - Switch menu to AdminNavigationBar when AppData indicates admin mode.
+  collab:
+    - AppData
+    - EventFeedView
+    - EventCreationWizard
+    - NotificationFragment
+    - ProfileFragment
+    - AdminNavigationBar
+
+LogInView:
+  role:
+    - Identify the user by device (passwordless) and initialize a User profile.
+    - Handle signin/out and handoff to MainNavigationBar.
+  collab:
+    - AppData
+    - User
+    - ProfileFragment

@@ -1,0 +1,14 @@
+CSVExportFragment:
+  role:
+    - Configure and confirm export of a final enrolled list.
+    - Show where the file will be saved or shared.
+  collab:
+    - Event
+    - CSVExport
+
+CSVExport:
+  role:
+    - Generate a CSV of the final enrolled entrants.
+    - Return a file handle for share/save.
+  collab:
+    - Event

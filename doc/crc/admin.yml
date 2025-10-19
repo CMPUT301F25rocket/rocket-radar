@@ -1,0 +1,76 @@
+AdminNavigationBar:
+  role:
+    - Provide tabs to browse Events, Profiles, and Images (admin mode).
+    - Reflect current section and switch fragments accordingly.
+  collab:
+    - AdminBrowseEvents
+    - AdminBrowseProfiles
+    - AdminBrowseImages
+
+#DNE
+AdminBrowseEvents:
+  role:
+    - Show a paged list of events with minimal details (name, date, organizer).
+    - Provide basic search or simple filters (e.g., text match).
+    - Open an event in read-only view; allow delete via ModerationPopup.
+  collab:
+    - Event
+    - ModerationPopup
+
+#DNE
+AdminBrowseProfiles:
+  role:
+    - Show a paged list of user profiles (display name + basic info).
+    - Provide basic search (text match).
+    - Allow remove profile via ModerationPopup.
+  collab:
+    - User
+    - ModerationPopup
+
+#DNE
+AdminBrowseImages:
+  role:
+    - Show uploaded images with small previews.
+    - Provide simple search by filename/uploader when available.
+    - Allow remove image via ModerationPopup.
+  collab:
+    - ModerationPopup
+
+ModerationPopup:
+  role:
+    - Confirm destructive actions (remove event/profile/image).
+    - Summarize what will be deleted; require explicit confirmation.
+  collab:
+    - AdminBrowseEvents
+    - AdminBrowseProfiles
+    - AdminBrowseImages
+
+ViolationRow:
+  role:
+    - Visually flag list items that may violate policy (e.g., reported content).
+    - Offer a quick path to open ModerationPopup.
+  collab:
+    - AdminBrowseEvents
+    - AdminBrowseProfiles
+    - AdminBrowseImages
+  # Supports US 03.07.01 without promising automated policy engines.
+
+#DNE
+NotificationAuditLog:
+  role:
+    - Show a chronological list of notifications sent to entrants by organizers.
+    - Provide basic filters (by event or organizer) when available.
+    - Open a notification to view minimal detail and related event.
+  collab:
+    - NotificationList
+    - NotificationView
+    - Event
+
+#DNE
+AdminFilter:
+  role:
+    - Provide simple predicates for admin browsing views (e.g., text query).
+  collab:
+    - AdminBrowseEvents
+    - AdminBrowseProfiles
+    - AdminBrowseImages
