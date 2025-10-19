@@ -1,0 +1,31 @@
+QRCode:
+  role:
+    - store encoded data of an event
+  collab:
+    - QRCodeGeneratorController
+    - Event
+
+QRCodeGeneratorController:
+  role:
+    - generate a unique QR code for an event organizer
+    - provide the QR code to the view for display
+    - handle share and download requests
+  collab:
+    - QRCode
+    - QRCodeGeneratorView
+
+QRCodeGeneratorView:
+  role:
+    - display the generated QR code to the user
+    - show share and download buttons
+    - notify controller if button is pressed
+  collab:
+    - QRCodeGeneratorController
+
+QRCodeCameraScanner:
+  role:
+    - handles QR code scanning in camera
+    - redirects user to app and opens proper event
+  collab:
+    - QRCode
+    - Event
