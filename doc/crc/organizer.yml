@@ -34,7 +34,7 @@ CancelInvitedEntrant:
 
 SendNotificationScreenFragment:
   role:
-    - Send a simple message to a chosen group: waiting list, selected, or cancelled.
+    - Send a simple message to a chosen group (waiting list, selected, or cancelled.)
     - Do not promise templates or rich formatting.
   collab:
     - Event
