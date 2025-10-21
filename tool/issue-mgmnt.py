@@ -121,13 +121,42 @@ def assign(args, issues):
                 milestone = 1
     # FIXME: We should now have the current milestone. Filter the issues.
     # And assign trying to keep work even.
-    
-    
+
+def checkpoint(args, issues):
+    checkpoints = None
+    try:
+        with open("checkpoints.txt", "r") as f:
+            checkpoints = f.read().splitlines()
+    except FileNotFoundError:
+        print("Could not find checkpoints.txt")
+        return
+    found = dict()
+    for point in checkpoints:
+        for issue in issues:
+            if point in issue["title"]:
+                assoc = found.get(point, [])
+                assoc.append(issue["number"])
+                subprocess.run(
+                    ["gh", "issue", "-R", REPO, "edit", str(issue["number"]), "--add-label", "F-Checkpoint", "--milestone", "Project Part 3"],
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+                found["point"] = assoc
+                print(f"F-Checkpoint on number {issue['number']} with title {issue['title']}")
+    for point in checkpoints:
+        assoc = found.get(point, [])
+        assoc_count = len(assoc)
+        if assoc_count == 0:
+            print(f"Could not find {point} in any title, nothing added")
+        if assoc_count > 1:
+            print(f"Found {point} in multiple titles, {assoc}")
+
 if __name__ == "__main__":
     # Load issues.
     try:
         result = subprocess.run(
-            ["gha", "issue", "-R", REPO, "list", "--limit", "1000", "--json", "id,title,labels,assignees,milestone,state"],
+            ["gh", "issue", "-R", REPO, "list", "--limit", "1000", "--json", "id,title,labels,assignees,milestone,state,number"],
             capture_output=True,
             text=True,
             check=True
@@ -152,6 +181,7 @@ if __name__ == "__main__":
     command.add_parser("query")
     # Randomly assign an even workload for up to the next milestone.
     command.add_parser("assign")
+    command.add_parser("checkpoint")
 
     args = parser.parse_args()
 
