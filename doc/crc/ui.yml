@@ -39,14 +39,6 @@ AppData:
   collab:
     - User
 
-# Ideally this can be general.
-CreateWizardNavbar:
-  role:
-    - Allow the user to move between consecutive wizard pages.
-    - Restrict forward movement when required field of the page are empty.
-  collab:
-    - 
-
 EventLotteryStatus:
   role:
     - Be visually interesting.
