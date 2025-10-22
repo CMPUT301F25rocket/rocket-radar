@@ -15,6 +15,6 @@
         android:layout_height="">
         <com.google.android.material.button.MaterialButton
             android:layout_width="40dp"
-            android:layout_height="match_parent"
+            android:layout_height="match_parent" />
     </com.google.android.material.button.MaterialButtonGroup>
 </androidx.constraintlayout.widget.ConstraintLayout>
