@@ -5,7 +5,7 @@
           android:icon="@drawable/ic_view_agenda_24dp" />
      <item android:id="@+id/action_create"
           android:title="@string/menu_action_create_text"
-          android:icon="@drawable/ic_add_24dp" />
+          android:icon="@drawable/ic_add_menu" />
      <item android:id="@+id/action_profile"
           android:title="@string/menu_action_profile_text"
           android:icon="@drawable/ic_person_24dp" />
