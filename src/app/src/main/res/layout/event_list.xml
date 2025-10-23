@@ -9,37 +9,65 @@
         android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:weightSum="3"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <!-- FIXME: Search button -->
-        <com.google.android.material.button.MaterialButton
+
+        <Button
+            android:id="@+id/btnSearch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:icon="@android:drawable/ic_search_category_default" />
+            style="@style/Widget.Material3.Button.IconButton.Outlined"
+            app:icon="@drawable/ic_search_24dp" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
 
         <com.google.android.material.button.MaterialButtonToggleGroup
-            android:layout_width="match_parent"
-            android:layout_height="50dp">
+            android:id="@+id/toggleGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
 
             <com.google.android.material.button.MaterialButton
-                android:layout_width="40dp"
-                android:layout_height="match_parent" />
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Discover"
+                android:textSize="11sp" />
 
             <com.google.android.material.button.MaterialButton
-                android:layout_width="40dp"
-                android:layout_height="match_parent" />
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Waitlist"
+                android:textSize="11sp" />
 
             <com.google.android.material.button.MaterialButton
-                android:layout_width="40dp"
-                android:layout_height="match_parent" />
-        </com.google.android.material.button.MaterialButtonGroup>
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Attending"
+                android:textSize="11sp" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
 
-        <com.google.android.material.button.MaterialButton
-            android:layout_width=""
-            android:layout_height="" />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+
+        <Button
+            android:id="@+id/btnNotification"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/Widget.Material3.Button.IconButton.Outlined"
+            app:icon="@drawable/ic_notification_24dp" />
+
+
     </LinearLayout>
+
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/event_list"
