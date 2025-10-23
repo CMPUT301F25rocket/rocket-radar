@@ -9,7 +9,7 @@
         android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
+        android:gravity="center_horizontal|center_vertical"
         android:orientation="horizontal"
         android:weightSum="3"
         app:layout_constraintEnd_toEndOf="parent"
@@ -19,9 +19,9 @@
 
         <Button
             android:id="@+id/btnSearch"
+            style="@style/Widget.Material3.Button.IconButton.Outlined"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            style="@style/Widget.Material3.Button.IconButton.Outlined"
             app:icon="@drawable/ic_search_24dp" />
 
         <View
@@ -60,9 +60,9 @@
 
         <Button
             android:id="@+id/btnNotification"
+            style="@style/Widget.Material3.Button.IconButton.Outlined"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            style="@style/Widget.Material3.Button.IconButton.Outlined"
             app:icon="@drawable/ic_notification_24dp" />
 
 
