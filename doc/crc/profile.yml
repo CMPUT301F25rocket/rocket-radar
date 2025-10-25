@@ -8,7 +8,7 @@ User:
     - EventView
     - ProfileView
 
-ProfileFragment:
+ProfileView:
   role:
     - Display profile photo and user information
     - Display My Events (active or waitlisted events)
