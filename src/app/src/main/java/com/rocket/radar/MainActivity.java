@@ -13,7 +13,6 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.Firebase;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -25,6 +24,13 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private FirebaseAuth mAuth;
 
+    /**
+     * This method runs the first time the activity is created and only then.
+     * @param savedInstanceState If the activity is being re-initialized after
+     *     previously being shut down then this Bundle contains the data it most
+     *     recently supplied in {@link #onSaveInstanceState}.  <b><i>Note: Otherwise it is null.</i></b>
+     *
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         mAuth = FirebaseAuth.getInstance(); // Initiaize Firebase Auth
@@ -39,6 +45,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * This method is called when the activity becomes visible to the user.
+     */
     @Override
     public void onStart() {
         super.onStart();
@@ -49,32 +58,33 @@ public class MainActivity extends AppCompatActivity {
             updateUI(currentUser);
     }
 
+    /**
+     * Signs in the user anonymously with Firebase Auth.
+     * Calls updateUI() when the operation completes.
+     */
     private void signInAnonymously() {
         mAuth.signInAnonymously()
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "signInAnonymously:success");
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            updateUI(user);
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w(TAG, "signInAnonymously:failure", task.getException());
-                            Toast.makeText(MainActivity.this, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show();
-                            updateUI(null);
-                        }
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "signInAnonymously:success");
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        updateUI(user);
+                    } else {
+                        Log.w(TAG, "signInAnonymously:failure", task.getException());
+                        updateUI(null);
                     }
                 });
     }
 
+    /**
+     * stub
+     * @param user
+     */
     private void updateUI(FirebaseUser user) {
         if (user != null)
             Log.d(TAG, "User ID: " + user.getUid()); // TODO: Load profile fragment or display user info
         else
-            Log.d(TAG, "No user signed in"); // TODO: Show sign-in error message or retry
+            Log.w(TAG, "No user signed in"); // TODO: Show sign-in error message or retry
     }
 
 }
