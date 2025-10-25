@@ -13,10 +13,16 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.Firebase;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.rocket.radar.databinding.NavBarBinding;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     private NavBarBinding navBarBinding;
@@ -55,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         if (currentUser == null)
             signInAnonymously();
         else
-            updateUI(currentUser);
+            handleUserSignIn(currentUser);
     }
 
     /**
@@ -68,23 +74,30 @@ public class MainActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         Log.d(TAG, "signInAnonymously:success");
                         FirebaseUser user = mAuth.getCurrentUser();
-                        updateUI(user);
+                        handleUserSignIn(user);
                     } else {
                         Log.w(TAG, "signInAnonymously:failure", task.getException());
-                        updateUI(null);
+                        handleUserSignIn(null);
                     }
                 });
     }
 
-    /**
-     * stub
-     * @param user
-     */
-    private void updateUI(FirebaseUser user) {
-        if (user != null)
-            Log.d(TAG, "User ID: " + user.getUid()); // TODO: Load profile fragment or display user info
-        else
-            Log.w(TAG, "No user signed in"); // TODO: Show sign-in error message or retry
+    private void handleUserSignIn(FirebaseUser user) {
+        if (user == null) {
+            Log.w(TAG, "No user signed in");
+            return;
+        }
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String uid = user.getUid();
+        Map<String, Object> userMap = new HashMap<>();
+        // userMap.put("createdAt", FieldValue.serverTimestamp()); this will get overwritten each time, so maybe implement it later
+        userMap.put("lastLogin", FieldValue.serverTimestamp());
+
+        db.collection("users")
+                .document(uid)
+                .set(userMap)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "User document created/updated"))
+                .addOnFailureListener(e -> Log.w(TAG, "Error writing user document", e));
     }
 
 }
