@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
 
-    id("com.android.application")
     id("com.google.gms.google-services")
 }
 
@@ -52,6 +51,7 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation(libs.recyclerview)
+    implementation(libs.firebase.auth)
 
     // Instrumentation testing
     testImplementation(libs.junit)
