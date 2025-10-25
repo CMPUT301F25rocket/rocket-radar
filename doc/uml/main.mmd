@@ -2,5 +2,23 @@
 %% https://mermaid.js.org/syntax/classDiagram.html
 classDiagram
     note "This is a note"
-    class User{
+    class InitActivity{
+        - binding: InitActivityBinding
+    }
+
+    class MainActivity {
+        - binding: MainActivityBinding
+    }
+    class EventViewFragment {
+        - binding: EventViewFragmentBinding
+    }
+    class CreateEventFragment {
+        - binding: CreateEventFragmentBinding
+    }
+    class ProfileViewFragment {
+        - binding: ProfileViewFragmentBinding
+    }
+
+    class EventActivity {
+        - binding: EventActivityBinding
     }

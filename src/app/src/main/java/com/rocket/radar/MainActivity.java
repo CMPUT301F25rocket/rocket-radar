@@ -8,7 +8,10 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.rocket.radar.databinding.NavBarBinding;
+
 public class MainActivity extends AppCompatActivity {
+    private NavBarBinding navBarBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
