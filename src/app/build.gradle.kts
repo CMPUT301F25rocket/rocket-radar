@@ -49,6 +49,10 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation(libs.recyclerview)
+    implementation(libs.firebase.common)
+    implementation(libs.firebase.firestore)
+    implementation("com.github.bumptech.glide:glide:5.0.5")
+
 
     // Instrumentation testing
     testImplementation(libs.junit)

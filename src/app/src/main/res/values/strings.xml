@@ -3,4 +3,7 @@
     <string name="menu_action_events_text">Events</string>
     <string name="menu_action_create_text">Create</string>
     <string name="menu_action_profile_text">Profile</string>
+    <string name="notifications">Notifications</string>
+    <string name="you_have_no_new_notifications">You have no new notifications</string>
+    <string name="failed_to_load_notifications">Failed to Load Notifications</string>
 </resources>

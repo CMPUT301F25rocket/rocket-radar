@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="10dp"
+    android:layout_marginEnd="10dp"
+    android:layout_marginTop="10dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- 1. Background Image -->
+        <ImageView
+            android:id="@+id/lottery_background_image"
+            android:layout_width="0dp"
+            android:layout_height="150dp"
+            android:scaleType="centerCrop"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:srcCompat="@tools:sample/backgrounds/scenic"
+            android:contentDescription="Event background image" />
+
+        <!-- 2. "Ski Event" Chip over the image -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/event_name_chip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="#CCFFFFFF"
+            app:cardCornerRadius="8dp"
+            app:contentPadding="8dp"
+            app:layout_constraintBottom_toTopOf="@id/dialog_message"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <TextView
+                android:id="@+id/dialog_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ski Event"
+                android:textColor="@android:color/black"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- 3. Notification Message -->
+        <TextView
+            android:id="@+id/dialog_message"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp"
+            android:text="Notification Message"
+            android:textAlignment="center"
+            android:textColor="@android:color/black"
+            android:textSize="20sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/lottery_background_image" />
+
+        <!-- 4. Close Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_ok"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginBottom="24dp"
+            android:backgroundTint="#C62828"
+            android:paddingVertical="12dp"
+            android:text="Ok"
+            android:textColor="@android:color/white"
+            app:cornerRadius="12dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/dialog_message" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>
+
