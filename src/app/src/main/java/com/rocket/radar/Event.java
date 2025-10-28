@@ -5,12 +5,14 @@ public class Event {
     String date;
     String tagline;
     int image;
+    boolean onWaitlist;
 
-    public Event(String eventTitle, String date, String tagline, int image) {
+    public Event(String eventTitle, String date, String tagline, int image, boolean onWaitlist) {
         this.eventTitle = eventTitle;
         this.date = date;
         this.tagline = tagline;
         this.image = image;
+        this.onWaitlist = onWaitlist;
     }
 
 
@@ -28,5 +30,9 @@ public class Event {
 
     public int getImage() {
         return image;
+    }
+
+    public boolean isOnWaitlist() {
+        return onWaitlist;
     }
 }
