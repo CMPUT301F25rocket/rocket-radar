@@ -20,15 +20,10 @@
 
         <Button
             android:id="@+id/btnSearch"
-            style="@style/Widget.Material3.Button.IconButton.Outlined"
+            style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:icon="@drawable/ic_search_24dp" />
-
-        <View
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
 
         <com.google.android.material.button.MaterialButtonToggleGroup
             android:id="@+id/toggleGroup"
@@ -44,7 +39,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Discover"
-                android:textSize="14sp" />
+                android:textSize="12sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/waitlist_filter_button"
@@ -52,7 +47,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Waitlist"
-                android:textSize="14sp" />
+                android:textSize="12sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/attending_filter_button"
@@ -60,17 +55,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Attending"
-                android:textSize="14sp" />
+                android:textSize="12sp" />
         </com.google.android.material.button.MaterialButtonToggleGroup>
-
-        <View
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
 
         <Button
             android:id="@+id/btnNotification"
-            style="@style/Widget.Material3.Button.IconButton.Outlined"
+            style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:icon="@drawable/ic_notification_24dp" />
