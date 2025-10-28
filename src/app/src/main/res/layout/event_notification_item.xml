@@ -30,53 +30,36 @@
             android:background="#66000000" /> <!-- Semi-transparent black -->
 
         <!-- 3. Event Title Text -->
-
-        <TextView
-            android:id="@+id/textView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="TextView"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/event_title_text"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
         <TextView
             android:id="@+id/event_title_text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="200dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
-            android:gravity="end"
-            android:maxLines="2"
-            android:text="Event Title Here"
+            android:layout_marginTop="16dp"
             android:textColor="@android:color/white"
-            android:textSize="30sp"
+            android:textSize="24sp"
             android:textStyle="bold"
-            app:layout_constraintBottom_toTopOf="@+id/update_details_text"
-            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Event Title Goes Here"/>
 
         <!-- 4. Update Details Text -->
         <TextView
             android:id="@+id/update_details_text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="200dp"
-            android:layout_marginTop="12dp"
+            android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="16dp"
             android:gravity="end"
             android:textColor="@android:color/white"
             android:textSize="16sp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/event_title_text"
-            tools:layout_constraintTop_toBottomOf="@id/event_title_text"
-            tools:text="Update" />
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="Update details here" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>
