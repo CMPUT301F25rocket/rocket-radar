@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -20,7 +19,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:contentDescription="Event background image"
+            android:contentDescription="@string/event_background_image_description"
             tools:srcCompat="@tools:sample/backgrounds/scenic" />
 
         <!-- 2. Dark Overlay/Scrim for Text Readability -->
@@ -33,30 +32,34 @@
         <!-- 3. Event Title Text -->
         <TextView
             android:id="@+id/event_title_text"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
             android:layout_marginTop="16dp"
-            android:text="BBQ Event"
             android:textColor="@android:color/white"
-            android:textSize="28sp"
+            android:textSize="24sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Event Title Goes Here"/>
 
         <!-- 4. Update Details Text -->
         <TextView
             android:id="@+id/update_details_text"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="16dp"
-            android:text="Updated Event Details"
+            android:gravity="end"
             android:textColor="@android:color/white"
-            android:textSize="20sp"
-            android:textStyle="bold"
+            android:textSize="16sp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="Update details here" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>

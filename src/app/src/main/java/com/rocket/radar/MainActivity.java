@@ -6,116 +6,48 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;import androidx.appcompat.app.AppCompatActivity;
+import android.widget.Toast;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.FragmentTransaction;
+
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
+
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Main activity of the application.
+ * This class includes a full guide and testing suite for the notification system.
+ * Author: Braden Woods
+ */
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
 
-    // =====================================================================================
-    // TEAM INTEGRATION GUIDE: HOW TO USE THE NOTIFICATION SYSTEM
-    // =====================================================================================
-    /*
-     * Welcome! This guide explains how to integrate the notification system into the app.
-     *
-     * There are two main parts:
-     *   1. The Notification Page: A full-screen list of all past notifications.
-     *   2. The In-App Banner: A temporary banner that appears at the top of the screen
-     *      when a new notification arrives while the user is using the app.
-     *
-     * To make this work, follow the steps below.
-     *
-     * -------------------------------------------------------------------------------------
-     * STEP 1: ADD A NOTIFICATION ICON TO YOUR UI
-     * -------------------------------------------------------------------------------------
-     * In your main layout (e.g., in a toolbar or menu), add a notification bell icon.
-     * When this icon is clicked, you will call the `navigateToNotificationFragment()` method.
-     *
-     * Example:
-     *   ImageView notificationIcon = findViewById(R.id.your_notification_icon_id);
-     *   notificationIcon.setOnClickListener(v -> navigateToNotificationFragment());
-     *
-     *
-     * -------------------------------------------------------------------------------------
-     * STEP 2: ENSURE YOUR LAYOUT HAS A FRAGMENT CONTAINER
-     * -------------------------------------------------------------------------------------
-     * The `navigateToNotificationFragment()` method needs a place to put the fragment.
-     * Your `activity_main.xml` (or equivalent layout) must have a `FragmentContainerView`.
-     *
-     * Make sure this exists in your layout file:
-     *   <androidx.fragment.app.FragmentContainerView
-     *       android:id="@+id/main" // <--- IMPORTANT: The ID must match what's used below.
-     *       android:layout_width="match_parent"
-     *       android:layout_height="match_parent" />
-     *
-     *
-     * -------------------------------------------------------------------------------------
-     * STEP 3: MANAGE USER LOGIN STATE
-     * -------------------------------------------------------------------------------------
-     * The notification system needs to know who the current user is. This is done using
-     * SharedPreferences. When a user logs IN, you must save their user ID. When they log
-     * OUT, you must clear it.
-     *
-     * ON LOGIN:
-     *   SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-     *   prefs.edit().putString(USER_ID_KEY, "the_actual_user_id_from_firebase").apply();
-     *   setupInAppNotificationListener(); // IMPORTANT: Restart the listener after login.
-     *
-     * ON LOGOUT:
-     *   SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-     *   prefs.edit().remove(USER_ID_KEY).apply();
-     *   if (inAppNotificationListener != null) {
-     *       inAppNotificationListener.remove(); // IMPORTANT: Stop listening on logout.
-     *   }
-     *
-     *
-     * -------------------------------------------------------------------------------------
-     * STEP 4 (FOR ORGANIZERS): SENDING NOTIFICATIONS
-     * -------------------------------------------------------------------------------------
-     * To send a notification (e.g., after selecting lottery winners), use the
-     * `NotificationController`. You do NOT need to interact with any other part of the system.
-     * The controller handles everything automatically.
-     *
-     * Example (sending a "You're In!" message):
-     *
-     *   List<String> winnerIds = ... // Get the list of user IDs who won.
-     *   String currentEventId = "your_event_id";
-     *   String currentOrganizerId = "your_organizer_user_id";
-     *
-     *   NotificationController.sendNotificationToSelectedEntrants(
-     *       currentEventId,
-     *       currentOrganizerId,
-     *       winnerIds
-     *   ).addOnSuccessListener(aVoid -> {
-     *       // Notification sent successfully!
-     *   }).addOnFailureListener(e -> {
-     *       // Something went wrong.
-     *   });
-     *
-     */
-
     // --- Configuration Constants ---
-    // Use these constants to avoid "magic strings".
     private static final String USER_ID_KEY = "USER_ID_KEY";
     private static final String PREFS_NAME = "YourAppPrefs";
 
     // This holds the real-time listener so we can detach it later to prevent memory leaks.
     private ListenerRegistration inAppNotificationListener;
 
+    // The controller is now an instance field.
+    private NotificationController notificationController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Initialize the controller once when the activity is created.
+        notificationController = new NotificationController();
+
+        // Standard boilerplate for handling system screen insets.
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -130,12 +62,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        // IMPORTANT: Clean up the listener when the activity is destroyed to prevent memory leaks.
+    protected void onResume() {
+        super.onResume();
+        // It's good practice to re-setup the listener in onResume in case the user
+        // logs in or out in another part of the app and then returns here.
+        setupInAppNotificationListener();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Clean up the listener when the activity is not visible to save resources.
         if (inAppNotificationListener != null) {
             inAppNotificationListener.remove();
-            Log.d(TAG, "In-app notification listener removed.");
+            inAppNotificationListener = null; // Set to null to indicate it's detached.
+            Log.d(TAG, "In-app notification listener removed on pause.");
         }
     }
 
@@ -144,6 +85,11 @@ public class MainActivity extends AppCompatActivity {
      * for the currently "logged-in" user and triggers the in-app banner.
      */
     private void setupInAppNotificationListener() {
+        // If a listener already exists, don't create a new one.
+        if (inAppNotificationListener != null) {
+            return;
+        }
+
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         String currentUserId = prefs.getString(USER_ID_KEY, null);
 
@@ -153,38 +99,36 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // If a listener already exists, remove it before creating a new one.
-        // This is important for handling user login/logout without creating duplicate listeners.
-        if (inAppNotificationListener != null) {
-            inAppNotificationListener.remove();
-        }
-
         Log.d(TAG, "Setting up in-app banner listener for user: " + currentUserId);
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-        inAppNotificationListener = db.collection("users").document(currentUserId).collection("notifications")
-                .addSnapshotListener((snapshots, error) -> {
-                    if (error != null) {
-                        Log.e(TAG, "Listen error", error);
-                        return;
-                    }
-
-                    // Loop through the CHANGES in the collection, not the whole collection.
-                    for (DocumentChange dc : snapshots.getDocumentChanges()) {
-                        // We only care about newly added notifications to show the banner.
-                        if (dc.getType() == DocumentChange.Type.ADDED) {
-                            Notification notification = dc.getDocument().toObject(Notification.class);
-                            Log.d(TAG, "New notification received via listener: " + notification.getTitle());
-
-                            // TODO: Add logic here to check if the user has opted-in to notifications.
-                            // For example:
-                            // boolean hasOptedIn = UserPreferences.hasOptedInForBanners(this);
-                            // if (hasOptedIn) {
-                            showTopBanner(notification);
-                            // }
+        try {
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            inAppNotificationListener = db.collection("users").document(currentUserId).collection("notifications")
+                    .addSnapshotListener((snapshots, error) -> {
+                        if (error != null) {
+                            Log.e(TAG, "Listen error", error);
+                            return;
                         }
-                    }
-                });
+
+                        if (snapshots == null) {
+                            return;
+                        }
+
+                        // Loop through the CHANGES in the collection, not the whole collection.
+                        for (DocumentChange dc : snapshots.getDocumentChanges()) {
+                            // We only care about newly added notifications to show the banner.
+                            if (dc.getType() == DocumentChange.Type.ADDED) {
+                                Notification notification = dc.getDocument().toObject(Notification.class);
+                                if (notification.getTitle() != null) {
+                                    Log.d(TAG, "New notification received via listener: " + notification.getTitle());
+                                    showTopBanner(notification);
+                                }
+                            }
+                        }
+                    });
+        } catch (IllegalStateException e) {
+            Log.e(TAG, "Firebase not initialized. Make sure google-services.json is correct and you have a custom Application class.", e);
+            Toast.makeText(this, "CRITICAL: Firebase is not initialized.", Toast.LENGTH_LONG).show();
+        }
     }
 
     /**
@@ -224,20 +168,8 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Sets up temporary buttons for testing purposes.
-     * TODO: Add these buttons to your activity_main.xml to use them.
-     *
-     *   <Button
-     *       android:id="@+id/button_fake_login"
-     *       android:text="Fake Login (testUser123)" ... />
-     *   <Button
-     *       android:id="@+id/button_send_test_notif"
-     *       android:text="Send Test Notification" ... />
-     *   <Button
-     *       android:id="@+id/button_open_notif_page"
-     *       android:text="Open Notification Page" ... />
      */
     private void setupTestButtons() {
-        // NOTE: These IDs are placeholders. You must add the buttons to your layout to use them.
         Button fakeLoginButton = findViewById(R.id.button_fake_login);
         Button sendNotifButton = findViewById(R.id.button_send_test_notif);
         Button openNotifPageButton = findViewById(R.id.button_open_notif_page);
@@ -263,7 +195,8 @@ public class MainActivity extends AppCompatActivity {
             String eventId = "event_abc_789"; // A test event ID.
             String organizerId = "organizer_xyz_123";
 
-            NotificationController.sendNotificationToSelectedEntrants(eventId, organizerId, recipients)
+            // THIS IS THE FIX: Call the method on the instance, not the class.
+            notificationController.sendNotificationToSelectedEntrants(eventId, organizerId, recipients)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
                             Toast.makeText(this, "Test notification sent!", Toast.LENGTH_SHORT).show();

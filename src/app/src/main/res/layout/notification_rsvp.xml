@@ -36,7 +36,7 @@
             app:cardBackgroundColor="#CCFFFFFF"
             app:cardCornerRadius="8dp"
             app:contentPadding="8dp"
-            app:layout_constraintBottom_toTopOf="@id/lottery_title_text"
+            app:layout_constraintBottom_toTopOf="@id/rsvp_title"
             app:layout_constraintStart_toStartOf="parent">
 
             <TextView
@@ -51,7 +51,7 @@
 
         <!-- 3. "You've Won The Lottery!" Title -->
         <TextView
-            android:id="@+id/lottery_title_text"
+            android:id="@+id/rsvp_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
@@ -80,7 +80,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/button_accept"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/lottery_title_text" />
+            app:layout_constraintTop_toBottomOf="@+id/rsvp_title" />
 
         <!-- 5. Accept Button -->
         <com.google.android.material.button.MaterialButton

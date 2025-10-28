@@ -10,6 +10,7 @@ constraintlayout = "2.2.1"
 recyclerview = "1.4.0"
 firebaseCommon = "22.0.1"
 firebaseFirestore = "26.0.2"
+protobuf = "0.9.4"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -25,4 +26,5 @@ firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+protobuf = { id = "com.google.protobuf", version.ref = "protobuf" }
 

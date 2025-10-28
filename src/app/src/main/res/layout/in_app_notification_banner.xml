@@ -20,11 +20,11 @@
             android:id="@+id/notification_icon"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:src=""
             app:tint="?colorPrimary"
             android:layout_marginEnd="12dp"
-            tools:ignore="ContentDescription" />
-        <!-- Note: need to add an 'ic_notification_bell' drawable  -->
+            tools:ignore="ContentDescription"
+
+            app:srcCompat="@drawable/ic_notification_bell" />
 
         <LinearLayout
             android:layout_width="0dp"
