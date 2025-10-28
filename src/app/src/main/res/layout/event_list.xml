@@ -31,22 +31,31 @@
 
         <com.google.android.material.button.MaterialButtonToggleGroup
             android:id="@+id/toggleGroup"
+            style="@style/Widget.Material3.Button.IconButton.Outlined"
             android:layout_width="wrap_content"
+            app:singleSelection="true"
+            app:checkedButton="@id/discover_filter_button"
             android:layout_height="wrap_content">
 
             <com.google.android.material.button.MaterialButton
+                style="?attr/materialButtonOutlinedStyle"
+                android:id="@+id/discover_filter_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Discover"
                 android:textSize="11sp" />
 
             <com.google.android.material.button.MaterialButton
+                style="?attr/materialButtonOutlinedStyle"
+                android:id="@+id/waitlist_filter_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Waitlist"
                 android:textSize="11sp" />
 
             <com.google.android.material.button.MaterialButton
+                style="?attr/materialButtonOutlinedStyle"
+                android:id="@+id/attending_filter_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Attending"
