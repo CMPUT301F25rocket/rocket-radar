@@ -7,12 +7,14 @@ public class Event {
     private String name;
     private int thumbnail;
     private List<User> waitlist;
+    private boolean onWaitlist;
 
-    public Event(long time, String name, int thumbnail, List<User> waitlist) {
+    public Event(long time, String name, int thumbnail, List<User> waitlist, boolean onWaitlist) {
         this.time = time;
         this.name = name;
         this.thumbnail = thumbnail;
         this.waitlist = waitlist;
+        this.onWaitlist = onWaitlist;
     }
 
     public long getTime() {
@@ -47,6 +49,14 @@ public class Event {
         this.waitlist = waitlist;
     }
 
+    public boolean isOnWaitlist() {
+        return onWaitlist;
+    }
+
+    public void setOnWaitlist(boolean onWaitlist) {
+        this.onWaitlist = onWaitlist;
+    }
+
     @Override
     public String toString() {
         return "Event{" +
@@ -54,6 +64,7 @@ public class Event {
                 ", name='" + name + '\'' +
                 ", thumbnail=" + thumbnail +
                 ", waitlist=" + waitlist +
+                ", onWaitlist=" + onWaitlist +
                 '}';
     }
 }

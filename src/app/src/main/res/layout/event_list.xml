@@ -33,24 +33,38 @@
         <com.google.android.material.button.MaterialButtonToggleGroup
             android:id="@+id/toggleGroup"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            app:singleSelection="true"
+            app:checkedButton="@id/discover_button">
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/discover_button"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Discover"
+                android:textColor="@color/button_text_color"
+                app:backgroundTint="@drawable/button_background"
                 android:textSize="11sp" />
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/waitlist_button"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Waitlist"
+                android:textColor="@color/button_text_color"
+                app:backgroundTint="@drawable/button_background"
                 android:textSize="11sp" />
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/attending_button"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Attending"
+                android:textColor="@color/button_text_color"
+                app:backgroundTint="@drawable/button_background"
                 android:textSize="11sp" />
         </com.google.android.material.button.MaterialButtonToggleGroup>
 
@@ -74,7 +88,7 @@
         android:id="@+id/event_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
+        android.layout_marginStart="20dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="20dp"
         app:layout_constraintEnd_toEndOf="parent"
