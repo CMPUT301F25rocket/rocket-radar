@@ -8,6 +8,8 @@ import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.not;
 
+import static java.util.function.Predicate.not;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -61,10 +63,6 @@ public class NotificationFragmentTest {
         db.setFirestoreSettings(new FirebaseFirestoreSettings.Builder()
                 .setPersistenceEnabled(false)
                 .build());
-        // The IP "10.0.2.2" is a special alias inside the Android emulator that
-        // points to the host machine's localhost (where your emulator is running).
-        db.useEmulator("10.0.2.2", 8080);
-        // --- END OF GUIDE'S FIX ---
 
         fragmentFactory = new TestFragmentFactory(db);
         loginTestUser();
