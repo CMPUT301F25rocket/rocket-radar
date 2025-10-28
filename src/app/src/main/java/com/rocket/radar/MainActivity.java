@@ -167,14 +167,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * Handles the navigation to show the EventListFragment.
+     */
+    private void navigateToEventListFragment() {
+        EventListFragment fragment = new EventListFragment();
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.main, fragment) // Replaces content in the FragmentContainerView
+                .addToBackStack(null) // Allows user to press back to return
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                .commit();
+    }
+
+
+    /**
      * Sets up temporary buttons for testing purposes.
      */
     private void setupTestButtons() {
         Button fakeLoginButton = findViewById(R.id.button_fake_login);
         Button sendNotifButton = findViewById(R.id.button_send_test_notif);
         Button openNotifPageButton = findViewById(R.id.button_open_notif_page);
+        Button eventListButton = findViewById(R.id.button_eventList); // Find the new button
 
-        if (fakeLoginButton == null || sendNotifButton == null || openNotifPageButton == null) {
+        if (fakeLoginButton == null || sendNotifButton == null || openNotifPageButton == null || eventListButton == null) {
             Log.w(TAG, "Test buttons not found in layout. Skipping setup. Add them to activity_main.xml to enable testing.");
             return;
         }
@@ -209,5 +223,8 @@ public class MainActivity extends AppCompatActivity {
 
         // OPEN PAGE: Manually opens the notification list page.
         openNotifPageButton.setOnClickListener(v -> navigateToNotificationFragment());
+
+        // OPEN EVENT LIST PAGE: Manually opens the event list page.
+        eventListButton.setOnClickListener(v -> navigateToEventListFragment());
     }
 }
