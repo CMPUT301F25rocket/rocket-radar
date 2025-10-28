@@ -68,5 +68,27 @@ public class EventListFragment extends Fragment {
         });
 
         return view;
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        // Find the notification button from the layout
+        Button notificationButton = view.findViewById(R.id.btnNotification);
+
+        // Set a click listener on the button
+        notificationButton.setOnClickListener(v -> {
+            // Create an instance of the destination fragment
+            NotificationFragment notificationFragment = new NotificationFragment();
+
+            // Perform the fragment transaction to navigate
+            if (getActivity() != null) {
+                getActivity().getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.main, notificationFragment) // Assumes your FragmentContainerView in MainActivity is R.id.main
+                        .addToBackStack(null) // Allows the user to press back to return to the event list
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                        .commit();
+            }
+        });
     }
 }
