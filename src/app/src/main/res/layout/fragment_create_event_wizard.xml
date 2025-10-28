@@ -35,13 +35,19 @@
             app:layout_constraintBottom_toBottomOf="parent">
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/createEventWizardNavLeftButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:visibility="@{createEvent.leftButtonVisibility}"
+                android:text="Back"
                 android:layout_weight="1" />
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/createEventWizardNavRightButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:visibility="@{createEvent.rightButtonVisibility}"
+                android:text="@{createEvent.rightButtonText}"
                 android:layout_weight="1" />
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
