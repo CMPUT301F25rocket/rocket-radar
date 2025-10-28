@@ -25,6 +25,9 @@ public class NotificationFragment extends Fragment {
     private NotificationAdapter adapter;
     private List<Notification> notificationList;
 
+    //controller
+    NotificationController controller = new NotificationController();
+
     public NotificationFragment() {
     }
 
@@ -35,16 +38,12 @@ public class NotificationFragment extends Fragment {
     }
 
     private void loadDummyData() {
-        Notification dummyNotif1 = new Notification("Campus Marathon", "Event Update", false, 0);
-        Notification dummyNotif2 = new Notification("Charity Gala", "Reminder", true, 0);
-        Notification dummyNotif3 = new Notification("Coding Competition", "Winner Announcement", false, 0);
-        Notification dummyNotif4 = new Notification("Blood Drive", "New Event", false, 0);
-        Notification dummyNotif5 = new Notification("Volunteer Meetup", "Feedback Request", true, 0);
-        notificationList.add(dummyNotif1);
-        notificationList.add(dummyNotif2);
-        notificationList.add(dummyNotif3);
-        notificationList.add(dummyNotif4);
-        notificationList.add(dummyNotif5);
+        NotificationController controller = new NotificationController();
+        controller.addNotification("Campus Marathon", "Event Update", false, 0, notificationList);
+        controller.addNotification("Charity Gala", "Reminder", true, 0, notificationList);
+        controller.addNotification("Coding Competition", "Winner Announcement", true, 0, notificationList);
+        controller.addNotification("Blood Drive", "New Event", false, 0, notificationList);
+        controller.addNotification("Volunteer Meetup", "Feedback Request", true, 0, notificationList);
         adapter.notifyDataSetChanged();
     }
 
