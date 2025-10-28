@@ -21,6 +21,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.rocket.radar.NotificationFragment;
 import com.rocket.radar.databinding.NavBarBinding;
 
 import java.util.HashMap;
