@@ -41,41 +41,47 @@ public class EventListFragment extends Fragment {
     }
 
     private void loadDummyData() {
-        ArrayList<Event> eventList = new ArrayList<>();
+        //ArrayList<Event> eventList = new ArrayList<>();
 
         eventList.add(new Event(
                 "AI Innovation Summit",
                 "12\nNOV",
                 "Explore the future of artificial intelligence",
-                R.drawable.mushroom_in_headphones_amidst_nature,
+                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature
         ));
+        eventList.add(new Event(
+                "Watch Party for Oilers",
+                "18\nDEC",
+                "Fun for fanatics",
+                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature
+                ));
 
         eventList.add(new Event(
                 "Campus Charity Run",
                 "03\nDEC",
                 "Run for a cause and make a difference",
-                R.drawable.mushroom_in_headphones_amidst_nature
+                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature
         ));
 
         eventList.add(new Event(
                 "Tech Startup Pitch Night",
                 "15\nJAN",
                 "Where great ideas meet investors",
-                R.drawable.mushroom_in_headphones_amidst_nature
+                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature
         ));
 
         eventList.add(new Event(
                 "Space Exploration Expo",
                 "21\nFEB",
                 "Discover the latest in rocket and satellite tech",
-                R.drawable.mushroom_in_headphones_amidst_nature
+                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature
         ));
 
         eventList.add(new Event(
                 "Community Blood Drive",
                 "10\nMAR",
                 "Donate blood, save a life",
-                R.drawable.mushroom_in_headphones_amidst_nature
+                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature
         ));
 
         adapter.notifyDataSetChanged();
