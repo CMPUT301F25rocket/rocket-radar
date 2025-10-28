@@ -8,6 +8,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.rocket.radar.NotificationFragment;
 import com.rocket.radar.databinding.NavBarBinding;
 
 public class MainActivity extends AppCompatActivity {
@@ -26,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (savedInstanceState == null){
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new notificationFragment())
+                    .replace(R.id.main, new NotificationFragment())
                     .commit();
         }
     }

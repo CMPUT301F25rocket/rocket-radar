@@ -23,14 +23,16 @@ public class NotificationFragment extends Fragment {
     //private NotificationAdapter adapter;
     private List<Notification> notificationList;
 
-    public NotificationFragment(){}
-
-    private void setupRecyclerView() {
-        notificationList = new ArrayList<>();
-        adapter = new NotificationAdapter(notificationList, this);
-        notificationRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        notificationRecyclerView.setAdapter(adapter);
+    public NotificationFragment() {
     }
+
+//    private void setupRecyclerView() {
+//        notificationList = new ArrayList<>();
+//        NotificationAdapter adapter = new NotificationAdapter(notificationList, this);
+//        notificationRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+//        notificationRecyclerView.setAdapter(adapter);
+//    }
+
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.notification_list, container, false);
@@ -39,22 +41,19 @@ public class NotificationFragment extends Fragment {
         emptyNotificationsTextView = view.findViewById(R.id.empty_notifications_text);
         Button backButton = view.findViewById(R.id.back_arrow);
 
-        setupRecyclerView();
+        // setupRecyclerView();
 
         backButton.setOnClickListener(v -> {
             if (getActivity() != null) {
                 getActivity().getSupportFragmentManager().popBackStack();
             }
         });
-
-
-
-
-
-
-
-
+        return view;
     }
+
+
+
+
 
 
 }
