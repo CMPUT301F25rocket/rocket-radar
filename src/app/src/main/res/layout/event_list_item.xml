@@ -32,7 +32,7 @@
         <!-- 3. Event Title Text -->
 
         <TextView
-            android:id="@+id/textView"
+            android:id="@+id/date_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/sample_date"
@@ -57,14 +57,14 @@
             android:textColor="@android:color/white"
             android:textSize="30sp"
             android:textStyle="bold"
-            app:layout_constraintBottom_toTopOf="@+id/event_details_text"
+            app:layout_constraintBottom_toTopOf="@+id/event_tagline_text"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <!-- 4. Update Details Text -->
         <TextView
-            android:id="@+id/event_details_text"
+            android:id="@+id/event_tagline_text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="200dp"
