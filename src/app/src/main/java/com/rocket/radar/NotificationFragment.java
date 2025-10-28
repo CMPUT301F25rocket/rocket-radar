@@ -43,6 +43,8 @@ public class NotificationFragment extends Fragment {
 
         // setupRecyclerView();
 
+        emptyNotificationsTextView.setVisibility(View.VISIBLE);
+
         backButton.setOnClickListener(v -> {
             if (getActivity() != null) {
                 getActivity().getSupportFragmentManager().popBackStack();
