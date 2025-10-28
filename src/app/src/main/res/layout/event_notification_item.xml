@@ -47,7 +47,7 @@
 
         <!-- 4. Update Details Text -->
         <TextView
-            android:id="@+id/update_details_text"
+            android:id="@+id/event_details_text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"

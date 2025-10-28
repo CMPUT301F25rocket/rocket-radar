@@ -7,5 +7,7 @@
     <string name="you_have_no_new_notifications">You have no new notifications</string>
     <string name="failed_to_load_notifications">Failed to Load Notifications</string>
     <string name="event_background_image_description">Background image for the event</string>
+    <string name="sample_event_title">Event Title Here</string>
+    <string name="sample_date">18\nDEC</string>
 
 </resources>

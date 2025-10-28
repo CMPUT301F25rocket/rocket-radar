@@ -35,7 +35,7 @@
             android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="18\nDEC"
+            android:text="@string/sample_date"
             android:textColor="#FFFFFF"
             android:textSize="42sp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -53,18 +53,18 @@
             android:layout_marginEnd="16dp"
             android:gravity="end"
             android:maxLines="2"
-            android:text="Event Title Here"
+            android:text="@string/sample_event_title"
             android:textColor="@android:color/white"
             android:textSize="30sp"
             android:textStyle="bold"
-            app:layout_constraintBottom_toTopOf="@+id/update_details_text"
+            app:layout_constraintBottom_toTopOf="@+id/event_details_text"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <!-- 4. Update Details Text -->
         <TextView
-            android:id="@+id/update_details_text"
+            android:id="@+id/event_details_text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="200dp"
@@ -79,7 +79,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/event_title_text"
             tools:layout_constraintTop_toBottomOf="@id/event_title_text"
-            tools:text="Update" />
+            tools:text="The slopes are calling." />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>
