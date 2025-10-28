@@ -9,6 +9,7 @@
         android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:gravity="center_horizontal|center_vertical"
         android:orientation="horizontal"
         android:weightSum="3"
@@ -33,29 +34,29 @@
             android:id="@+id/toggleGroup"
             style="@style/Widget.Material3.Button.IconButton.Outlined"
             android:layout_width="wrap_content"
-            app:singleSelection="true"
+            android:layout_height="wrap_content"
             app:checkedButton="@id/discover_filter_button"
-            android:layout_height="wrap_content">
+            app:singleSelection="true">
 
             <com.google.android.material.button.MaterialButton
-                style="?attr/materialButtonOutlinedStyle"
                 android:id="@+id/discover_filter_button"
+                style="?attr/materialButtonOutlinedStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Discover"
                 android:textSize="11sp" />
 
             <com.google.android.material.button.MaterialButton
-                style="?attr/materialButtonOutlinedStyle"
                 android:id="@+id/waitlist_filter_button"
+                style="?attr/materialButtonOutlinedStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Waitlist"
                 android:textSize="11sp" />
 
             <com.google.android.material.button.MaterialButton
-                style="?attr/materialButtonOutlinedStyle"
                 android:id="@+id/attending_filter_button"
+                style="?attr/materialButtonOutlinedStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Attending"
@@ -83,7 +84,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="1dp"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="20dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
