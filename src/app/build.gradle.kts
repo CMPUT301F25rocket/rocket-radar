@@ -63,7 +63,9 @@ dependencies {
     // --- Instrumentation Tests (Android Device/Emulator) ---
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-    androidTestImplementation("androidx.test.espresso:espresso-contrib:3.6.1")
+    androidTestImplementation("androidx.test.espresso:espresso-contrib:3.6.1") {
+        exclude(group = "com.google.protobuf", module = "protobuf-lite")
+    }
 
     androidTestImplementation(platform("com.google.firebase:firebase-bom:33.1.2"))
 

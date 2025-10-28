@@ -129,7 +129,7 @@ public class NotificationFragmentTest {
                 .perform(RecyclerViewActions.actionOnItemAtPosition(0, click()));
         // Note: I'm assuming the RSVP dialog's title ID is rsvp_title based on previous context.
         // Adjust if your R.id is different (e.g., lottery_title_text).
-        onView(ViewMatchers.withId(R.id.rsvp_title)).check(matches(withText("You're Invited!")));
+        onView(ViewMatchers.withId(R.id.rsvp_title)).check(matches(withText("You've Won The Lottery!")));
         onView(withId(R.id.button_accept)).check(matches(isDisplayed()));
         onView(withId(R.id.button_decline)).check(matches(isDisplayed()));
     }

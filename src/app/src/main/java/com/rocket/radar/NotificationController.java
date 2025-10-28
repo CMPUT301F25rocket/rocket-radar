@@ -15,7 +15,7 @@ public class NotificationController {
 
     public NotificationController() {
         this.db = FirebaseFirestore.getInstance();
-        this.repository = new NotificationRepository();
+        this.repository = new NotificationRepository(this.db);
     }
 
     public NotificationController(FirebaseFirestore db, NotificationRepository repository) {
