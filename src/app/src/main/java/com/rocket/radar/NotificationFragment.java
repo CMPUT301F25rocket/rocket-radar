@@ -8,8 +8,10 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class NotificationFragment extends Fragment {
@@ -19,9 +21,16 @@ public class NotificationFragment extends Fragment {
 
     // Adapter and Data
     //private NotificationAdapter adapter;
-    private List<Notification> notifications;
+    private List<Notification> notificationList;
 
     public NotificationFragment(){}
+
+    private void setupRecyclerView() {
+        notificationList = new ArrayList<>();
+        adapter = new NotificationAdapter(notificationList, this);
+        notificationRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        notificationRecyclerView.setAdapter(adapter);
+    }
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.notification_list, container, false);
@@ -29,6 +38,16 @@ public class NotificationFragment extends Fragment {
         notificationRecyclerView = view.findViewById(R.id.notification_recycler_view);
         emptyNotificationsTextView = view.findViewById(R.id.empty_notifications_text);
         Button backButton = view.findViewById(R.id.back_arrow);
+
+        setupRecyclerView();
+
+        backButton.setOnClickListener(v -> {
+            if (getActivity() != null) {
+                getActivity().getSupportFragmentManager().popBackStack();
+            }
+        });
+
+
 
 
 
