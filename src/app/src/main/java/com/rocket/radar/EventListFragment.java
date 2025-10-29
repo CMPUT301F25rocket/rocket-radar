@@ -30,7 +30,6 @@ public class EventListFragment extends Fragment {
     private EventAdapter adapter;
     private List<Event> eventList;
 
-
     public EventListFragment() {
     }
 
@@ -41,47 +40,41 @@ public class EventListFragment extends Fragment {
     }
 
     private void loadDummyData() {
-        //ArrayList<Event> eventList = new ArrayList<>();
+        ArrayList<Event> eventList = new ArrayList<>();
 
         eventList.add(new Event(
                 "AI Innovation Summit",
                 "12\nNOV",
                 "Explore the future of artificial intelligence",
-                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature, true
+                R.drawable.mushroom_in_headphones_amidst_nature,
         ));
-        eventList.add(new Event(
-                "Watch Party for Oilers",
-                "18\nDEC",
-                "Fun for fanatics",
-                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature, false
-                ));
 
         eventList.add(new Event(
                 "Campus Charity Run",
                 "03\nDEC",
                 "Run for a cause and make a difference",
-                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature, false
+                R.drawable.mushroom_in_headphones_amidst_nature
         ));
 
         eventList.add(new Event(
                 "Tech Startup Pitch Night",
                 "15\nJAN",
                 "Where great ideas meet investors",
-                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature, false
+                R.drawable.mushroom_in_headphones_amidst_nature
         ));
 
         eventList.add(new Event(
                 "Space Exploration Expo",
                 "21\nFEB",
                 "Discover the latest in rocket and satellite tech",
-                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature, false
+                R.drawable.mushroom_in_headphones_amidst_nature
         ));
 
         eventList.add(new Event(
                 "Community Blood Drive",
                 "10\nMAR",
                 "Donate blood, save a life",
-                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature, true
+                R.drawable.mushroom_in_headphones_amidst_nature
         ));
 
         adapter.notifyDataSetChanged();
@@ -97,23 +90,19 @@ public class EventListFragment extends Fragment {
         Button waitlistButton = view.findViewById(R.id.waitlist_filter_button);
         Button attendingButton = view.findViewById(R.id.attending_filter_button);
 
-
-
-
-
         notificationButton.setOnClickListener(v -> {
             if (getActivity() != null) {
                 getActivity().getSupportFragmentManager().popBackStack();
             }
         });
         waitlistButton.setOnClickListener(v -> {
-            //change selectd button to waitlist_filter_button
+            // change selectd button to waitlist_filter_button
             // filter out onWaitlist false events
 
         });
 
-        }
-        return view;
+    }return view;
+
     }
 
     @Override
@@ -126,12 +115,11 @@ public class EventListFragment extends Fragment {
         loadDummyData();
     }
 
-
-
-//    @Nullable
-//    @Override
-//    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-//        binding = EventListBinding.inflate(inflater, container, false);
-//        return binding.getRoot();
-//    }
+    // @Nullable
+    // @Override
+    // public View onCreateView(@NonNull LayoutInflater inflater, @Nullable
+    // ViewGroup container, @Nullable Bundle savedInstanceState) {
+    // binding = EventListBinding.inflate(inflater, container, false);
+    // return binding.getRoot();
+    // }
 }
