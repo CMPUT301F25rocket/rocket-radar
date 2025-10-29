@@ -1,19 +1,13 @@
-package com.rocket.radar;
+package com.rocket.radar.eventmanagement;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.os.Build;
 import android.view.View;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.databinding.Bindable;
 import androidx.databinding.Observable;
 import androidx.lifecycle.ViewModel;
 
-import java.time.ZonedDateTime;
 import java.util.Date;
-
-
 
 public class CreateEventModel extends ViewModel implements Observable {
     // Other state

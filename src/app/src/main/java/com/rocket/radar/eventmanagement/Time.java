@@ -1,4 +1,4 @@
-package com.rocket.radar;
+package com.rocket.radar.eventmanagement;
 
 public class Time {
     int hour;

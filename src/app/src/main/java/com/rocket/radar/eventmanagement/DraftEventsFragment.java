@@ -1,4 +1,4 @@
-package com.rocket.radar;
+package com.rocket.radar.eventmanagement;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -9,15 +9,16 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.rocket.radar.databinding.FragmentOrganizingEventsBinding;
+import com.rocket.radar.databinding.FragmentDraftEventsBinding;
+
 
 public class DraftEventsFragment extends Fragment {
-    FragmentOrganizingEventsBinding binding;
+    FragmentDraftEventsBinding binding;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        binding = FragmentOrganizingEventsBinding.inflate(inflater, container, false);
+        binding = FragmentDraftEventsBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
 

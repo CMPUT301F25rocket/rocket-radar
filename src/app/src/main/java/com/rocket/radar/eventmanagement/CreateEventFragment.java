@@ -1,4 +1,4 @@
-package com.rocket.radar;
+package com.rocket.radar.eventmanagement;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;

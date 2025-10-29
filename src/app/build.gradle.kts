@@ -52,9 +52,8 @@ dependencies {
     implementation(libs.constraintlayout)
     implementation(libs.recyclerview)
     implementation(libs.firebase.auth)
-
-    implementation("androidx.navigation:navigation-fragment:2.7.0")
-    implementation("androidx.navigation:navigation-ui:2.7.0")
+    implementation(libs.navigation.fragment)
+    implementation(libs.navigation.ui)
 
     // Instrumentation testing
     testImplementation(libs.junit)
