@@ -1,6 +1,8 @@
 package com.rocket.radar;
 
-public class Event {
+import java.io.Serializable;
+
+public class Event implements Serializable {
     String eventTitle;
     String date;
     String tagline;
