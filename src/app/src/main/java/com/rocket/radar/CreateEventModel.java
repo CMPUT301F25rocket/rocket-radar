@@ -61,6 +61,13 @@ enum Section {
 }
 
 class CreateEventModel extends ViewModel implements Observable {
+    // Other state
+    private boolean showBottomSheet;
+
+    public boolean getShowBottomSheet() {
+        return showBottomSheet;
+    }
+
     // Creation wizard state.
     private Section section;
 

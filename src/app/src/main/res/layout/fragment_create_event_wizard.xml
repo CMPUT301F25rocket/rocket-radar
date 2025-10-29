@@ -5,7 +5,10 @@
     <data>
         <variable name="createEvent" type="com.rocket.radar.CreateEventModel"/>
     </data>
-    <androidx.coordinatorlayout.wiget.CoordinatorLayout>
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        >
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
@@ -52,13 +55,18 @@
                     android:layout_weight="1" />
             </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
+        <!-- android:visibility="@{createEvent.showBottomSheet}" -->
         <FrameLayout
             android:id="@+id/createEventWizardBottomSheet"
-            android:visibility="@{createEvent.showBottomSheet}"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
         >
-        // TODO. Needs to be whatever the input type is
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Botom Sheet Content"
+                />
         </FrameLayout>
-    </androidx.coordinatorlayout.wiget.CoordinatorLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>
