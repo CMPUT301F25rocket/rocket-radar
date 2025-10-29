@@ -5,17 +5,28 @@
     android:id="@+id/navgraph.xml"
     app:startDestination="@id/eventListFragment">
 
+    <!--
+    We want these as global actions since it would be a pain to define every time them for each
+    fragment. For more info see: https://developer.android.com/guide/navigation/design/actions
+    -->
+    <action
+        android:id="@+id/eventFeed"
+        app:destination="@id/eventListFragment" />
+    <action
+        android:id="@+id/draftEvents"
+        app:destination="@id/eventListFragment" />
+    <action
+        android:id="@+id/profile"
+        app:destination="@id/eventListFragment" />
+
     <fragment
         android:id="@+id/eventListFragment"
         android:name="com.rocket.radar.EventListFragment"
-        android:label="EventListFragment" >
-        <action
-            android:id="@+id/action_eventListFragment_to_createEventFragment"
-            app:destination="@id/createEventFragment" />
-    </fragment>
+        android:label="EventListFragment" />
+
     <fragment
         android:id="@+id/createEventFragment"
-        android:name="com.rocket.radar.eventmanagement.CreateEventFragment"
+        android:name="com.rocket.radar.eventmanagement.DraftEventsFragment"
         android:label="fragment_draft_events"
         tools:layout="@layout/fragment_draft_events" />
 </navigation>
