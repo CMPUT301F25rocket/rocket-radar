@@ -3,6 +3,8 @@ package com.rocket.radar;
 import android.os.Bundle;
 import android.view.LayoutInflater;import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
@@ -45,7 +47,7 @@ public class EventViewFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.event_view, container, false);
 
-        Toolbar backButton = view.findViewById(R.id.toolbar);
+        Button backButton = view.findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
             // This will pop the back stack and return to the EventListFragment
             if (getActivity() != null) {
