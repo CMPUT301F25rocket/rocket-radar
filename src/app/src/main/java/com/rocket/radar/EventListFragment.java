@@ -40,42 +40,42 @@ public class EventListFragment extends Fragment {
     }
 
     private void loadDummyData() {
-        ArrayList<Event> eventList = new ArrayList<>();
+        // ArrayList<Event> eventList = new ArrayList<>();
 
         eventList.add(new Event(
                 "AI Innovation Summit",
                 "12\nNOV",
                 "Explore the future of artificial intelligence",
-                R.drawable.mushroom_in_headphones_amidst_nature,
-        ));
+                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature));
+        eventList.add(new Event(
+                "Watch Party for Oilers",
+                "18\nDEC",
+                "Fun for fanatics",
+                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature));
 
         eventList.add(new Event(
                 "Campus Charity Run",
                 "03\nDEC",
                 "Run for a cause and make a difference",
-                R.drawable.mushroom_in_headphones_amidst_nature
-        ));
+                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature));
 
         eventList.add(new Event(
                 "Tech Startup Pitch Night",
                 "15\nJAN",
                 "Where great ideas meet investors",
-                R.drawable.mushroom_in_headphones_amidst_nature
-        ));
+                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature));
 
         eventList.add(new Event(
                 "Space Exploration Expo",
                 "21\nFEB",
                 "Discover the latest in rocket and satellite tech",
-                R.drawable.mushroom_in_headphones_amidst_nature
-        ));
+                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature));
 
         eventList.add(new Event(
                 "Community Blood Drive",
                 "10\nMAR",
                 "Donate blood, save a life",
-                R.drawable.mushroom_in_headphones_amidst_nature
-        ));
+                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature));
 
         adapter.notifyDataSetChanged();
     }
@@ -86,23 +86,13 @@ public class EventListFragment extends Fragment {
 
         eventRecyclerView = view.findViewById(R.id.event_list_recycler_view);
         Button notificationButton = view.findViewById(R.id.btnNotification);
-        Button discoverButton = view.findViewById(R.id.discover_filter_button);
-        Button waitlistButton = view.findViewById(R.id.waitlist_filter_button);
-        Button attendingButton = view.findViewById(R.id.attending_filter_button);
 
         notificationButton.setOnClickListener(v -> {
             if (getActivity() != null) {
                 getActivity().getSupportFragmentManager().popBackStack();
             }
         });
-        waitlistButton.setOnClickListener(v -> {
-            // change selectd button to waitlist_filter_button
-            // filter out onWaitlist false events
-
-        });
-
-    }return view;
-
+        return view;
     }
 
     @Override
