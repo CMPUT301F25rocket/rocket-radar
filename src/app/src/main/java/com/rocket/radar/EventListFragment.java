@@ -94,14 +94,14 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
 
     @Override
     public void onEventClick(int position) {
-        Event clickedEvent = eventList.get(position);
-        EventViewFragment eventViewFragment = EventViewFragment.newInstance(clickedEvent);
-
-        if (getActivity() != null) {
-            getActivity().getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, eventViewFragment)
-                    .addToBackStack(null)
-                    .commit();
-        }
+//        Event clickedEvent = eventList.get(position);
+//        EventViewFragment eventViewFragment = EventViewFragment.newInstance(clickedEvent);
+//
+//        if (getActivity() != null) {
+//            getActivity().getSupportFragmentManager().beginTransaction()
+//                    .replace(R.id.fragment_container, eventViewFragment)
+//                    .addToBackStack(null)
+//                    .commit();
+//        }
     }
 }

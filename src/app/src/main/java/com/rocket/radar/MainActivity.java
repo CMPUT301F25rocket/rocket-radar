@@ -8,6 +8,9 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
+import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -44,25 +47,11 @@ public class MainActivity extends AppCompatActivity {
         navBarBinding = NavBarBinding.inflate(getLayoutInflater());
         setContentView(navBarBinding.getRoot());
 
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, new EventListFragment())
-                .commit();
-        }
+        NavHostFragment navHostFragment =
+                (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
+        NavController navController = navHostFragment.getNavController();
+        NavigationUI.setupWithNavController(navBarBinding.bottomNavigationView, navController);
 
-        navBarBinding.bottomNavigationView.setOnItemSelectedListener(item -> {
-            Fragment selectedFragment = null;
-            if (item.getItemId() == R.id.action_events) {
-                selectedFragment = new EventListFragment();
-            }
-
-            if (selectedFragment != null) {
-                getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, selectedFragment)
-                    .commit();
-            }
-            return true;
-        });
     }
 
 
