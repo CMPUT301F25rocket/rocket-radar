@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.constraintlayout)
     implementation(libs.recyclerview)
     implementation(libs.firebase.database)
+    implementation(libs.play.services.maps)
 
     // Instrumentation testing
     testImplementation(libs.junit)
