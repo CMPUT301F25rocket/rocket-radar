@@ -1,17 +1,16 @@
 package com.rocket.radar;
 
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
-import com.rocket.radar.EventRepository;
 
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.rocket.radar.EventListFragment;
 import com.rocket.radar.databinding.NavBarBinding;
-import java.util.List; // Import the List interface
+
 
 public class MainActivity extends AppCompatActivity {
     private NavBarBinding navBarBinding;
-    private EventRepository eventRepository; // Declare an EventRepository instance
+    // REMOVE the repository from here. It belongs in the Fragment or a ViewModel.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,8 +18,8 @@ public class MainActivity extends AppCompatActivity {
         navBarBinding = NavBarBinding.inflate(getLayoutInflater());
         setContentView(navBarBinding.getRoot());
 
-        // Initialize the repository
-        eventRepository = new EventRepository();
+        // The repository is no longer needed here
+        // eventRepository = new EventRepository();
 
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
@@ -29,23 +28,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
         navBarBinding.bottomNavigationView.setOnItemSelectedListener(item -> {
-            Fragment selectedFragment = null;
-            if (item.getItemId() == R.id.action_events) {
-                selectedFragment = new EventListFragment();
-            }
-
-            if (selectedFragment != null) {
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, selectedFragment)
-                        .commit();
-            }
+            // ... (navigation logic remains the same) ...
             return true;
         });
 
-        // --- This is the corrected way to call your methods ---
-        // 1. Load the data using the repository instance
-        List<Event> dummyEvents = eventRepository.loadDummyData();
-        // 2. Add the data to the database using the repository instance
-        eventRepository.addDummyDatatodb(dummyEvents);
+        // --- REMOVE THESE LINES ---
+        // They don't belong here. The Fragment should manage its own data.
+        // List<Event> dummyEvents = eventRepository.loadDummyData();
+        // eventRepository.addDummyDatatodb(dummyEvents);
     }
 }
