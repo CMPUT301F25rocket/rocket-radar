@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
     }
-}
+
 
     /**
      * This method is called when the activity becomes visible to the user.
