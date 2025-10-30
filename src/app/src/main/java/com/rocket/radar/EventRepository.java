@@ -1,10 +1,12 @@
 package com.rocket.radar;
 
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.rocket.radar.Event;
 
+import java.util.Collections;
 import java.util.List;
 
 public class EventRepository {
@@ -12,16 +14,17 @@ public class EventRepository {
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference eventsRef = database.getReference("events");
 
-    private EventAdapter adapter;
-    private List<Event> eventList;
+
+
 
     public void createEvent(Event event) {
-
+        eventsRef.push().setValue(event);
     }
 
     // Dummy data:
 
-    private void loadDummyData() {
+    private List<Event> loadDummyData() {
+        List<Event> eventList = Collections.emptyList();
 
 
         eventList.add(new Event(
@@ -33,7 +36,7 @@ public class EventRepository {
                 "BBQ Event",
                 "12\nNOV",
                 "Mushroom bros who listen to bangers",
-                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature));
+                R.drawable.mushroom_in_headphones_amidst_nature));
         eventList.add(new Event(
                 "Ski Trip",
                 "18\nDEC",
@@ -54,17 +57,19 @@ public class EventRepository {
                 "Penultimate event",
                 "21\nFEB",
                 "Second to last item in list",
-                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature));
+                R.drawable.mushroom_in_headphones_amidst_nature));
 
         eventList.add(new Event(
                 "Last event",
                 "10\nMAR",
                 "Last item in list",
-                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature));
+                R.drawable.mushroom_in_headphones_amidst_nature));
+
+        return eventList;
     }
 
     private void addDummyDatatodb(List<Event> eventList) {
-        for (Event event; eventList) {
+        for (Event event = null; eventList) {
             createEvent(event);
         }
     }
