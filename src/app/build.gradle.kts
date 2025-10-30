@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.firebase.database)
     implementation(libs.play.services.maps)
     implementation(libs.transport.api)
+    implementation(libs.firebase.firestore)
 
     // Instrumentation testing
     testImplementation(libs.junit)

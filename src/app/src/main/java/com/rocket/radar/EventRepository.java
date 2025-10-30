@@ -1,67 +1,77 @@
 package com.rocket.radar;
 
-// Add these imports for logging and handling task completion
 import android.util.Log;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-// ---
-
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import java.util.ArrayList;
 import java.util.List;
 
 public class EventRepository {
 
-    // Add a TAG for logging, which is a best practice for debugging
     private static final String TAG = "EventRepository";
+    private final FirebaseFirestore db;
+    private final CollectionReference eventRef;
 
-    FirebaseDatabase database = FirebaseDatabase.getInstance();
-    DatabaseReference eventsRef = database.getReference("events");
-
-    public void createEvent(Event event) {
-        // Use a completion listener to get feedback on the write operation
-        Log.d(TAG, "AM I EVENT GETTING RAN BRO:??");
-        eventsRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Log.d(TAG, "AM I EVENT GETTING RAN BRO part 3");
-                eventsRef.child(event.eventTitle).setValue(event);
-
-                Log.d(TAG, "successfully added event: " + event.getEventTitle());
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e(TAG, "failed to add event: " + event.getEventTitle());
-            }
-
-        });
+    // This constructor now correctly initializes Firestore.
+    public EventRepository() {
+        this.db = FirebaseFirestore.getInstance();
+        this.eventRef = db.collection("events"); // Use "events" collection
     }
 
+    /**
+     * This is the method you asked for, adapted from your lab.
+     * It listens for real-time updates from the "events" collection in Firestore
+     * and returns the data wrapped in LiveData.
+     */
+    public LiveData<List<Event>> getAllEvents() {
+        MutableLiveData<List<Event>> eventsLiveData = new MutableLiveData<>();
 
-    // Dummy data method remains the same...
-    public List<Event> loadDummyData() {
+        eventRef.addSnapshotListener((value, error) -> {
+            if (error != null) {
+                Log.e(TAG, "Listen failed.", error);
+                return;
+            }
+
+            ArrayList<Event> eventList = new ArrayList<>();
+            if (value != null) {
+                for (QueryDocumentSnapshot doc : value) {
+                    // Convert each document into an Event object
+                    Event event = doc.toObject(Event.class);
+                    eventList.add(event);
+                }
+            }
+            // Post the new list to observers (like your fragment)
+            eventsLiveData.postValue(eventList);
+        });
+
+        return eventsLiveData;
+    }
+
+    // This method adds a new event to Firestore.
+    public void createEvent(Event event) {
+        // Use the event's title as the document ID for simplicity, or use .add() for auto-ID
+        eventRef.document(event.getEventTitle()).set(event)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Event successfully written: " + event.getEventTitle()))
+                .addOnFailureListener(e -> Log.e(TAG, "Error writing event", e));
+    }
+
+    // Helper to add all the dummy data to Firestore
+    public void addDummyDatatodb() {
+        List<Event> dummyEvents = loadDummyData();
+        for (Event event : dummyEvents) {
+            createEvent(event);
+        }
+    }
+
+    // This method just prepares the local list of dummy data.
+    private List<Event> loadDummyData() {
         List<Event> eventList = new java.util.ArrayList<>();
         eventList.add(new Event("Watch Party for Oilers", "30\nSEP", "Fun for fanatics", R.drawable.rogers_image));
         eventList.add(new Event("BBQ Event", "12\nNOV", "Mushroom bros who listen to bangers", R.drawable.mushroom_in_headphones_amidst_nature));
         eventList.add(new Event("Ski Trip", "18\nDEC", "The slopes are calling", R.drawable.ski_trip_banner));
-        eventList.add(new Event("Ski Trip", "18\nDEC", "The slopes are calling", R.drawable.ski_trip_banner));
-        eventList.add(new Event("Ski Trip", "18\nDEC", "The slopes are calling", R.drawable.ski_trip_banner));
-        eventList.add(new Event("Penultimate event", "21\nFEB", "Second to last item in list", R.drawable.mushroom_in_headphones_amidst_nature));
-        eventList.add(new Event("Last event", "10\nMAR", "Last item in list", R.drawable.mushroom_in_headphones_amidst_nature));
         return eventList;
-    }
-    public void addDummyDatatodb(List<Event> eventList) {
-        for (Event event : eventList) {
-            createEvent(event);
-        }
     }
 }

@@ -12,6 +12,7 @@ googleGmsGoogleServices = "4.4.4"
 firebaseDatabase = "22.0.1"
 playServicesMaps = "19.2.0"
 transportApi = "4.0.0"
+firebaseFirestore = "26.0.2"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -25,6 +26,7 @@ recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version
 firebase-database = { group = "com.google.firebase", name = "firebase-database", version.ref = "firebaseDatabase" }
 play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
 transport-api = { group = "com.google.android.datatransport", name = "transport-api", version.ref = "transportApi" }
+firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
