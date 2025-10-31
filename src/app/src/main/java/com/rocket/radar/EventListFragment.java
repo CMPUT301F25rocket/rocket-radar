@@ -1,6 +1,7 @@
 package com.rocket.radar;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,6 +9,7 @@ import android.widget.Button;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
@@ -18,8 +20,10 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
     private RecyclerView eventRecyclerView;
     private EventAdapter adapter;
     private List<Event> eventList;
+    private EventRepository eventRepository;
 
     public EventListFragment() {
+        // Required empty public constructor
     }
 
     private void setupRecyclerView() {

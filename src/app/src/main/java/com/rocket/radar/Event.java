@@ -8,6 +8,10 @@ public class Event implements Serializable {
     String tagline;
     int image;
 
+    public Event() {
+        // Default constructor required for calls to toObject(Event.class)
+    }
+
     public Event(String eventTitle, String date, String tagline, int image) {
         this.eventTitle = eventTitle;
         this.date = date;
@@ -15,19 +19,12 @@ public class Event implements Serializable {
         this.image = image;
     }
 
-    public String getEventTitle() {
-        return eventTitle;
-    }
+    // Getters are required for Firebase to serialize the object
+    public String getEventTitle() { return eventTitle; }
+    public String getDate() { return date; }
+    public String getTagline() { return tagline; }
 
-    public String getDate() {
-        return date;
-    }
-
-    public String getTagline() {
-        return tagline;
-    }
-
-    public int getImage() {
-        return image;
-    }
+    // Exclude the local image resource ID from being saved to Firestore
+    @Exclude
+    public int getImage() { return image; }
 }
