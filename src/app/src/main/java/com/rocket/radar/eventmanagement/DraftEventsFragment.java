@@ -1,5 +1,7 @@
 package com.rocket.radar.eventmanagement;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,8 +9,10 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.databinding.BindingAdapter;
 import androidx.fragment.app.Fragment;
 
+import com.rocket.radar.databinding.ActivityCreateEventBinding;
 import com.rocket.radar.databinding.FragmentDraftEventsBinding;
 
 
@@ -25,6 +29,14 @@ public class DraftEventsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        binding.organizingEventsCreateButton.setOnClickListener(button -> {
+            Context context = getContext();
+            // Rhu roh.
+            assert context != null;
+            Intent createEvent = new Intent(context, CreateEventActivity.class);
+            context.startActivity(createEvent);
+        });
     }
 
     @Override

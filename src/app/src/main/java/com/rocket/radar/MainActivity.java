@@ -53,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(navBarBinding.bottomNavigationView, navController);
     }
 
-
     /**
      * This method is called when the activity becomes visible to the user.
      */
