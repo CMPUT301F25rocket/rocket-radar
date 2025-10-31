@@ -10,6 +10,7 @@ public enum Section {
     // WARN: The order here is important. Section transitions will happen in the order these appear in.
     GENERAL, DATETIME, DEADLINES, LOTTERY, STYLE;
 
+    public static final Section firstSection = Section.values()[0];
     public static final Section lastSection = Section.values()[Section.values().length - 1];
 
     // TODO: Pull these from strings.xml.

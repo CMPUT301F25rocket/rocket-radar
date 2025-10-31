@@ -32,6 +32,14 @@ public class CreateEventActivity extends AppCompatActivity {
         // >:? This needs to be set in code.
         bottomSheetBehavior = BottomSheetBehavior.from(binding.createEventWizardBottomSheet);
 
+        // FIXME: Need to figure out how to notify view that section was changed.
+        binding.createEventWizardNavLeftButton.setOnClickListener(btn -> {
+            model.prevSection();
+        });
+        binding.createEventWizardNavRightButton.setOnClickListener(btn -> {
+            model.nextSection();
+        });
+
         setContentView(binding.getRoot());
     }
 

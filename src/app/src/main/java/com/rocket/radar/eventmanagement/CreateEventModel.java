@@ -91,11 +91,19 @@ public class CreateEventModel extends ViewModel implements Observable {
         else return "Next";
     }
 
-    public void rightButtonPress() {
+    public void nextSection() {
         if (section == Section.lastSection) {
             return;
         } else {
             section = Section.values()[section.ordinal() + 1];
+        }
+    }
+
+    public void prevSection() {
+        if (section == Section.firstSection) {
+            return;
+        } else {
+            section = Section.values()[section.ordinal() - 1];
         }
     }
 
