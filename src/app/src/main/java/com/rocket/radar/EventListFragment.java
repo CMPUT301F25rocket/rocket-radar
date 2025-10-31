@@ -55,7 +55,10 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
             // It does not need any arguments.
             NotificationFragment notificationFragment = new NotificationFragment();
 
-            if (getActivity() != null) {
+            if (getActivity() instanceof MainActivity) { // Check if the activity is MainActivity
+                // Hide the bottom navigation view
+                ((MainActivity) getActivity()).setBottomNavigationVisibility(View.GONE);
+
                 getActivity().getSupportFragmentManager().beginTransaction()
                         // Use your actual FragmentContainerView ID
                         .replace(R.id.nav_host_fragment, notificationFragment)

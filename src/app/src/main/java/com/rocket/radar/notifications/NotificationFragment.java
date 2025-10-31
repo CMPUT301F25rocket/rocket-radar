@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
 
 import java.util.ArrayList;
@@ -82,5 +83,14 @@ public class NotificationFragment extends Fragment {
 
     private void updateEmptyViewVisibility(){
         emptyNotificationsTextView.setVisibility(View.GONE);
+    }
+
+    public void onDestroyView() {
+        super.onDestroyView();
+        // This is called when the fragment's view is being destroyed, e.g., when popping the back stack.
+        if (getActivity() instanceof MainActivity) {
+            // Make the bottom navigation view visible again
+            ((MainActivity) getActivity()).setBottomNavigationVisibility(View.VISIBLE);
+        }
     }
 }

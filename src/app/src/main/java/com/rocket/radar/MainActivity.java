@@ -100,4 +100,10 @@ public class MainActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Log.w(TAG, "Error writing user document", e));
     }
 
+    public void setBottomNavigationVisibility(int visibility) {
+        if (navBarBinding != null && navBarBinding.bottomNavigationView != null) {
+            navBarBinding.bottomNavigationView.setVisibility(visibility);
+        }
+    }
+
 }
