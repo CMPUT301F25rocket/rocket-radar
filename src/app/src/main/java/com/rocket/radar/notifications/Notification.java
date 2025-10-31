@@ -1,4 +1,4 @@
-package com.rocket.radar;
+package com.rocket.radar.notifications;
 
 public class Notification {
     String eventTitle;

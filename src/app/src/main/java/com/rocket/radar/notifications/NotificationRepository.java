@@ -1,4 +1,4 @@
-package com.rocket.radar;
+package com.rocket.radar.notifications;
 
 /**
  * Handles logic notification db logic

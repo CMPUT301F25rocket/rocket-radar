@@ -1,4 +1,4 @@
-package com.rocket.radar;
+package com.rocket.radar.notifications;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -12,6 +12,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.rocket.radar.R;
 
 import java.util.ArrayList;
 import java.util.List;
