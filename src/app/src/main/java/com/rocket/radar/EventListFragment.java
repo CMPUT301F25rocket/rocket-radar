@@ -26,74 +26,47 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         // Required empty public constructor
     }
 
-    private void setupRecyclerView() {
-        adapter = new EventAdapter(getContext(), eventList, this);
-        eventRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        eventRecyclerView.setAdapter(adapter);
-    }
-
-    // Restore your data loading logic here
-    private void loadDummyData() {
-        eventList.add(new Event(
-                "AI Innovation Summit",
-                "12\nNOV",
-                "Explore the future of artificial intelligence",
-                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature));
-        eventList.add(new Event(
-                "Watch Party for Oilers",
-                "18\nDEC",
-                "Fun for fanatics",
-                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature));
-
-        eventList.add(new Event(
-                "Campus Charity Run",
-                "03\nDEC",
-                "Run for a cause and make a difference",
-                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature));
-
-        eventList.add(new Event(
-                "Tech Startup Pitch Night",
-                "15\nJAN",
-                "Where great ideas meet investors",
-                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature));
-
-        eventList.add(new Event(
-                "Space Exploration Expo",
-                "21\nFEB",
-                "Discover the latest in rocket and satellite tech",
-                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature));
-
-        eventList.add(new Event(
-                "Community Blood Drive",
-                "10\nMAR",
-                "Donate blood, save a life",
-                com.rocket.radar.R.drawable.mushroom_in_headphones_amidst_nature));
-        // Add more events as needed
-
-        // Notify the adapter that data has been added
-        if (adapter != null) {
-            adapter.notifyDataSetChanged();
-        }
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.event_list, container, false);
         eventRecyclerView = view.findViewById(R.id.event_list_recycler_view);
-
-        // Your other view initializations from event_list.xml
-        Button filterButton = view.findViewById(R.id.button_filter);
-        Button notificationButton = view.findViewById(R.id.btnNotification);
-
         return view;
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // Initialization
+        eventRepository = new EventRepository();
         eventList = new ArrayList<>();
-        setupRecyclerView();
-        loadDummyData(); // This will now populate your list
+        adapter = new EventAdapter(getContext(), eventList, this);
+        eventRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        eventRecyclerView.setAdapter(adapter);
+
+        // Start observing the data from the repository
+        observeEvents();
+
+        // Optional: Call this once if you want to ensure dummy data exists in
+        // Firestore.
+        // You can comment this out after the first run.
+        eventRepository.addDummyDatatodb();
+    }
+
+    private void observeEvents() {
+        // This is the core of the real-time logic.
+        // The observer will be called every time data changes in Firestore.
+        eventRepository.getAllEvents().observe(getViewLifecycleOwner(), new Observer<List<Event>>() {
+            @Override
+            public void onChanged(List<Event> newEvents) {
+                if (newEvents != null) {
+                    Log.d("EventListFragment", "Data updated. " + newEvents.size() + " events received.");
+                    eventList.clear();
+                    eventList.addAll(newEvents);
+                    adapter.notifyDataSetChanged();
+                }
+            }
+        });
     }
 
     @Override

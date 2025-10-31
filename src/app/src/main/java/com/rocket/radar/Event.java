@@ -1,5 +1,6 @@
 package com.rocket.radar;
 
+import com.google.firebase.firestore.Exclude; // CORRECT: Using the Firestore Exclude
 import java.io.Serializable;
 
 public class Event implements Serializable {
@@ -20,11 +21,21 @@ public class Event implements Serializable {
     }
 
     // Getters are required for Firebase to serialize the object
-    public String getEventTitle() { return eventTitle; }
-    public String getDate() { return date; }
-    public String getTagline() { return tagline; }
+    public String getEventTitle() {
+        return eventTitle;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public String getTagline() {
+        return tagline;
+    }
 
     // Exclude the local image resource ID from being saved to Firestore
     @Exclude
-    public int getImage() { return image; }
+    public int getImage() {
+        return image;
+    }
 }
