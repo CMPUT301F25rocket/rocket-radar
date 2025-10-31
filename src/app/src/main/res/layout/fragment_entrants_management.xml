@@ -100,8 +100,7 @@
         app:behavior_hideable="false"
         app:behavior_peekHeight="150dp"
         app:cardElevation="8dp"
-        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
-        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.ExtraLarge.Top">
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
         <LinearLayout
             android:layout_width="match_parent"
