@@ -13,12 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          path: src
           sparse-checkout: src
 
       - shell: bash
         run: |
-          cd src
+          cd $GITHUB_WORKSPACE/src
           ./gradlew assembleDebug
 
   lint:
@@ -26,12 +25,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          path: src
           sparse-checkout: src
 
       - shell: bash
         run: |
-          cd src
+          cd $GITHUB_WORKSPACE/src
           ./gradlew lint
 
   test:
@@ -39,10 +37,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          path: src
           sparse-checkout: src
 
       - shell: bash
         run: |
-          cd src
+          cd $GITHUB_WORKSPACE/src
           ./gradlew test
