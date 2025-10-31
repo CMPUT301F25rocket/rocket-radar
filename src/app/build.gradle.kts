@@ -50,10 +50,10 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation(libs.recyclerview)
-    implementation(libs.firebase.database)
-    implementation(libs.play.services.maps)
-    implementation(libs.transport.api)
-    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.auth)
+    // Important
+    implementation(libs.navigation.fragment)
+    implementation(libs.navigation.ui)
 
     // Instrumentation testing
     testImplementation(libs.junit)
