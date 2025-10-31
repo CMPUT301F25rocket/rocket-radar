@@ -1,4 +1,8 @@
-name: continuous integration
+# The action will run some basic checks on code pushed to main and dev.
+# Google services is needed for the build, it is stored as a repo secret
+# and fetched temporarily. We run each check in parallel to get the results
+# as soon as possible.
+name: Continuous Integration
 
 on: 
   push:
@@ -8,7 +12,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  compiles:
+  compile:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -16,9 +20,15 @@ jobs:
           sparse-checkout: src
 
       - shell: bash
+        env:
+          GOOGLE_SERVICES_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: |
           cd $GITHUB_WORKSPACE/src
+          echo "$GOOGLE_SERVICES_BASE64" | base64 --decode > app/google-services.json
           ./gradlew assembleDebug
+          # Don't know how runner clearing works, but probably better destroy these now.
+          unset GOOGLE_SERVICES_BASE64
+          rm app/google-services.json
 
   lint:
     runs-on: ubuntu-latest
@@ -28,9 +38,15 @@ jobs:
           sparse-checkout: src
 
       - shell: bash
+        env:
+          GOOGLE_SERVICES_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: |
           cd $GITHUB_WORKSPACE/src
+          echo "$GOOGLE_SERVICES_BASE64" | base64 --decode > app/google-services.json
           ./gradlew lint
+          # Don't know how runner clearing works, but probably better destroy these now.
+          unset GOOGLE_SERVICES_BASE64
+          rm app/google-services.json
 
   test:
     runs-on: ubuntu-latest
@@ -40,6 +56,12 @@ jobs:
           sparse-checkout: src
 
       - shell: bash
+        env:
+          GOOGLE_SERVICES_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: |
           cd $GITHUB_WORKSPACE/src
+          echo "$GOOGLE_SERVICES_BASE64" | base64 --decode > app/google-services.json
           ./gradlew test
+          # Don't know how runner clearing works, but probably better destroy these now.
+          unset GOOGLE_SERVICES_BASE64
+          rm app/google-services.json
