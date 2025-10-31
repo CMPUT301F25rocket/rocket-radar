@@ -16,11 +16,10 @@ jobs:
           path: src
           sparse-checkout: src
 
-      - steps:
-        - shell: bash
-          run: |
-            cd src
-            ./gradlew assembleDebug
+      - shell: bash
+        run: |
+          cd src
+          ./gradlew assembleDebug
 
   lint:
     runs-on: ubuntu-latest
@@ -30,11 +29,10 @@ jobs:
           path: src
           sparse-checkout: src
 
-      - steps:
-        - shell: bash
-          run: |
-            cd src
-            ./gradlew lint
+      - shell: bash
+        run: |
+          cd src
+          ./gradlew lint
 
   test:
     runs-on: ubuntu-latest
@@ -44,8 +42,7 @@ jobs:
           path: src
           sparse-checkout: src
 
-      - steps:
-        - shell: bash
-          run: |
-            cd src
-            ./gradlew test
+      - shell: bash
+        run: |
+          cd src
+          ./gradlew test
