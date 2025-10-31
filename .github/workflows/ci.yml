@@ -1,0 +1,50 @@
+name: continuous integration
+
+on: 
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  compiles:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          path: src
+          sparse-checkout: src
+
+      - steps:
+        - shell: bash
+          run: |
+            cd src
+            ./gradlew assembleDebug
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          path: src
+          sparse-checkout: src
+
+      - steps:
+        - shell: bash
+          run: |
+            cd src
+            ./gradlew lint
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          path: src
+          sparse-checkout: src
+
+      - steps:
+        - shell: bash
+          run: |
+            cd src
+            ./gradlew test
