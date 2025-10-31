@@ -12,6 +12,9 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.rocket.radar.notifications.NotificationFragment;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +24,8 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
     private EventAdapter adapter;
     private List<Event> eventList;
     private EventRepository eventRepository;
+    private Button notificationButton;
+
 
     public EventListFragment() {
         // Required empty public constructor
@@ -30,6 +35,7 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.event_list, container, false);
         eventRecyclerView = view.findViewById(R.id.event_list_recycler_view);
+        notificationButton = view.findViewById(R.id.btnNotification);
         return view;
     }
 
@@ -43,6 +49,20 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         adapter = new EventAdapter(getContext(), eventList, this);
         eventRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         eventRecyclerView.setAdapter(adapter);
+
+        notificationButton.setOnClickListener(v -> {
+            // Create the NotificationFragment using its empty constructor.
+            // It does not need any arguments.
+            NotificationFragment notificationFragment = new NotificationFragment();
+
+            if (getActivity() != null) {
+                getActivity().getSupportFragmentManager().beginTransaction()
+                        // Use your actual FragmentContainerView ID
+                        .replace(R.id.nav_host_fragment, notificationFragment)
+                        .addToBackStack(null) // Allows the user to return with the back button
+                        .commit();
+            }
+        });
 
         // Start observing the data from the repository
         observeEvents();

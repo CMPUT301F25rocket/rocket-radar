@@ -22,6 +22,7 @@ public class NotificationFragment extends Fragment {
     // ui components
     private RecyclerView notificationRecyclerView;
     private TextView emptyNotificationsTextView;
+    private Button backButton;
 
     // Adapter and Data
     private NotificationAdapter adapter;
@@ -55,15 +56,10 @@ public class NotificationFragment extends Fragment {
 
         notificationRecyclerView = view.findViewById(R.id.notification_recycler_view);
         emptyNotificationsTextView = view.findViewById(R.id.empty_notifications_text);
-        Button backButton = view.findViewById(R.id.back_arrow);
+        backButton = view.findViewById(R.id.back_arrow);
 
         emptyNotificationsTextView.setVisibility(View.VISIBLE);
 
-        backButton.setOnClickListener(v -> {
-            if (getActivity() != null) {
-                getActivity().getSupportFragmentManager().popBackStack();
-            }
-        });
         return view;
     }
 
@@ -71,6 +67,13 @@ public class NotificationFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         // Initialize UI components
         super.onViewCreated(view, savedInstanceState);
+
+        backButton.setOnClickListener(v -> {
+            if (getActivity() != null) {
+                // This correctly pops the fragment off the back stack, returning to the previous screen.
+                getActivity().getSupportFragmentManager().popBackStack();
+            }
+        });
 
         notificationList = new ArrayList<>();
         setupRecyclerView();
