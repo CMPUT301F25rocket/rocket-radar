@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
-
-    id("com.google.gms.google-services")
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -51,9 +50,10 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation(libs.recyclerview)
-    implementation(libs.firebase.auth)
-    implementation(libs.navigation.fragment)
-    implementation(libs.navigation.ui)
+    implementation(libs.firebase.database)
+    implementation(libs.play.services.maps)
+    implementation(libs.transport.api)
+    implementation(libs.firebase.firestore)
 
     // Instrumentation testing
     testImplementation(libs.junit)

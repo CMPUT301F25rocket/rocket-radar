@@ -34,9 +34,12 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * This method runs the first time the activity is created and only then.
+     * 
      * @param savedInstanceState If the activity is being re-initialized after
-     *     previously being shut down then this Bundle contains the data it most
-     *     recently supplied in {@link #onSaveInstanceState}.  <b><i>Note: Otherwise it is null.</i></b>
+     *                           previously being shut down then this Bundle
+     *                           contains the data it most
+     *                           recently supplied in {@link #onSaveInstanceState}.
+     *                           <b><i>Note: Otherwise it is null.</i></b>
      *
      */
     @Override
@@ -47,8 +50,11 @@ public class MainActivity extends AppCompatActivity {
         navBarBinding = NavBarBinding.inflate(getLayoutInflater());
         setContentView(navBarBinding.getRoot());
 
-        NavHostFragment navHostFragment =
-                (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
+        // The repository is no longer needed here
+        // eventRepository = new EventRepository();
+
+        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.nav_host_fragment);
         NavController navController = navHostFragment.getNavController();
         NavigationUI.setupWithNavController(navBarBinding.bottomNavigationView, navController);
     }
@@ -92,7 +98,8 @@ public class MainActivity extends AppCompatActivity {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         String uid = user.getUid();
         Map<String, Object> userMap = new HashMap<>();
-        // userMap.put("createdAt", FieldValue.serverTimestamp()); this will get overwritten each time, so maybe implement it later
+        // userMap.put("createdAt", FieldValue.serverTimestamp()); this will get
+        // overwritten each time, so maybe implement it later
         userMap.put("lastLogin", FieldValue.serverTimestamp());
 
         db.collection("users")
