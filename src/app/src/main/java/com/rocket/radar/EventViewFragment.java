@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -44,8 +45,13 @@ public class EventViewFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.event_view, container, false);
+        // DONE: View inflation only — all initialization moved to onViewCreated()
+        return inflater.inflate(R.layout.event_view, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         Button backButton = view.findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
@@ -55,11 +61,14 @@ public class EventViewFragment extends Fragment {
             }
         });
 
-        // TODO: Populate your views here using the 'event' object
-        // Example:
-        // TextView title = view.findViewById(R.id.event_title);
-        // title.setText(event.getEventTitle());
+        if (event != null) {
+            TextView eventTitle = view.findViewById(R.id.event_title);
+            TextView eventDate = view.findViewById(R.id.event_date);
+            TextView eventTagline = view.findViewById(R.id.event_tagline);
 
-        return view;
+            eventTitle.setText(event.getEventTitle());
+            eventDate.setText(event.getDate());
+            eventTagline.setText(event.getTagline());
+        }
     }
 }
