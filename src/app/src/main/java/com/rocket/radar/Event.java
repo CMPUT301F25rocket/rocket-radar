@@ -1,6 +1,5 @@
 package com.rocket.radar;
 
-import com.google.firebase.firestore.Exclude; // CORRECT: Using the Firestore Exclude
 import java.io.Serializable;
 
 public class Event implements Serializable {
