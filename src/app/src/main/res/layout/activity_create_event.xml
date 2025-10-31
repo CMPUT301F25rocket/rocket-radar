@@ -56,11 +56,18 @@
             </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
         <!-- android:visibility="@{createEvent.showBottomSheet}" -->
+        <!--
+        These app:behavior_... can be found on the BottomSheetBehaviour documentation for us all that
+        really matters is that without app:behavior_hideable we are completely unable to hide the sheet.
+        Because who would ever want to do that by default.
+        -->
         <FrameLayout
             android:id="@+id/createEventWizardBottomSheet"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+            app:behavior_hideable="true"
+            app:behavior_peekHeight="70dp"
         >
             <com.google.android.material.textview.MaterialTextView
                 android:layout_width="wrap_content"
