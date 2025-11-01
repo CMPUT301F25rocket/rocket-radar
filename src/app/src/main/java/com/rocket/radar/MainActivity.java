@@ -13,6 +13,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.rocket.radar.databinding.NavBarBinding;
+import com.rocket.radar.profile.ProfileModel;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -65,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Signs in the user anonymously with Firebase Auth.
-     * Calls updateUI() when the operation completes.
+     *
      */
     private void signInAnonymously() {
         mAuth.signInAnonymously()
@@ -88,15 +89,14 @@ public class MainActivity extends AppCompatActivity {
         }
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         String uid = user.getUid();
-        Map<String, Object> userMap = new HashMap<>();
-        // userMap.put("createdAt", FieldValue.serverTimestamp()); this will get
-        // overwritten each time, so maybe implement it later
-        userMap.put("lastLogin", FieldValue.serverTimestamp());
+
+        ProfileModel profile = new ProfileModel(uid, "Anonymous User", "","", null);
 
         db.collection("users")
                 .document(uid)
-                .set(userMap)
-                .addOnSuccessListener(aVoid -> Log.d(TAG, "User document created/updated"))
+                .set(profile)
+                .addOnSuccessListener(aVoid -> {
+                        db.collection("users").document(uid).update("lastLogin", FieldValue.serverTimestamp());})
                 .addOnFailureListener(e -> Log.w(TAG, "Error writing user document", e));
     }
 
