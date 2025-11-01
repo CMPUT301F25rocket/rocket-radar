@@ -65,4 +65,5 @@ dependencies {
 
     // google maps dependency
     implementation(libs.play.services.maps)
+    implementation(libs.firebase.messaging)
 }
