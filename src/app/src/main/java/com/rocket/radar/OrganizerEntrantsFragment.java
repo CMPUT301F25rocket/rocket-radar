@@ -29,6 +29,8 @@ import java.util.List;
 
 public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCallback {
 
+    // THIS WORKS SO FAR LFG
+
     private GoogleMap googleMap;
     private BottomSheetBehavior<MaterialCardView> bottomSheetBehavior;
 
