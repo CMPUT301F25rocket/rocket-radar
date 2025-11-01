@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
@@ -14,6 +15,7 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.rocket.radar.databinding.NavBarBinding;
 import com.rocket.radar.profile.ProfileModel;
+import com.rocket.radar.profile.ProfileViewModel;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
     private FirebaseAuth mAuth;
+    private ProfileViewModel profileViewModel;
 
     /**
      * This method runs the first time the activity is created and only then.
@@ -37,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         mAuth = FirebaseAuth.getInstance(); // Initiaize Firebase Auth
+        profileViewModel = new ViewModelProvider(this).get(ProfileViewModel.class);
 
         super.onCreate(savedInstanceState);
         navBarBinding = NavBarBinding.inflate(getLayoutInflater());
@@ -87,17 +91,18 @@ public class MainActivity extends AppCompatActivity {
             Log.w(TAG, "No user signed in");
             return;
         }
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
         String uid = user.getUid();
-
-        ProfileModel profile = new ProfileModel(uid, "Anonymous User", "","", null);
-
-        db.collection("users")
-                .document(uid)
-                .set(profile)
-                .addOnSuccessListener(aVoid -> {
-                        db.collection("users").document(uid).update("lastLogin", FieldValue.serverTimestamp());})
-                .addOnFailureListener(e -> Log.w(TAG, "Error writing user document", e));
+        profileViewModel.getProfileLiveData().observe(this, profile -> {
+            if (profile == null) {
+                // first time user
+                ProfileModel defaultProfile = new ProfileModel(uid, "Anonymous User", "", "", null);
+                profileViewModel.updateProfile(defaultProfile);
+            } else {
+                profileViewModel.updateLastLogin(profile.getUid());
+                Log.d(TAG, "Profile loaded successfully: " + profile.getUid());
+            }
+        });
+        profileViewModel.getProfile(uid);
     }
 
     public void setBottomNavigationVisibility(int visibility) {
@@ -105,5 +110,4 @@ public class MainActivity extends AppCompatActivity {
             navBarBinding.bottomNavigationView.setVisibility(visibility);
         }
     }
-
 }

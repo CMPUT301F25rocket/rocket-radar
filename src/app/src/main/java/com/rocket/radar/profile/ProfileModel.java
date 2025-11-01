@@ -1,6 +1,5 @@
 package com.rocket.radar.profile;
 
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.Timestamp;
 
 public class ProfileModel {
