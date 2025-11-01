@@ -1,3 +1,4 @@
+// C:/Users/bwood/Cmput301/rocket-radar/src/app/src/main/java/com/rocket/radar/EventListFragment.java
 package com.rocket.radar;
 
 import android.os.Bundle;
@@ -19,6 +20,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EventListFragment extends Fragment implements EventAdapter.OnEventListener {
+
+    // ================== TESTING FLAG ==================
+    // Set this to 'true' to test the organizer view, 'false' for normal user view.
+    private static final boolean TESTING_ORGANIZER_VIEW = true;
+    // ================================================
 
     private RecyclerView eventRecyclerView;
     private EventAdapter adapter;
@@ -51,18 +57,14 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         eventRecyclerView.setAdapter(adapter);
 
         notificationButton.setOnClickListener(v -> {
-            // Create the NotificationFragment using its empty constructor.
-            // It does not need any arguments.
             NotificationFragment notificationFragment = new NotificationFragment();
 
-            if (getActivity() instanceof MainActivity) { // Check if the activity is MainActivity
-                // Hide the bottom navigation view
+            if (getActivity() instanceof MainActivity) {
                 ((MainActivity) getActivity()).setBottomNavigationVisibility(View.GONE);
 
                 getActivity().getSupportFragmentManager().beginTransaction()
-                        // Use your actual FragmentContainerView ID
                         .replace(R.id.nav_host_fragment, notificationFragment)
-                        .addToBackStack(null) // Allows the user to return with the back button
+                        .addToBackStack(null)
                         .commit();
             }
         });
@@ -70,38 +72,61 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         // Start observing the data from the repository
         observeEvents();
 
-        // Optional: Call this once if you want to ensure dummy data exists in
-        // Firestore.
-        // You can comment this out after the first run.
-        eventRepository.addDummyDatatodb();
+        // Optional: Comment this out after the first run.
+        // eventRepository.addDummyDatatodb();
     }
 
     private void observeEvents() {
-        // This is the core of the real-time logic.
-        // The observer will be called every time data changes in Firestore.
-        eventRepository.getAllEvents().observe(getViewLifecycleOwner(), new Observer<List<Event>>() {
-            @Override
-            public void onChanged(List<Event> newEvents) {
-                if (newEvents != null) {
-                    Log.d("EventListFragment", "Data updated. " + newEvents.size() + " events received.");
-                    eventList.clear();
-                    eventList.addAll(newEvents);
-                    adapter.notifyDataSetChanged();
-                }
+        eventRepository.getAllEvents().observe(getViewLifecycleOwner(), newEvents -> {
+            if (newEvents != null) {
+                Log.d("EventListFragment", "Data updated. " + newEvents.size() + " events received.");
+                eventList.clear();
+                eventList.addAll(newEvents);
+                adapter.notifyDataSetChanged();
             }
         });
     }
 
     @Override
     public void onEventClick(int position) {
-        Event clickedEvent = eventList.get(position);
-        EventViewFragment eventViewFragment = EventViewFragment.newInstance(clickedEvent);
+        // Hide the bottom navigation bar before navigating to any detail screen
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).setBottomNavigationVisibility(View.GONE);
+        }
 
-        if (getActivity() != null) {
-            getActivity().getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.nav_host_fragment, eventViewFragment)
-                    .addToBackStack(null)
-                    .commit();
+        if (TESTING_ORGANIZER_VIEW) {
+            // --- TEMPORARY TESTING LOGIC ---
+            Log.d("EventListFragment", "TESTING_ORGANIZER_VIEW is true. Navigating to OrganizerEntrantsFragment.");
+            OrganizerEntrantsFragment organizerFragment = new OrganizerEntrantsFragment();
+
+            if (getActivity() != null) {
+                getActivity().getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.nav_host_fragment, organizerFragment)
+                        .addToBackStack(null)
+                        .commit();
+            }
+
+        } else {
+            // --- NORMAL USER LOGIC ---
+            Log.d("EventListFragment", "TESTING_ORGANIZER_VIEW is false. Navigating to EventViewFragment.");
+            Event clickedEvent = eventList.get(position);
+            EventViewFragment eventViewFragment = EventViewFragment.newInstance(clickedEvent);
+
+            if (getActivity() != null) {
+                getActivity().getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.nav_host_fragment, eventViewFragment)
+                        .addToBackStack(null)
+                        .commit();
+            }
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Make sure the bottom navigation is visible when the user returns to this screen
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).setBottomNavigationVisibility(View.VISIBLE);
         }
     }
 }
