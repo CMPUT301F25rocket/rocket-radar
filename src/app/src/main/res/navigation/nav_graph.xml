@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/eventListFragment">
+    app:startDestination="@id/loginFragment">
 
     <fragment
         android:id="@+id/eventListFragment"
@@ -14,6 +14,11 @@
        android:id="@+id/draftEventsFragment"
        android:name="com.rocket.radar.eventmanagement.DraftEventsFragment"
        android:label="Draft Events" />
+
+    <fragment
+        android:id='@+id/loginFragment'
+        android:name="com.rocket.radar.login.LoginViewFragment"
+        android:label="Login" />
 
     <fragment
         android:id="@+id/accountSettingsFragment"
