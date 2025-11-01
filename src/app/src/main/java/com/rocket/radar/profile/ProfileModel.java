@@ -5,6 +5,13 @@ import com.rocket.radar.events.Event;
 
 import java.util.ArrayList;
 
+/**
+ * Represents a user profile in the application.
+ * This class is a data model that holds all information related to a user,
+ * including their personal details, authentication information, and event-related activities.
+ * It is designed to be easily serialized and deserialized, for example,
+ * when interacting with a Firestore database.
+ */
 public class ProfileModel {
     private String uid;
     private String name;
@@ -59,6 +66,7 @@ public class ProfileModel {
     public void setAttendedEvents(ArrayList<Event> attendedEvents) {
         this.attendedEvents = attendedEvents;
     }
+
 
     public ArrayList<Event> getPastEvents() {
         return pastEvents;
