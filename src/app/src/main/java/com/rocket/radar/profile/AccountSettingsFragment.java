@@ -16,14 +16,17 @@ import com.rocket.radar.R;
 
 public class AccountSettingsFragment extends Fragment {
 
-    private MaterialButton backButton;
+    private MaterialButton backButton, saveButton;
     private TextInputEditText usernameField, emailField, phoneNumberField;
     private ProfileViewModel profileViewModel;
+
+    private String uid;
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view =  inflater.inflate(R.layout.fragment_account_settings, container, false);
         backButton = view.findViewById(R.id.back_button);
+        saveButton = view.findViewById(R.id.save_button);
         usernameField = view.findViewById(R.id.usernameField);
         emailField = view.findViewById(R.id.emailField);
         phoneNumberField = view.findViewById(R.id.phoneField);
@@ -45,6 +48,18 @@ public class AccountSettingsFragment extends Fragment {
             usernameField.setText(profile.getName());
             emailField.setText(profile.getEmail());
             phoneNumberField.setText(profile.getPhoneNumber());
+            uid = profile.getUid();
+        });
+
+        saveButton.setOnClickListener( v -> {
+            ProfileModel newProfile = new ProfileModel(
+                    uid,
+                    usernameField.getText().toString().trim(),
+                    emailField.getText().toString().trim(),
+                    phoneNumberField.getText().toString().trim(),
+                    null
+            );
+            profileViewModel.updateProfile(newProfile);
         });
         return view;
     }
