@@ -62,4 +62,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation (libs.google.firebase.firestore)
+
+    // google maps dependency
+    implementation(libs.play.services.maps)
 }
