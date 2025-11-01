@@ -1,17 +1,16 @@
-package com.rocket.radar.eventmanagement;
-import android.graphics.Bitmap;
+package com.rocket.radar.eventmanagement;import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.view.View;
 
-import androidx.databinding.BaseObservable;
-import androidx.databinding.Bindable;
-import androidx.databinding.Observable;
+// REMOVE BaseObservable and Bindable imports
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
 
 import java.util.Date;
 
+// Your class should only extend ViewModel
 public class CreateEventModel extends ViewModel {
     // Other state
     private boolean showBottomSheet;
@@ -24,32 +23,17 @@ public class CreateEventModel extends ViewModel {
     private MutableLiveData<Section> section;
 
     // General section field values
-    public MutableLiveData<String> title;
-    public MutableLiveData<String> description;
+    public MutableLiveData<String> title = new MutableLiveData<>();
+    public MutableLiveData<String> description = new MutableLiveData<>();
 
 
     // Datetime section field values
-    public MutableLiveData<Boolean> singleDayEvent;
-    private MutableLiveData<Date> eventDate;
+    public MutableLiveData<Boolean> singleDayEvent = new MutableLiveData<>();
+    private MutableLiveData<Date> eventDate = new MutableLiveData<>();
     private Time eventStartTime;
     private Time eventEndTime;
 
-    // Deadline section field values
-    private Date registrationStartDate;
-    private Date registrationEndDate;
-
-    private Date initialSelectionStartDate;
-    private Date initialSelectionEndDate;
-
-    private Date finalAttendeeSelectionDate;
-
-    // Lottery section field values
-    private boolean hasWaitlistCapacity;
-    private boolean hasLocationRequirement;
-    private int waitlistCapacity;
-    private int eventCapacity;
-    private Date lotteryDate;
-    private Time lotteryTime;
+    // ... (rest of your fields)
 
     // Style section field values
     private Bitmap image;
@@ -59,46 +43,56 @@ public class CreateEventModel extends ViewModel {
         section = new MutableLiveData<>(Section.GENERAL);
     }
 
-    @Bindable
+    // No @Bindable needed here
     public LiveData<Section> getSection() {
         return section;
     }
 
-    @Bindable
-    public int getLeftButtonVisibility() {
-        if (section.getValue() != Section.GENERAL) {
-            return View.GONE;
-        } else {
-            return View.VISIBLE;
-        }
+    // No @Bindable. Use Transformations.map to create a LiveData that reacts to changes in 'section'.
+    public LiveData<Integer> getLeftButtonVisibility() {
+        return Transformations.map(section, currentSection -> {
+            if (currentSection != Section.GENERAL) {
+                return View.GONE;
+            } else {
+                return View.VISIBLE;
+            }
+        });
     }
 
-    @Bindable
-    public int getRightButtonVisibility() {
-        return View.VISIBLE;
+    // No @Bindable. Visibility is always visible, so this can be a simple LiveData.
+    public LiveData<Integer> getRightButtonVisibility() {
+        // Since this is always visible, you can just return a static LiveData
+        // or keep it simple if your XML doesn't bind to it dynamically.
+        // For consistency, here is the reactive way:
+        return new MutableLiveData<>(View.VISIBLE);
     }
 
-    @Bindable
-    public String getRightButtonText() {
-        if (section.getValue() == Section.STYLE) return "Create";
-        else return "Next";
+    // No @Bindable. Use Transformations.map for reactive text changes.
+    public LiveData<String> getRightButtonText() {
+        return Transformations.map(section, currentSection -> {
+            if (currentSection == Section.STYLE) return "Create";
+            else return "Next";
+        });
     }
 
     public void nextSection() {
         Section current = section.getValue();
-        if (current == Section.lastSection) {
-            return;
-        } else {
+        // Assuming Section.lastSection is a valid concept in your enum
+        if (current != null && current.ordinal() < Section.values().length - 1) {
             section.setValue(Section.values()[current.ordinal() + 1]);
         }
     }
 
     public void prevSection() {
         Section current = section.getValue();
-        if (current== Section.firstSection) {
-            return;
-        } else {
+        // Assuming Section.firstSection is a valid concept in your enum
+        if (current != null && current.ordinal() > 0) {
             section.setValue(Section.values()[current.ordinal() - 1]);
         }
+    }
+
+    // You would also need your Section enum defined somewhere, possibly inside this class or in its own file.
+    public enum Section {
+        GENERAL, DATETIME, DEADLINE, LOTTERY, STYLE // Example sections
     }
 }

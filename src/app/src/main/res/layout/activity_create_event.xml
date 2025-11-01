@@ -3,7 +3,8 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
-        <import type="com.rocket.radar.eventmanagement.Section"/>
+        <!-- ADD THIS IMPORT for the Section enum -->
+        <import type="com.rocket.radar.eventmanagement.CreateEventModel.Section"/>
         <import type="android.view.View"/>
         <variable name="createEvent" type="com.rocket.radar.eventmanagement.CreateEventModel"/>
     </data>
@@ -18,7 +19,7 @@
                 android:id="@+id/createEventWizardSectionHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@{createEvent.section.title}"
+                android:text='@{createEvent.section.name()}'
                 android:textSize="40sp"
                 android:textStyle="bold"
                 android:layout_marginTop="20dp"
@@ -39,8 +40,11 @@
                     android:visibility="@{createEvent.section == Section.GENERAL ? View.VISIBLE : View.GONE}" />
                 <include layout="@layout/view_input_event_datetime"
                     android:visibility="@{createEvent.section == Section.DATETIME ? View.VISIBLE : View.GONE}" />
+
+                <!-- CORRECT THE ENUM VALUE HERE from DEADLINES to DEADLINE -->
                 <include layout="@layout/view_input_event_deadlines"
-                    android:visibility="@{createEvent.section == Section.DEADLINES ? View.VISIBLE : View.GONE}" />
+                    android:visibility="@{createEvent.section == Section.DEADLINE ? View.VISIBLE : View.GONE}" />
+
                 <include layout="@layout/view_input_event_lottery"
                     android:visibility="@{createEvent.section == Section.LOTTERY ? View.VISIBLE : View.GONE}" />
                 <include layout="@layout/view_input_event_style"
@@ -60,6 +64,7 @@
                     android:layout_height="wrap_content"
                     android:visibility="@{createEvent.leftButtonVisibility}"
                     android:text="Back"
+                    android:onClick="@{() -> createEvent.prevSection()}"
                     android:layout_weight="1" />
 
                 <com.google.android.material.button.MaterialButton
@@ -68,6 +73,7 @@
                     android:layout_height="wrap_content"
                     android:visibility="@{createEvent.rightButtonVisibility}"
                     android:text="@{createEvent.rightButtonText}"
+                    android:onClick="@{() -> createEvent.nextSection()}"
                     android:layout_weight="1" />
             </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -83,7 +89,7 @@
             app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
             app:behavior_hideable="true"
             app:behavior_peekHeight="70dp"
-        >
+            >
             <com.google.android.material.textview.MaterialTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
