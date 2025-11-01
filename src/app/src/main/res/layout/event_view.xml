@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/white"
-    tools:context=".EventViewFragment">
+    tools:context=".events.EventViewFragment">
 
     <!-- The content that will scroll -->
     <androidx.core.widget.NestedScrollView

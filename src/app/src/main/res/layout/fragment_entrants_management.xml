@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".OrganizerEntrantsFragment">
+    tools:context=".events.OrganizerEntrantsFragment">
 
     <!-- =================================================================== -->
     <!-- MAIN CONTENT (Map fills the entire screen)                          -->
@@ -15,7 +15,7 @@
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".OrganizerEntrantsFragment" />
+        tools:context=".events.OrganizerEntrantsFragment" />
 
     <!-- =================================================================== -->
     <!-- TOP BAR (Back, Title, and Filters)                                  -->

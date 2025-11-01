@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
+    implementation(libs.google.firebase.messaging)
 
     // Instrumentation testing
     testImplementation(libs.junit)
@@ -65,4 +66,5 @@ dependencies {
 
     // google maps dependency
     implementation(libs.play.services.maps)
+    implementation(libs.firebase.messaging)
 }
