@@ -58,6 +58,10 @@ public class ProfileModel {
         this.onWaitlistEvents = onWaitlistEvents;
     }
 
+    public void addOnWaitlistEvent(Event event) {
+        if (this.onWaitlistEvents == null) this.onWaitlistEvents = new ArrayList<>();
+        this.onWaitlistEvents.add(event);
+    }
 
     public ArrayList<Event> getAttendedEvents() {
         return attendedEvents;
@@ -67,6 +71,11 @@ public class ProfileModel {
         this.attendedEvents = attendedEvents;
     }
 
+    public void addAttendedEvent(Event event) {
+        if (this.attendedEvents == null) this.attendedEvents = new ArrayList<>();
+        this.attendedEvents.add(event);
+    }
+
 
     public ArrayList<Event> getPastEvents() {
         return pastEvents;
@@ -74,5 +83,10 @@ public class ProfileModel {
 
     public void setPastEvents(ArrayList<Event> pastEvents) {
         this.pastEvents = pastEvents;
+    }
+
+    public void addPastEvent(Event event) {
+        if (this.pastEvents == null) this.pastEvents = new ArrayList<>();
+        this.pastEvents.add(event);
     }
 }
