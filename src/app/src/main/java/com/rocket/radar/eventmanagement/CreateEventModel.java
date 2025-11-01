@@ -5,6 +5,8 @@ import android.view.View;
 
 import androidx.databinding.Bindable;
 import androidx.databinding.Observable;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import java.util.Date;
@@ -18,7 +20,7 @@ public class CreateEventModel extends ViewModel implements Observable {
     }
 
     // Creation wizard state.
-    private Section section;
+    private MutableLiveData<Section> section;
 
     // General section field values
     private String title;
@@ -53,7 +55,7 @@ public class CreateEventModel extends ViewModel implements Observable {
     private Color color;
 
     public CreateEventModel() {
-        section = Section.GENERAL;
+        section = new MutableLiveData<>(Section.GENERAL);
     }
 
     @Override
@@ -67,13 +69,13 @@ public class CreateEventModel extends ViewModel implements Observable {
     }
 
     @Bindable
-    public Section getSection() {
+    public LiveData<Section> getSection() {
         return section;
     }
 
     @Bindable
     public int getLeftButtonVisibility() {
-        if (section != Section.GENERAL) {
+        if (section.getValue() != Section.GENERAL) {
             return View.GONE;
         } else {
             return View.VISIBLE;
@@ -87,23 +89,25 @@ public class CreateEventModel extends ViewModel implements Observable {
 
     @Bindable
     public String getRightButtonText() {
-        if (section == Section.STYLE) return "Create";
+        if (section.getValue() == Section.STYLE) return "Create";
         else return "Next";
     }
 
     public void nextSection() {
-        if (section == Section.lastSection) {
+        Section current = section.getValue();
+        if (current == Section.lastSection) {
             return;
         } else {
-            section = Section.values()[section.ordinal() + 1];
+            section.setValue(Section.values()[current.ordinal() + 1]);
         }
     }
 
     public void prevSection() {
-        if (section == Section.firstSection) {
+        Section current = section.getValue();
+        if (current== Section.firstSection) {
             return;
         } else {
-            section = Section.values()[section.ordinal() - 1];
+            section.setValue(Section.values()[current.ordinal() - 1]);
         }
     }
 
