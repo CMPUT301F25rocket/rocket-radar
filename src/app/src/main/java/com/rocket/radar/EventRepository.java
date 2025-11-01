@@ -72,6 +72,9 @@ public class EventRepository {
         eventList.add(new Event("Watch Party for Oilers", "30\nSEP", "Fun for fanatics", R.drawable.rogers_image));
         eventList.add(new Event("BBQ Event", "12\nNOV", "Mushroom bros who listen to bangers", R.drawable.mushroom_in_headphones_amidst_nature));
         eventList.add(new Event("Ski Trip", "18\nDEC", "The slopes are calling", R.drawable.ski_trip_banner));
+//        eventList.add(new Event("Ski Trip2", "18\nDEC", "The slopes are calling", R.drawable.ski_trip_banner));
+//        eventList.add(new Event("Ski Trip3", "18\nDEC", "The slopes are calling", R.drawable.ski_trip_banner));
+//        eventList.add(new Event("Ski Trip4", "18\nDEC", "The slopes are calling", R.drawable.ski_trip_banner));
         return eventList;
     }
 }

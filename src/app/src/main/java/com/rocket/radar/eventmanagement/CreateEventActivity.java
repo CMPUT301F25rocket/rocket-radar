@@ -41,6 +41,7 @@ public class CreateEventActivity extends AppCompatActivity {
         });
 
         setContentView(binding.getRoot());
+        binding.setLifecycleOwner(this);
     }
 
     @Override

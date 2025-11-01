@@ -1,6 +1,7 @@
 package com.rocket.radar.notifications;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,11 +17,18 @@ import java.util.List;
 
 public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.MyViewHolder> {
     Context context;
-    List<Notification> notificationList;
+    private final List<Notification> notificationList;
 
     public NotificationAdapter(Context context, List<Notification> notificationList) {
         this.context = context;
         this.notificationList = notificationList;
+    }
+
+    public void setNotifications(List<Notification> newNotifications) {
+        this.notificationList.clear();
+        this.notificationList.addAll(newNotifications);
+        Log.d("NotificationAdapter", "setNotifications: len " + notificationList.size());
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -29,15 +37,19 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         //inflate layout
         LayoutInflater inflater = LayoutInflater.from(context);
         View view = inflater.inflate(R.layout.event_notification_item, parent, false);
+        Log.d("NotificationAdapter", "onCreateViewHolder: created view " + view.toString());
+        Log.d("NotificationAdapter", "onCreateViewHolder: created view with parent " + parent.toString());
+
         return new MyViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull NotificationAdapter.MyViewHolder holder, int position) {
         // bind data to the rows in recycler view based on position
-        holder.eventImage.setImageResource(notificationList.get(position).getImage());
-        holder.eventTitle.setText(notificationList.get(position).getEventTitle());
-        holder.notificationType.setText(notificationList.get(position).getNotificationType());
+        Notification notification = notificationList.get(position);
+        holder.eventImage.setImageResource(notification.getImage());
+        holder.eventTitle.setText(notification.getEventTitle());
+        holder.notificationType.setText(notification.getNotificationType());
     }
 
     @Override
