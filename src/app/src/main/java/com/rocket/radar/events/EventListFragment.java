@@ -1,4 +1,4 @@
-package com.rocket.radar;
+package com.rocket.radar.events;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -13,6 +13,8 @@ import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.rocket.radar.MainActivity;
+import com.rocket.radar.R;
 import com.rocket.radar.notifications.NotificationFragment;
 
 import java.util.ArrayList;

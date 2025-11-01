@@ -15,7 +15,6 @@ import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.rocket.radar.Event;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
 

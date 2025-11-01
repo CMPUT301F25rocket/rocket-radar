@@ -1,4 +1,4 @@
-package com.rocket.radar;
+package com.rocket.radar.events;
 
 import android.util.Log;
 import androidx.lifecycle.LiveData;
@@ -6,6 +6,8 @@ import androidx.lifecycle.MutableLiveData;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.rocket.radar.R;
+
 import java.util.ArrayList;
 import java.util.List;
 

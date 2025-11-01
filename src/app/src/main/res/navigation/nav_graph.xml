@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/eventListFragment"
-        android:name="com.rocket.radar.EventListFragment"
+        android:name="com.rocket.radar.events.EventListFragment"
         android:label="Events" />
 
     <fragment

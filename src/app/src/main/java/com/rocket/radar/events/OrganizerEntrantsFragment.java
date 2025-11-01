@@ -1,4 +1,4 @@
-package com.rocket.radar;
+package com.rocket.radar.events;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -22,6 +22,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.tabs.TabLayout;
+import com.rocket.radar.R;
 import com.rocket.radar.profile.ProfileModel;
 
 import java.util.ArrayList;
