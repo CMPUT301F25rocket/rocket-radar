@@ -3,6 +3,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.view.View;
 
+import androidx.databinding.BaseObservable;
 import androidx.databinding.Bindable;
 import androidx.databinding.Observable;
 import androidx.lifecycle.LiveData;
@@ -11,7 +12,7 @@ import androidx.lifecycle.ViewModel;
 
 import java.util.Date;
 
-public class CreateEventModel extends ViewModel implements Observable {
+public class CreateEventModel extends ViewModel {
     // Other state
     private boolean showBottomSheet;
 
@@ -23,13 +24,13 @@ public class CreateEventModel extends ViewModel implements Observable {
     private MutableLiveData<Section> section;
 
     // General section field values
-    private String title;
-    private String description;
+    public MutableLiveData<String> title;
+    public MutableLiveData<String> description;
 
 
     // Datetime section field values
-    private Boolean singleDayEvent;
-    private Date eventDate;
+    public MutableLiveData<Boolean> singleDayEvent;
+    private MutableLiveData<Date> eventDate;
     private Time eventStartTime;
     private Time eventEndTime;
 
@@ -56,16 +57,6 @@ public class CreateEventModel extends ViewModel implements Observable {
 
     public CreateEventModel() {
         section = new MutableLiveData<>(Section.GENERAL);
-    }
-
-    @Override
-    public void addOnPropertyChangedCallback(OnPropertyChangedCallback callback) {
-
-    }
-
-    @Override
-    public void removeOnPropertyChangedCallback(OnPropertyChangedCallback callback) {
-
     }
 
     @Bindable
@@ -109,9 +100,5 @@ public class CreateEventModel extends ViewModel implements Observable {
         } else {
             section.setValue(Section.values()[current.ordinal() - 1]);
         }
-    }
-
-    public void backSection() {
-
     }
 }

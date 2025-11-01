@@ -29,7 +29,8 @@
             android:textSize="20sp"
             android:layout_marginTop="24dp"/>
 
-        <ImageView
+        <ImageButton
+            android:id="@+id/account_settings_button"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_marginBottom="55dp"

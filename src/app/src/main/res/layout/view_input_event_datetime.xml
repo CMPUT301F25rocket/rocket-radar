@@ -2,7 +2,7 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto" >
     <data>
-
+        <variable name="createEvent" type="com.rocket.radar.eventmanagement.CreateEventModel"/>
     </data>
     <LinearLayout
         android:layout_width="match_parent"
@@ -27,12 +27,15 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <com.google.android.material.materialswitch.MaterialSwitch
+                style="@style/Widget.Material3.CompoundButton.MaterialSwitch"
                 android:layout_width="wrap_content"
                 android:layout_height="10dp"
                 android:layout_marginEnd="16dp"
+                android:checked="@={createEvent.singleDayEvent}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <com.google.android.material.divider.MaterialDivider
@@ -43,29 +46,63 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/InputEventDatetimeDaterangeTextInput"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/inputEventDatetimeDaterangeTextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                android:hint="Event Date"
+                android:padding="24dp"
+                >
+                <com.google.android.material.textfield.TextInputEditText
+                    style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
+                    android:id="@+id/inputEventDatetimeDaterangeTextInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    />
+            </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/inputEventDatetimeStartTextInput"
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/inputEventDatetimeStartTextInputLayout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                app:layout_constraintEnd_toStartOf="@id/inputEventDatetimeEndTextInput"
+                android:hint="Start Time"
+                android:layout_marginLeft="24dp"
+                android:layout_marginRight="12dp"
+                app:layout_constraintEnd_toStartOf="@id/inputEventDatetimeEndTextInputLayout"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/InputEventDatetimeDaterangeTextInput" />
+                app:layout_constraintTop_toBottomOf="@id/inputEventDatetimeDaterangeTextInputLayout"
+                >
+                <com.google.android.material.textfield.TextInputEditText
+                    style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
+                    android:id="@+id/inputEventDatetimeStartTextInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    />
+            </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/inputEventDatetimeEndTextInput"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/inputEventDatetimeEndTextInputLayout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                app:layout_constraintStart_toEndOf="@id/inputEventDatetimeStartTextInput"
+                android:hint="End Time"
+                android:layout_marginLeft="12dp"
+                android:layout_marginRight="24dp"
+                app:layout_constraintStart_toEndOf="@id/inputEventDatetimeStartTextInputLayout"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/InputEventDatetimeDaterangeTextInput" />
+                app:layout_constraintTop_toBottomOf="@id/inputEventDatetimeDaterangeTextInputLayout"
+                >
+
+                <com.google.android.material.textfield.TextInputEditText
+                    style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
+                    android:id="@+id/inputEventDatetimeEndTextInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    />
+            </com.google.android.material.textfield.TextInputLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>

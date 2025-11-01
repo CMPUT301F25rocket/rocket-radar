@@ -10,6 +10,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <!--
+        Create an svg to be a default placeholder to make the view visible to the user.
+        -->
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/inputEventStylePickImage"
             android:layout_width="match_parent"
@@ -23,6 +26,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/inputEventStylePickColorButton"
+            android:text="PICK COLOR"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
