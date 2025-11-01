@@ -1,6 +1,9 @@
 package com.rocket.radar.profile;
 
 import com.google.firebase.Timestamp;
+import com.rocket.radar.events.Event;
+
+import java.util.ArrayList;
 
 public class ProfileModel {
     private String uid;
@@ -8,6 +11,12 @@ public class ProfileModel {
     private String phoneNumber;
     private String email;
     private Timestamp lastLogin;
+
+    private ArrayList<Event> onWaitlistEvents;
+
+    private ArrayList<Event> attendedEvents;
+
+    private ArrayList<Event> pastEvents;
 
     public ProfileModel() {}
 
@@ -34,4 +43,28 @@ public class ProfileModel {
     public Timestamp getLastLogin() { return lastLogin; }
     public void setLastLogin(Timestamp lastLogin) { this.lastLogin = lastLogin; }
 
+    public ArrayList<Event> getOnWaitlistEvents() {
+        return onWaitlistEvents;
+    }
+
+    public void setOnWaitlistEvents(ArrayList<Event> onWaitlistEvents) {
+        this.onWaitlistEvents = onWaitlistEvents;
+    }
+
+
+    public ArrayList<Event> getAttendedEvents() {
+        return attendedEvents;
+    }
+
+    public void setAttendedEvents(ArrayList<Event> attendedEvents) {
+        this.attendedEvents = attendedEvents;
+    }
+
+    public ArrayList<Event> getPastEvents() {
+        return pastEvents;
+    }
+
+    public void setPastEvents(ArrayList<Event> pastEvents) {
+        this.pastEvents = pastEvents;
+    }
 }
