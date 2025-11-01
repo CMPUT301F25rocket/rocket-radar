@@ -3,9 +3,6 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.view.View;
 
-import androidx.databinding.BaseObservable;
-import androidx.databinding.Bindable;
-import androidx.databinding.Observable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -59,12 +56,10 @@ public class CreateEventModel extends ViewModel {
         section = new MutableLiveData<>(Section.GENERAL);
     }
 
-    @Bindable
     public LiveData<Section> getSection() {
         return section;
     }
 
-    @Bindable
     public int getLeftButtonVisibility() {
         if (section.getValue() != Section.GENERAL) {
             return View.GONE;
@@ -73,12 +68,10 @@ public class CreateEventModel extends ViewModel {
         }
     }
 
-    @Bindable
     public int getRightButtonVisibility() {
         return View.VISIBLE;
     }
 
-    @Bindable
     public String getRightButtonText() {
         if (section.getValue() == Section.STYLE) return "Create";
         else return "Next";
