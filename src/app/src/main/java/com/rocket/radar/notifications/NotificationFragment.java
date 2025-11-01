@@ -110,10 +110,10 @@ public class NotificationFragment extends Fragment {
         Log.d("NotificationListFragment", "Updating empty view visibility.");
         if (adapter.getItemCount() == 0) {
             emptyNotificationsTextView.setVisibility(View.VISIBLE);
-            divider.setVisibility(View.GONE);
+            divider.setVisibility(View.VISIBLE);
         } else {
             emptyNotificationsTextView.setVisibility(View.GONE);
-            divider.setVisibility(View.VISIBLE);
+            divider.setVisibility(View.GONE);
         }
     }
 
