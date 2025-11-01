@@ -98,9 +98,7 @@ public class NotificationFragment extends Fragment {
             public void onChanged(List<Notification> newNotifications) {
                 if (newNotifications != null) {
                     Log.d("NotificationListFragment", "Data updated. " + newNotifications.size() + " notification received.");
-                    notificationList.clear();
-                    notificationList.addAll(newNotifications);
-                    adapter.notifyDataSetChanged();
+                    adapter.setNotifications(newNotifications);
                     updateEmptyViewVisibility();
                 }
             }
@@ -109,7 +107,8 @@ public class NotificationFragment extends Fragment {
 
     private void updateEmptyViewVisibility(){
         // Correctly show or hide the empty view and divider
-        if (notificationList.isEmpty()) {
+        Log.d("NotificationListFragment", "Updating empty view visibility.");
+        if (adapter.getItemCount() == 0) {
             emptyNotificationsTextView.setVisibility(View.VISIBLE);
             divider.setVisibility(View.GONE);
         } else {
