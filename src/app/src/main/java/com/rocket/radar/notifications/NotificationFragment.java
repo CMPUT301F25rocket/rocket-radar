@@ -1,6 +1,7 @@
 package com.rocket.radar.notifications;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,9 +11,11 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.rocket.radar.Event;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
 
@@ -24,42 +27,37 @@ public class NotificationFragment extends Fragment {
     private RecyclerView notificationRecyclerView;
     private TextView emptyNotificationsTextView;
     private Button backButton;
+    private com.google.android.material.divider.MaterialDivider divider;
 
     // Adapter and Data
     private NotificationAdapter adapter;
     private List<Notification> notificationList;
 
-    //controller
-    NotificationController controller = new NotificationController();
+    // Repository (Model)
+    NotificationRepository notificationRepository;
 
     public NotificationFragment() {
     }
 
     private void setupRecyclerView() {
+        // Initialize the list first
+        notificationList = new ArrayList<>();
         adapter = new NotificationAdapter(getContext(), notificationList);
         notificationRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         notificationRecyclerView.setAdapter(adapter);
     }
 
-    private void loadDummyData() {
-        NotificationController controller = new NotificationController();
-        controller.addNotification("Campus Marathon", "Event Update", false, 0, notificationList);
-        controller.addNotification("Charity Gala", "Reminder", true, 0, notificationList);
-        controller.addNotification("Coding Competition", "Winner Announcement", true, 0, notificationList);
-        controller.addNotification("Blood Drive", "New Event", false, 0, notificationList);
-        controller.addNotification("Volunteer Meetup", "Feedback Request", true, 0, notificationList);
-        adapter.notifyDataSetChanged();
-    }
+
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.notification_list, container, false);
 
+        notificationRepository = new NotificationRepository();
         notificationRecyclerView = view.findViewById(R.id.notification_recycler_view);
         emptyNotificationsTextView = view.findViewById(R.id.empty_notifications_text);
         backButton = view.findViewById(R.id.back_arrow);
-
-        emptyNotificationsTextView.setVisibility(View.VISIBLE);
+        divider = view.findViewById(R.id.divider);
 
         return view;
     }
@@ -76,13 +74,48 @@ public class NotificationFragment extends Fragment {
             }
         });
 
-        notificationList = new ArrayList<>();
         setupRecyclerView();
-        loadDummyData();
+        observeEvents();
+        // We removed the call to addNotifications() to prevent adding test data every time.
+    }
+
+    // This method was for testing and should be removed to show only what's in the DB.
+    /*
+    private void addNotifications(){
+        NotificationRepository repository = new NotificationRepository();
+        repository.createNotification(new Notification("BBQ event", "12\nNOV", false, R.drawable.mushroom_in_headphones_amidst_nature));
+        repository.createNotification(new Notification("Watch Party for Oilers", "30\nSEP", false, R.drawable.rogers_image));
+        repository.createNotification(new Notification("Ski Trip", "18\nDEC", false, R.drawable.ski_trip_banner));
+        adapter.notifyDataSetChanged();
+    }
+    */
+
+    private void observeEvents() {
+        // This is the core of the real-time logic.
+        // The observer will be called immediately with all existing data in Firestore.
+        notificationRepository.getAllNotifications().observe(getViewLifecycleOwner(), new Observer<List<Notification>>() {
+            @Override
+            public void onChanged(List<Notification> newNotifications) {
+                if (newNotifications != null) {
+                    Log.d("NotificationListFragment", "Data updated. " + newNotifications.size() + " notification received.");
+                    notificationList.clear();
+                    notificationList.addAll(newNotifications);
+                    adapter.notifyDataSetChanged();
+                    updateEmptyViewVisibility();
+                }
+            }
+        });
     }
 
     private void updateEmptyViewVisibility(){
-        emptyNotificationsTextView.setVisibility(View.GONE);
+        // Correctly show or hide the empty view and divider
+        if (notificationList.isEmpty()) {
+            emptyNotificationsTextView.setVisibility(View.VISIBLE);
+            divider.setVisibility(View.GONE);
+        } else {
+            emptyNotificationsTextView.setVisibility(View.GONE);
+            divider.setVisibility(View.VISIBLE);
+        }
     }
 
     public void onDestroyView() {
