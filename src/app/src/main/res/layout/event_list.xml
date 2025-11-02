@@ -8,16 +8,18 @@
     <LinearLayout
         android:id="@+id/linearLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="64dp"
         android:layout_marginTop="16dp"
         android:gravity="center_horizontal|center_vertical"
         android:orientation="horizontal"
         android:weightSum="3"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/event_list_recycler_view">
 
-        <Button
+
+    <Button
             android:id="@+id/button_filter"
             style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="wrap_content"
