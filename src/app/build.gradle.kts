@@ -55,6 +55,11 @@ dependencies {
     implementation(libs.navigation.ui)
     implementation(libs.google.firebase.messaging)
 
+    // Bottom sheet pickers. Implementation was tried.
+    implementation(libs.calendar)
+    implementation(libs.clock)
+    implementation(libs.color)
+
     // Instrumentation testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

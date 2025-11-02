@@ -59,6 +59,11 @@
                 <com.google.android.material.textfield.TextInputEditText
                     style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
                     android:id="@+id/inputEventDatetimeDaterangeTextInput"
+                    android:text="@{createEvent.eventDateDisplay}"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:cursorVisible="false"
+                    android:inputType="none"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     />
@@ -79,6 +84,7 @@
                 <com.google.android.material.textfield.TextInputEditText
                     style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
                     android:id="@+id/inputEventDatetimeStartTextInput"
+                    android:text="@{createEvent.eventStartTime.toString()}"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     />
@@ -99,6 +105,7 @@
                 <com.google.android.material.textfield.TextInputEditText
                     style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
                     android:id="@+id/inputEventDatetimeEndTextInput"
+                    android:text="@{createEvent.eventEndTime.toString()}"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     />

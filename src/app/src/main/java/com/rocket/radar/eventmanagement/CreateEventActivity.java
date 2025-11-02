@@ -5,9 +5,19 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.textfield.TextInputEditText;
+import com.maxkeppeler.sheets.calendar.CalendarSheet;
+import com.maxkeppeler.sheets.calendar.SelectionMode;
+import com.maxkeppeler.sheets.clock.ClockSheet;
+import com.maxkeppeler.sheets.core.SheetStyle;
 import com.rocket.radar.R;
 import com.rocket.radar.databinding.ActivityCreateEventBinding;
+
+import java.util.Date;
+import java.util.Optional;
+
+import kotlin.Unit;
 
 /**
  * Activity that walks a user through filling out the various pieces of information needed to create
@@ -20,7 +30,6 @@ import com.rocket.radar.databinding.ActivityCreateEventBinding;
 public class CreateEventActivity extends AppCompatActivity {
     ActivityCreateEventBinding binding;
     CreateEventModel model;
-    BottomSheetBehavior bottomSheetBehavior;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -30,9 +39,14 @@ public class CreateEventActivity extends AppCompatActivity {
         binding = ActivityCreateEventBinding.inflate(getLayoutInflater());
         model = new CreateEventModel();
         binding.setCreateEvent(model);
+        binding.setLifecycleOwner(this);
 
-        // >:? This needs to be set in code.
-        bottomSheetBehavior = BottomSheetBehavior.from(binding.createEventWizardBottomSheet);
+        binding.createEventGeneralSection.setCreateEvent(model);
+        binding.createEventGeneralSection.setLifecycleOwner(this);
+
+        binding.createEventDatetimeSection.setCreateEvent(model);
+        binding.createEventDatetimeSection.setLifecycleOwner(this);
+
 
         // Main navigation buttons
         binding.createEventWizardNavLeftButton.setOnClickListener(btn -> {
@@ -42,43 +56,66 @@ public class CreateEventActivity extends AppCompatActivity {
             model.nextSection();
         });
 
-        // Unfortunately it seems viewbinding fails for included views.
+
         setContentView(binding.getRoot());
-        binding.setLifecycleOwner(this);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
 
+        // Unfortunately it seems viewbinding fails for included views.
         // Now we need to bind the inputs that function by sheet.
         TextInputEditText pickEventDate = binding.getRoot().findViewById(R.id.inputEventDatetimeDaterangeTextInput);
         TextInputEditText pickEventStart = binding.getRoot().findViewById(R.id.inputEventDatetimeStartTextInput);
         TextInputEditText pickEventEnd = binding.getRoot().findViewById(R.id.inputEventDatetimeEndTextInput);
 
         pickEventDate.setOnClickListener(itxt -> {
+            CalendarSheet calendarSheet = new CalendarSheet();
+            calendarSheet.show(CreateEventActivity.this, null, sheet -> {
+                sheet.style(SheetStyle.BOTTOM_SHEET);
+                sheet.title("Start Date");
+                sheet.rangeYears(7);
+                sheet.selectionMode(SelectionMode.DATE);
+                sheet.onPositive((start, end) -> {
+                    Date date = start.getTime();
+                    model.eventDate.setValue(Optional.of(start.getTime()));
+                    return Unit.INSTANCE;
+                });
 
+                // Well the sheet library is written in kotlin so...
+                return Unit.INSTANCE;
+            });
         });
 
         pickEventStart.setOnClickListener(itxt -> {
-            // TODO: Tommorow.
-            // Ideally need to be able to specify the destination to save the picked value in.
-            // Probably want a callback that is run whenever the datetime date is selected, time
-            // is set, or color is chosen. Something like DateSheetPicker.onSelect(value -> model.eventDate = value);
-            // That means I need dedicated classes for each picker type I want to implement so thats
-            // going to be a pain.
+            ClockSheet clockSheet = new ClockSheet();
+            clockSheet.show(CreateEventActivity.this, null, sheet -> {
+                sheet.style(SheetStyle.BOTTOM_SHEET);
+                sheet.title("Start Time");
 
-            // SheetPicker<T>. Thats a better abstraction. Set the type T, and provide an instance
-            // which implements a picker interface that can inflate the relevant picker into the
-            // bottom sheet. Accept a callback to set value T when a selection happens. etc.
-            // I probably want a single sheetpicker per xml view that has a bottom sheet which luckily
-            // for this activity is just one. Then the SheetPicker<T> can own the BottomSheetBehaviour
-            // And deal with the annoying stuff for me.
+                sheet.onPositive((epoch, hours, minutes) -> {
+                    model.eventStartTime.setValue(Optional.of(new Time(hours, minutes)));
+                    return Unit.INSTANCE;
+                });
+
+                return Unit.INSTANCE;
+            });
         });
 
         pickEventEnd.setOnClickListener(itxt -> {
+            ClockSheet clockSheet = new ClockSheet();
+            clockSheet.show(CreateEventActivity.this, null, sheet -> {
+                sheet.style(SheetStyle.BOTTOM_SHEET);
+                sheet.title("End Time");
 
+                sheet.onPositive((epoch, hours, minutes) -> {
+                    model.eventStartTime.setValue(Optional.of(new Time(hours, minutes)));
+                    return Unit.INSTANCE;
+                });
+
+                return Unit.INSTANCE;
+            });
         });
     }
 
