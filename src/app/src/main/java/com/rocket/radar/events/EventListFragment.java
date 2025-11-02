@@ -127,19 +127,20 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         List<Event> filteredList = new ArrayList<>();
 
         if (checkedId == R.id.discover_filter_button) {
-            List<String> userEventIds = new ArrayList<>();
+            List<String> userEventTitles = new ArrayList<>(); // FIX: Use titles
             if (currentUserProfile.getOnWaitlistEvents() != null) {
-                userEventIds.addAll(currentUserProfile.getOnWaitlistEvents().stream().map(Event::getEventId).collect(Collectors.toList()));
+                // FIX: Use getEventTitle() instead of getEventId()
+                userEventTitles.addAll(currentUserProfile.getOnWaitlistEvents().stream().map(Event::getEventTitle).collect(Collectors.toList()));
             }
             if (currentUserProfile.getAttendedEvents() != null) {
-                userEventIds.addAll(currentUserProfile.getAttendedEvents().stream().map(Event::getEventId).collect(Collectors.toList()));
+                // FIX: Use getEventTitle() instead of getEventId()
+                userEventTitles.addAll(currentUserProfile.getAttendedEvents().stream().map(Event::getEventTitle).collect(Collectors.toList()));
             }
-            if (currentUserProfile.getPastEvents() != null) {
-                userEventIds.addAll(currentUserProfile.getPastEvents().stream().map(Event::getEventId).collect(Collectors.toList()));
-            }
+            // Past events can be added here similarly if needed
 
+            // FIX: Compare event titles
             filteredList = allEvents.stream()
-                    .filter(event -> !userEventIds.contains(event.getEventId()))
+                    .filter(event -> !userEventTitles.contains(event.getEventTitle()))
                     .collect(Collectors.toList());
         } else if (checkedId == R.id.waitlist_filter_button) {
             if (currentUserProfile.getOnWaitlistEvents() != null) {

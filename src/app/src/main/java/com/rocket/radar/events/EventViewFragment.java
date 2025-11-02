@@ -90,8 +90,9 @@ public class EventViewFragment extends Fragment {
 
         profileViewModel.getProfileLiveData().observe(getViewLifecycleOwner(), profile -> {
             if (profile != null && event != null) {
+                // FIX: Compare using getEventTitle() which is guaranteed to exist.
                 boolean onWaitlist = profile.getOnWaitlistEvents() != null && profile.getOnWaitlistEvents()
-                        .stream().anyMatch(e -> e.getEventId().equals(event.getEventId()));
+                        .stream().anyMatch(e -> e.getEventTitle().equals(event.getEventTitle()));
 
                 if (onWaitlist) {
                     joinWaitlistButton.setText("On Waitlist");
