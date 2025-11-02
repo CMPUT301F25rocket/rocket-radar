@@ -4,38 +4,34 @@ import com.google.firebase.firestore.Exclude; // CORRECT: Using the Firestore Ex
 import java.io.Serializable;
 
 public class Event implements Serializable {
+    private String eventId; // ADD THIS FIELD
     String eventTitle;
     String date;
     String tagline;
     int image;
 
     public Event() {
-        // Default constructor required for calls to toObject(Event.class)
+        // Default constructor required
     }
 
     public Event(String eventTitle, String date, String tagline, int image) {
+        this.eventId = eventTitle; // Set the ID from the title
         this.eventTitle = eventTitle;
         this.date = date;
         this.tagline = tagline;
         this.image = image;
     }
 
-    // Getters are required for Firebase to serialize the object
-    public String getEventTitle() {
-        return eventTitle;
-    }
+    // Standard getters
+    public String getEventTitle() { return eventTitle; }
+    public String getDate() { return date; }
+    public String getTagline() { return tagline; }
+    public String getEventId() { return eventId; } // REMOVE @Exclude
 
-    public String getDate() {
-        return date;
-    }
+    // Setter for eventId is good practice
+    public void setEventId(String eventId) { this.eventId = eventId; }
 
-    public String getTagline() {
-        return tagline;
-    }
-
-    // Exclude the local image resource ID from being saved to Firestore
-    @Exclude
-    public int getImage() {
-        return image;
-    }
+    // image can remain excluded
+    @com.google.firebase.firestore.Exclude
+    public int getImage() { return image; }
 }

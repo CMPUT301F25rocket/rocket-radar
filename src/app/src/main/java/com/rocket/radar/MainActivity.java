@@ -124,17 +124,40 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         String uid = user.getUid();
-        profileViewModel.getProfileLiveData().observe(this, profile -> {
-            if (profile == null) {
-                // first time user
-                ProfileModel defaultProfile = new ProfileModel(uid, "Anonymous User", "", "", null);
-                profileViewModel.updateProfile(defaultProfile);
-            } else {
-                profileViewModel.updateLastLogin(profile.getUid());
-                Log.d(TAG, "Profile loaded successfully: " + profile.getUid());
+
+        // Use a temporary, one-time observer to handle the initial sign-in logic
+        profileViewModel.getProfileLiveData().observeForever(new androidx.lifecycle.Observer<ProfileModel>() {
+            @Override
+            public void onChanged(ProfileModel profile) {
+                // Once we get a non-null profile, we perform our logic and then stop listening.
+                if (profile != null) {
+                    // If it's a known user, update their last login time.
+                    profileViewModel.updateLastLogin(profile.getUid());
+                    Log.d(TAG, "Profile loaded successfully: " + profile.getUid());
+
+                    // IMPORTANT: Remove the observer to prevent the infinite loop.
+                    profileViewModel.getProfileLiveData().removeObserver(this);
+                } else {
+                    // This 'else' block will likely run briefly while the profile is first being fetched.
+                    // We can check if it's the very first time the user is ever seen.
+                    // The logic to create a new profile if it's truly null after a fetch is handled below.
+                }
             }
         });
+
+        // Initial fetch to get the process started.
         profileViewModel.getProfile(uid);
+
+        // Separately, handle the case of a brand new user.
+        // This is a slightly different way to check for a new user.
+        FirebaseFirestore.getInstance().collection("users").document(uid).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && !task.getResult().exists()) {
+                // The document does not exist, this is a first-time user.
+                Log.d(TAG, "First-time user detected. Creating default profile.");
+                ProfileModel defaultProfile = new ProfileModel(uid, "Anonymous User", "", "", null);
+                profileViewModel.updateProfile(defaultProfile);
+            }
+        });
     }
 
     public void setBottomNavigationVisibility(int visibility) {

@@ -9,24 +9,32 @@ import android.widget.Button;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
 import com.rocket.radar.notifications.NotificationFragment;
+import com.rocket.radar.profile.ProfileModel;
+import com.rocket.radar.profile.ProfileViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class EventListFragment extends Fragment implements EventAdapter.OnEventListener {
 
     private RecyclerView eventRecyclerView;
     private EventAdapter adapter;
-    private List<Event> eventList;
+    private List<Event> displayedEvents;
+    private List<Event> allEvents;
     private EventRepository eventRepository;
+    private ProfileViewModel profileViewModel;
+    private ProfileModel currentUserProfile;
     private Button notificationButton;
+    private MaterialButtonToggleGroup toggleGroup;
 
 
     public EventListFragment() {
@@ -38,6 +46,7 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         View view = inflater.inflate(R.layout.event_list, container, false);
         eventRecyclerView = view.findViewById(R.id.event_list_recycler_view);
         notificationButton = view.findViewById(R.id.btnNotification);
+        toggleGroup = view.findViewById(R.id.toggleGroup);
         return view;
     }
 
@@ -47,8 +56,10 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
 
         // Initialization
         eventRepository = new EventRepository();
-        eventList = new ArrayList<>();
-        adapter = new EventAdapter(getContext(), eventList, this);
+        profileViewModel = new ViewModelProvider(requireActivity()).get(ProfileViewModel.class);
+        allEvents = new ArrayList<>();
+        displayedEvents = new ArrayList<>();
+        adapter = new EventAdapter(getContext(), displayedEvents, this);
         eventRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         eventRecyclerView.setAdapter(adapter);
 
@@ -69,7 +80,10 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
             }
         });
 
-        // Start observing the data from the repository
+        setupToggleListener();
+
+        // Start observing data
+        observeUserProfile();
         observeEvents();
 
         // Optional: Call this once if you want to ensure dummy data exists in
@@ -79,24 +93,83 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
     }
 
     private void observeEvents() {
-        // This is the core of the real-time logic.
-        // The observer will be called every time data changes in Firestore.
-        eventRepository.getAllEvents().observe(getViewLifecycleOwner(), new Observer<List<Event>>() {
-            @Override
-            public void onChanged(List<Event> newEvents) {
-                if (newEvents != null) {
-                    Log.d("EventListFragment", "Data updated. " + newEvents.size() + " events received.");
-                    eventList.clear();
-                    eventList.addAll(newEvents);
-                    adapter.notifyDataSetChanged();
-                }
+        eventRepository.getAllEvents().observe(getViewLifecycleOwner(), newEvents -> {
+            if (newEvents != null) {
+                Log.d("EventListFragment", "Data updated. " + newEvents.size() + " events received.");
+                allEvents.clear();
+                allEvents.addAll(newEvents);
+                filterAndDisplayEvents();
             }
         });
     }
 
+    private void observeUserProfile() {
+        profileViewModel.getProfileLiveData().observe(getViewLifecycleOwner(), profile -> {
+            currentUserProfile = profile;
+            filterAndDisplayEvents(); // Refilter events when profile updates
+        });
+    }
+
+    private void setupToggleListener() {
+        toggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (isChecked) {
+                filterAndDisplayEvents();
+            }
+        });
+    }
+
+    private void filterAndDisplayEvents() {
+        if (allEvents == null || currentUserProfile == null) {
+            return; // Not ready to filter
+        }
+
+        int checkedId = toggleGroup.getCheckedButtonId();
+        List<Event> filteredList = new ArrayList<>();
+
+        if (checkedId == R.id.discover_filter_button) {
+            List<String> userEventTitles = new ArrayList<>(); // FIX: Use titles
+            if (currentUserProfile.getOnWaitlistEvents() != null) {
+                // FIX: Use getEventTitle() instead of getEventId()
+                userEventTitles.addAll(currentUserProfile.getOnWaitlistEvents().stream().map(Event::getEventTitle).collect(Collectors.toList()));
+            }
+            if (currentUserProfile.getAttendedEvents() != null) {
+                // FIX: Use getEventTitle() instead of getEventId()
+                userEventTitles.addAll(currentUserProfile.getAttendedEvents().stream().map(Event::getEventTitle).collect(Collectors.toList()));
+            }
+            // Past events can be added here similarly if needed
+
+            // FIX: Compare event titles
+            filteredList = allEvents.stream()
+                    .filter(event -> !userEventTitles.contains(event.getEventTitle()))
+                    .collect(Collectors.toList());
+        } else if (checkedId == R.id.waitlist_filter_button) {
+            if (currentUserProfile.getOnWaitlistEvents() != null) {
+                // Use getEventTitle() as the unique ID for matching
+                List<String> waitlistEventTitles = currentUserProfile.getOnWaitlistEvents().stream()
+                        .map(Event::getEventTitle)
+                        .collect(Collectors.toList());
+
+                filteredList = allEvents.stream()
+                        .filter(event -> waitlistEventTitles.contains(event.getEventTitle()))
+                        .collect(Collectors.toList());
+            }
+        } else if (checkedId == R.id.attending_filter_button) {
+            if (currentUserProfile.getAttendedEvents() != null) {
+                List<String> attendingEventIds = currentUserProfile.getAttendedEvents().stream().map(Event::getEventId).collect(Collectors.toList());
+                filteredList = allEvents.stream()
+                        .filter(event -> attendingEventIds.contains(event.getEventId()))
+                        .collect(Collectors.toList());
+            }
+        }
+
+        displayedEvents.clear();
+        displayedEvents.addAll(filteredList);
+        adapter.notifyDataSetChanged();
+    }
+
     @Override
     public void onEventClick(int position) {
-        Event clickedEvent = eventList.get(position);
+        Event clickedEvent = displayedEvents.get(position);
         EventViewFragment eventViewFragment = EventViewFragment.newInstance(clickedEvent);
 
         if (getActivity() != null) {
@@ -104,6 +177,24 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
                     .replace(R.id.nav_host_fragment, eventViewFragment)
                     .addToBackStack(null)
                     .commit();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();// This is crucial. When we return to this fragment, the underlying user profile
+        // data might have changed (e.g., an event was added to the waitlist).
+        // By calling filterAndDisplayEvents() here, we force the UI to re-evaluate
+        // the filters with the latest data from the ViewModel.
+        Log.d("EventListFragment", "onResume called.");
+
+        // -- REMOVE THIS LINE --
+        // filterAndDisplayEvents(); // THIS IS THE CULPRIT CAUSING THE LOOP.
+        // The observeUserProfile() method already handles this automatically and more efficiently.
+
+        // Also, ensure the bottom nav bar is visible when returning to this screen.
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).setBottomNavigationVisibility(View.VISIBLE);
         }
     }
 }
