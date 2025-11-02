@@ -45,7 +45,15 @@ public class ProfileRepository {
         if (profile.getName() != null) userMap.put("name", profile.getName());
         if (profile.getEmail() != null) userMap.put("email", profile.getEmail());
         if (profile.getPhoneNumber() != null) userMap.put("phoneNumber", profile.getPhoneNumber());
-        userMap.put("lastLogin", FieldValue.serverTimestamp());
+        if (profile.getOnWaitlistEvents() != null) {
+            userMap.put("onWaitlistEvents", profile.getOnWaitlistEvents());
+        }
+        if (profile.getAttendedEvents() != null) {
+            userMap.put("attendedEvents", profile.getAttendedEvents());
+        }
+        if (profile.getPastEvents() != null) {
+            userMap.put("pastEvents", profile.getPastEvents());
+        }
         db.collection("users")
                 .document(profile.getUid())
                 .set(userMap, SetOptions.merge()) // omitted fields remain untouched
