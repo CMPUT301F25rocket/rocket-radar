@@ -243,7 +243,6 @@ public class CreateEventActivity extends AppCompatActivity {
                 return Unit.INSTANCE;
             });
         });
-
     }
 
     @Override
