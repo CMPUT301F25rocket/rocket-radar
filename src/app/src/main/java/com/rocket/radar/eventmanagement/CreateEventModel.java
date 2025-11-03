@@ -14,13 +14,6 @@ import java.util.Date;
 import java.util.Optional;
 
 public class CreateEventModel extends ViewModel {
-    // Other state
-    private boolean showBottomSheet;
-
-    public boolean getShowBottomSheet() {
-        return showBottomSheet;
-    }
-
     private final SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy/MM/dd");
 
     // Creation wizard state.
@@ -79,12 +72,30 @@ public class CreateEventModel extends ViewModel {
     }
 
     // Lottery section field values
-    private MutableLiveData<Boolean> hasWaitlistCapacity;
-    private MutableLiveData<Boolean> hasLocationRequirement;
-    private MutableLiveData<Optional<Integer>> waitlistCapacity;
-    private MutableLiveData<Optional<Integer>> eventCapacity;
-    private MutableLiveData<Optional<Date>> lotteryDate;
-    private MutableLiveData<Optional<Time>> lotteryTime;
+    public MutableLiveData<Boolean> hasWaitlistCapacity;
+    public MutableLiveData<Boolean> hasLocationRequirement;
+    public MutableLiveData<Optional<Integer>> waitlistCapacity;
+    public LiveData<String> waitlistCapacityDisplay() {
+        return Transformations.map(waitlistCapacity, val -> val.map(Object::toString).orElse(""));
+    }
+
+
+    public MutableLiveData<Optional<Integer>> eventCapacity;
+    public LiveData<String> eventCapacityDisplay() {
+        return Transformations.map(eventCapacity, val -> val.map(Object::toString).orElse(""));
+    }
+
+
+    public MutableLiveData<Optional<Date>> lotteryDate;
+    public LiveData<String> lotteryDateDisplay() {
+        return dateDisplay(lotteryDate);
+    }
+
+
+    public MutableLiveData<Optional<Time>> lotteryTime;
+    public LiveData<String> lotteryTimeDisplay() {
+        return dateDisplay(lotteryDate);
+    }
 
     // Style section field values
     private Bitmap image;

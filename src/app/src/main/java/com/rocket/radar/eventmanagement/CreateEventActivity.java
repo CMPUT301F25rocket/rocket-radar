@@ -2,6 +2,8 @@ package com.rocket.radar.eventmanagement;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 
 import androidx.activity.EdgeToEdge;
@@ -187,14 +189,52 @@ public class CreateEventActivity extends AppCompatActivity {
             if (hasFocus) openCalendarBottomSheet(model.finalAttendeeSelectionDate, view);
         });
 
+        // Lottery section bindings
+        TextInputEditText lotteryWaitlistCapacityEditText = binding.getRoot().findViewById(R.id.lotterySectionWaitlistCapacityInput);
+        lotteryWaitlistCapacityEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                model.waitlistCapacity.setValue(Optional.of(Integer.parseInt(s.toString())));
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+        });
+
+        TextInputEditText lotteryEventCapacityEditText = binding.getRoot().findViewById(R.id.lotterySectionEventCapacityInput);
+        lotteryEventCapacityEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                model.eventCapacity.setValue(Optional.of(Integer.parseInt(s.toString())));
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+        });
+
+        TextInputEditText lotteryDateEditText = binding.getRoot().findViewById(R.id.lotterySectionDateInput);
+        lotteryDateEditText.setOnFocusChangeListener((view, hasFocus) -> {
+            if (hasFocus) openCalendarBottomSheet(model.lotteryDate, view);
+        });
+
+        TextInputEditText lotteryTimeEditText = binding.getRoot().findViewById(R.id.lotterySectionTimeInput);
+        lotteryTimeEditText.setOnFocusChangeListener((view, hasFocus) -> {
+            if (hasFocus) openTimeBottomSheet(model.lotteryTime, view);
+        });
+
         // Style section bindings.
         MaterialButton pickColor = binding.getRoot().findViewById(R.id.inputEventStylePickColorButton);
         pickColor.setOnClickListener(btn -> {
             ColorSheet colorSheet = new ColorSheet();
             colorSheet.show(CreateEventActivity.this, null, sheet -> {
                 sheet.style(SheetStyle.BOTTOM_SHEET);
-                sheet.displayToolbar(false);
-                sheet.title("Color");
+                sheet.disableAlpha();
                 sheet.onPositive(selected -> {
                     Color color = Color.valueOf(selected);
                     model.color.setValue(Optional.of(color));
