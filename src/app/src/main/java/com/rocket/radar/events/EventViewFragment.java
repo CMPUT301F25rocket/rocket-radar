@@ -76,7 +76,7 @@ public class EventViewFragment extends Fragment {
         joinWaitlistButton.setOnClickListener(v -> {
             ProfileModel currentProfile = profileViewModel.getProfileLiveData().getValue();
             if (currentProfile != null && event != null) {
-                currentProfile.addOnWaitlistEvent(event);
+                currentProfile.addOnWaitlistEventId(event.getEventId());
                 profileViewModel.updateProfile(currentProfile);
 
                 Toast.makeText(getContext(), "Added to waitlist!", Toast.LENGTH_SHORT).show();
@@ -91,12 +91,12 @@ public class EventViewFragment extends Fragment {
         profileViewModel.getProfileLiveData().observe(getViewLifecycleOwner(), profile -> {
             if (profile != null && event != null) {
                 // FIX: Compare using getEventTitle() which is guaranteed to exist.
-                boolean onWaitlist = profile.getOnWaitlistEvents() != null && profile.getOnWaitlistEvents()
-                        .stream().anyMatch(e -> e.getEventTitle().equals(event.getEventTitle()));
+                boolean onWaitlist = profile.getOnWaitlistEventIds() != null && profile.getOnWaitlistEventIds()
+                        .stream().anyMatch(e -> e.equals(event.getEventId()));
 
                 if (onWaitlist) {
-                    joinWaitlistButton.setText("On Waitlist");
-                    joinWaitlistButton.setEnabled(false);
+                    joinWaitlistButton.setText("Leave Waitlist");
+                    joinWaitlistButton.setEnabled(true);
                 } else {
                     joinWaitlistButton.setText("Join Waitlist");
                     joinWaitlistButton.setEnabled(true);

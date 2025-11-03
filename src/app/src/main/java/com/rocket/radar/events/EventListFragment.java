@@ -89,7 +89,7 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         // Optional: Call this once if you want to ensure dummy data exists in
         // Firestore.
         // You can comment this out after the first run.
-        // eventRepository.addDummyDatatodb();
+        eventRepository.addDummyDatatodb();
     }
 
     private void observeEvents() {
@@ -126,36 +126,24 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         int checkedId = toggleGroup.getCheckedButtonId();
         List<Event> filteredList = new ArrayList<>();
 
+        ArrayList<String> userWaitlistEventIds = new ArrayList<>();
+        if (currentUserProfile.getOnWaitlistEventIds() != null) {
+            userWaitlistEventIds.addAll(currentUserProfile.getOnWaitlistEventIds());
+        }
         if (checkedId == R.id.discover_filter_button) {
-            // List<String> userEventTitles = new ArrayList<>(); // FIX: Use titles
-            ArrayList<String> userEventIds = new ArrayList<>();
-            if (currentUserProfile.getOnWaitlistEventIds() != null) {
-                userEventIds.addAll(currentUserProfile.getOnWaitlistEventIds());
-            }
-
-            // FIX: Compare event titles
             filteredList = allEvents.stream()
-                    .filter(event -> !userEventIds.contains(event.getEventId()))
+                    .filter(event -> userWaitlistEventIds.isEmpty() || !userWaitlistEventIds.contains(event.getEventId()))
                     .collect(Collectors.toList());
         } else if (checkedId == R.id.waitlist_filter_button) {
             if (currentUserProfile.getOnWaitlistEventIds() != null) {
-                // Use getEventTitle() as the unique ID for matching
-                List<String> waitlistEventIds = currentUserProfile.getOnWaitlistEventIds().stream()
-                        .map(Event::getEventId)
-                        .collect(Collectors.toList());
-
                 filteredList = allEvents.stream()
-                        .filter(event -> waitlistEventTitles.contains(event.getEventTitle()))
+                        .filter(event -> userWaitlistEventIds.contains(event.getEventId()))
                         .collect(Collectors.toList());
             }
-        } else if (checkedId == R.id.attending_filter_button) {
-            if (currentUserProfile.getAttendedEvents() != null) {
-                List<String> attendingEventIds = currentUserProfile.getAttendedEvents().stream().map(Event::getEventId).collect(Collectors.toList());
-                filteredList = allEvents.stream()
-                        .filter(event -> attendingEventIds.contains(event.getEventId()))
-                        .collect(Collectors.toList());
-            }
+        } else {
+            filteredList = allEvents;
         }
+
 
         displayedEvents.clear();
         displayedEvents.addAll(filteredList);
