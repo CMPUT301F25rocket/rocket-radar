@@ -35,40 +35,80 @@ public class CreateEventModel extends ViewModel {
     public MutableLiveData<Boolean> singleDayEvent;
     public MutableLiveData<Optional<Date>> eventDate;
 
+    /**
+     * Helper for all the date mappings that need to be written. By the way.
+     * @param source
+     * @return
+     */
+    public LiveData<String> dateDisplay(MutableLiveData<Optional<Date>> source) {
+        return Transformations.map(source, date -> date.map(dateFormatter::format).orElse(""));
+    }
+
     public LiveData<String> eventDateDisplay() {
-        return Transformations.map(eventDate, date -> date.map(dateFormatter::format).orElse(""));
+        return dateDisplay(eventDate);
     }
 
     public MutableLiveData<Optional<Time>> eventStartTime;
     public MutableLiveData<Optional<Time>> eventEndTime;
 
     // Deadline section field values
-    private Date registrationStartDate;
-    private Date registrationEndDate;
+    public MutableLiveData<Optional<Date>> registrationStartDate;
+    public LiveData<String> registrationStartDateDisplay() {
+        return dateDisplay(registrationStartDate);
+    }
 
-    private Date initialSelectionStartDate;
-    private Date initialSelectionEndDate;
+    public MutableLiveData<Optional<Date>> registrationEndDate;
+    public LiveData<String> registrationEndDateDisplay() {
+        return dateDisplay(registrationEndDate);
+    }
 
-    private Date finalAttendeeSelectionDate;
+    public MutableLiveData<Optional<Date>> initialSelectionStartDate;
+    public LiveData<String> initialSelectionStartDateDisplay() {
+        return dateDisplay(initialSelectionStartDate);
+    }
+
+    public MutableLiveData<Optional<Date>> initialSelectionEndDate;
+    public LiveData<String> initialSelectionEndDateDisplay() {
+        return dateDisplay(initialSelectionEndDate);
+    }
+
+    public MutableLiveData<Optional<Date>> finalAttendeeSelectionDate;
+
+    public LiveData<String> finalAttendeeSelectionDateDisplay() {
+        return dateDisplay(finalAttendeeSelectionDate);
+    }
 
     // Lottery section field values
-    private boolean hasWaitlistCapacity;
-    private boolean hasLocationRequirement;
-    private int waitlistCapacity;
-    private int eventCapacity;
-    private Date lotteryDate;
-    private Time lotteryTime;
+    private MutableLiveData<Boolean> hasWaitlistCapacity;
+    private MutableLiveData<Boolean> hasLocationRequirement;
+    private MutableLiveData<Optional<Integer>> waitlistCapacity;
+    private MutableLiveData<Optional<Integer>> eventCapacity;
+    private MutableLiveData<Optional<Date>> lotteryDate;
+    private MutableLiveData<Optional<Time>> lotteryTime;
 
     // Style section field values
     private Bitmap image;
-    private Color color;
+    public MutableLiveData<Optional<Color>> color;
 
     public CreateEventModel() {
+        // TRIANGLE
         section = new MutableLiveData<>(Section.GENERAL);
         singleDayEvent = new MutableLiveData<>(true);
         eventDate = new MutableLiveData<>(Optional.empty());
         eventStartTime = new MutableLiveData<>(Optional.empty());
         eventEndTime = new MutableLiveData<>(Optional.empty());
+        registrationStartDate = new MutableLiveData<>(Optional.empty());
+        registrationEndDate = new MutableLiveData<>(Optional.empty());
+        initialSelectionStartDate = new MutableLiveData<>(Optional.empty());
+        initialSelectionEndDate = new MutableLiveData<>(Optional.empty());
+        finalAttendeeSelectionDate = new MutableLiveData<>(Optional.empty());
+        hasWaitlistCapacity = new MutableLiveData<>(false);
+        hasLocationRequirement = new MutableLiveData<>(false);
+        waitlistCapacity = new MutableLiveData<>(Optional.empty());
+        eventCapacity = new MutableLiveData<>(Optional.empty());
+        lotteryDate = new MutableLiveData<>(Optional.empty());
+        lotteryTime = new MutableLiveData<>(Optional.empty());
+        color = new MutableLiveData<>(Optional.empty());
     }
 
     public LiveData<Section> getSection() {
