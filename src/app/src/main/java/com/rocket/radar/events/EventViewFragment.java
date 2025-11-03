@@ -16,8 +16,6 @@ import com.rocket.radar.R;
 import com.rocket.radar.profile.ProfileModel;
 import com.rocket.radar.profile.ProfileViewModel;
 
-import java.util.stream.Collectors;
-
 // 1. Extend Fragment
 public class EventViewFragment extends Fragment {
 
@@ -25,6 +23,7 @@ public class EventViewFragment extends Fragment {
     private static final String ARG_EVENT = "event";
     private Event event;
     private ProfileViewModel profileViewModel;
+    private boolean leaveorjoin;
 
     // 3. Add a required empty public constructor
     public EventViewFragment() {
@@ -64,7 +63,7 @@ public class EventViewFragment extends Fragment {
         profileViewModel = new ViewModelProvider(requireActivity()).get(ProfileViewModel.class);
 
         Button backButton = view.findViewById(R.id.back_button);
-        Button joinWaitlistButton = view.findViewById(R.id.join_waitlist_button);
+        Button joinAndLeaveWaitlistButton = view.findViewById(R.id.join_and_leave_waitlist_button);
 
         backButton.setOnClickListener(v -> {
             // This will pop the back stack and return to the EventListFragment
@@ -73,33 +72,41 @@ public class EventViewFragment extends Fragment {
             }
         });
 
-        joinWaitlistButton.setOnClickListener(v -> {
+        joinAndLeaveWaitlistButton.setOnClickListener(v -> {
             ProfileModel currentProfile = profileViewModel.getProfileLiveData().getValue();
             if (currentProfile != null && event != null) {
-                currentProfile.addOnWaitlistEventId(event.getEventId());
-                profileViewModel.updateProfile(currentProfile);
+                if (leaveorjoin) { // true means user wants to leave
+                    currentProfile.removeOnWaitlistEventId(event.getEventId());
+                    Toast.makeText(getContext(), "Removed from waitlist!", Toast.LENGTH_SHORT).show();
+                } else { // false means user wants to join
+                    currentProfile.addOnWaitlistEventId(event.getEventId());
+                    Toast.makeText(getContext(), "Added to waitlist!", Toast.LENGTH_SHORT).show();
+                }
+                profileViewModel.updateProfile(currentProfile); // Update profile in both cases
 
-                Toast.makeText(getContext(), "Added to waitlist!", Toast.LENGTH_SHORT).show();
 
-                // Optional: Pop back to the previous screen
+                // Pop back to the previous screen
                 if (getActivity() != null) {
                     getActivity().getSupportFragmentManager().popBackStack();
                 }
             }
         });
 
+
         profileViewModel.getProfileLiveData().observe(getViewLifecycleOwner(), profile -> {
             if (profile != null && event != null) {
-                // FIX: Compare using getEventTitle() which is guaranteed to exist.
+
                 boolean onWaitlist = profile.getOnWaitlistEventIds() != null && profile.getOnWaitlistEventIds()
                         .stream().anyMatch(e -> e.equals(event.getEventId()));
 
                 if (onWaitlist) {
-                    joinWaitlistButton.setText("Leave Waitlist");
-                    joinWaitlistButton.setEnabled(true);
+                    joinAndLeaveWaitlistButton.setText("Leave Waitlist");
+                    leaveorjoin = true;
+                    joinAndLeaveWaitlistButton.setEnabled(true);
                 } else {
-                    joinWaitlistButton.setText("Join Waitlist");
-                    joinWaitlistButton.setEnabled(true);
+                    joinAndLeaveWaitlistButton.setText("Join Waitlist");
+                    joinAndLeaveWaitlistButton.setEnabled(true);
+                    leaveorjoin = false;
                 }
             }
         });

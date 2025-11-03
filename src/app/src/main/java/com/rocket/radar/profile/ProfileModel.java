@@ -88,6 +88,17 @@ public class ProfileModel {
         this.onWaitlistEventIds.add(eventId);
     }
 
+    public void removeOnWaitlistEventId(String eventId) {
+        if (this.onWaitlistEventIds == null) return;
+        this.onWaitlistEventIds.remove(eventId);
+    }
+
+    public void clearOnWaitlistEventIds() {
+        if (this.onWaitlistEventIds == null) return;
+        this.onWaitlistEventIds.clear();
+    }
+
+
 
 
 }

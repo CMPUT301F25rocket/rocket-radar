@@ -145,6 +145,7 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         }
 
 
+        Log.d("EventListFragment", "Filtered list size: " + filteredList.size());
         displayedEvents.clear();
         displayedEvents.addAll(filteredList);
         adapter.notifyDataSetChanged();
@@ -168,12 +169,8 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         super.onResume();// This is crucial. When we return to this fragment, the underlying user profile
         // data might have changed (e.g., an event was added to the waitlist).
         // By calling filterAndDisplayEvents() here, we force the UI to re-evaluate
-        // the filters with the latest data from the ViewModel.
+        // the filters with the latest data from the ViewModel. We remove this because LiveData observers handle it.
         Log.d("EventListFragment", "onResume called.");
-
-        // -- REMOVE THIS LINE --
-        // filterAndDisplayEvents(); // THIS IS THE CULPRIT CAUSING THE LOOP.
-        // The observeUserProfile() method already handles this automatically and more efficiently.
 
         // Also, ensure the bottom nav bar is visible when returning to this screen.
         if (getActivity() instanceof MainActivity) {
