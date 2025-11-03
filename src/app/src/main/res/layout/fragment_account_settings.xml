@@ -94,12 +94,12 @@
         android:layout_gravity="left"/>
 
     <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/notification_switch"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:checked="true"
         android:layout_gravity="center_horizontal"
         android:text="Allow notifications"
-        app:trackTint="@color/black"
         />
 
     <TextView
@@ -112,12 +112,12 @@
         android:layout_gravity="left"/>
 
     <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/geolocation_switch"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:checked="true"
         android:layout_gravity="center_horizontal"
         android:text="Allow geolocation"
-        app:trackTint="@color/black"
         />
 
     <com.google.android.material.button.MaterialButton

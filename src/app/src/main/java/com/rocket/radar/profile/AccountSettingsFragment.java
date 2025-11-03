@@ -12,12 +12,14 @@ import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.rocket.radar.R;
 
 public class AccountSettingsFragment extends Fragment {
 
     private MaterialButton backButton, saveButton;
     private TextInputEditText usernameField, emailField, phoneNumberField;
+    private MaterialSwitch notificationsEnabled, geolocationEnabled;
     private ProfileViewModel profileViewModel;
 
     private String uid;
@@ -30,6 +32,8 @@ public class AccountSettingsFragment extends Fragment {
         usernameField = view.findViewById(R.id.usernameField);
         emailField = view.findViewById(R.id.emailField);
         phoneNumberField = view.findViewById(R.id.phoneField);
+        notificationsEnabled = view.findViewById(R.id.notification_switch);
+        geolocationEnabled = view.findViewById(R.id.geolocation_switch);
         backButton.setOnClickListener(v -> {
             NavHostFragment.findNavController(this).navigateUp();
         });
@@ -49,6 +53,8 @@ public class AccountSettingsFragment extends Fragment {
             emailField.setText(profile.getEmail());
             phoneNumberField.setText(profile.getPhoneNumber());
             uid = profile.getUid();
+            notificationsEnabled.setChecked(profile.isNotificationsEnabled());
+            geolocationEnabled.setChecked(profile.isGeolocationEnabled());
         });
 
         saveButton.setOnClickListener( v -> {
@@ -57,7 +63,10 @@ public class AccountSettingsFragment extends Fragment {
                     usernameField.getText().toString().trim(),
                     emailField.getText().toString().trim(),
                     phoneNumberField.getText().toString().trim(),
-                    null
+                    null,
+                    notificationsEnabled.isChecked(),
+                    geolocationEnabled.isChecked(),
+                    false
             );
             profileViewModel.updateProfile(newProfile);
         });

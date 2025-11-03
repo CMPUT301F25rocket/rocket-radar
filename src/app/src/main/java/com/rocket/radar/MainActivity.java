@@ -154,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
             if (task.isSuccessful() && !task.getResult().exists()) {
                 // The document does not exist, this is a first-time user.
                 Log.d(TAG, "First-time user detected. Creating default profile.");
-                ProfileModel defaultProfile = new ProfileModel(uid, "Anonymous User", "", "", null);
+                ProfileModel defaultProfile = new ProfileModel(uid, "Anonymous User", "", "", null, true, true, false);
                 profileViewModel.updateProfile(defaultProfile);
             }
         });

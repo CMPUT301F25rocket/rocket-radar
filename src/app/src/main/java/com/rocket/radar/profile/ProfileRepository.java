@@ -45,6 +45,8 @@ public class ProfileRepository {
         if (profile.getName() != null) userMap.put("name", profile.getName());
         if (profile.getEmail() != null) userMap.put("email", profile.getEmail());
         if (profile.getPhoneNumber() != null) userMap.put("phoneNumber", profile.getPhoneNumber());
+        if (profile.isNotificationsEnabled() != null) userMap.put("notificationsEnabled", profile.isNotificationsEnabled());
+        if (profile.isGeolocationEnabled() != null) userMap.put("geolocationEnabled", profile.isGeolocationEnabled());
         if (profile.getOnWaitlistEvents() != null) {
             userMap.put("onWaitlistEvents", profile.getOnWaitlistEvents());
         }

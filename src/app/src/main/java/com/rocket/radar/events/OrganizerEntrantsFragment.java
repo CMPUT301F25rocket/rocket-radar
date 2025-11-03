@@ -91,9 +91,9 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         entrantList.clear(); // Clear existing data
         // The ProfileModel constructor you provided needs all arguments.
         // We'll pass null for the ones we don't care about for this sample.
-        entrantList.add(new ProfileModel("uid1", "Alice", "alice@example.com", null, null));
-        entrantList.add(new ProfileModel("uid2", "Bob", "bob@example.com", null, null));
-        entrantList.add(new ProfileModel("uid3", "Charlie", "charlie@example.com", null, null));
+        entrantList.add(new ProfileModel("uid1", "Alice", "alice@example.com", null, null, false, false, false));
+        entrantList.add(new ProfileModel("uid2", "Bob", "bob@example.com", null, null, false, false, false));
+        entrantList.add(new ProfileModel("uid3", "Charlie", "charlie@example.com", null, null, false, false, false));
         entrantAdapter.notifyDataSetChanged(); // Refresh the list
     }
 
