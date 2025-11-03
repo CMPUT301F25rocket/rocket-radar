@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     >
     <data>
-
+        <variable name="createEvent" type="com.rocket.radar.eventmanagement.CreateEventModel"/>
     </data>
     <LinearLayout
         android:layout_width="match_parent"
@@ -22,22 +22,46 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
-            <com.google.android.material.textfield.TextInputEditText
+            <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/inputEventDetailsRegistrationStartDate"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:hint="Registration Start Date"
                 app:layout_constraintTop_toBottomOf="@id/inputEventDetailsRegistrationTextview"
                 app:layout_constraintEnd_toStartOf="@id/inputEventDetailsRegistrationEndDate"
                 app:layout_constraintStart_toStartOf="parent"
-                />
-            <com.google.android.material.textfield.TextInputEditText
+                >
+                <com.google.android.material.textfield.TextInputEditText
+                    style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
+                    android:id="@+id/eventDeadlineRegistrationStartDate"
+                    android:text="@{createEvent.registrationStartDateDisplay}"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:cursorVisible="false"
+                    android:inputType="none"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/inputEventDetailsRegistrationEndDate"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:hint="Registration End Date"
                 app:layout_constraintTop_toBottomOf="@id/inputEventDetailsRegistrationTextview"
                 app:layout_constraintStart_toEndOf="@id/inputEventDetailsRegistrationStartDate"
                 app:layout_constraintEnd_toEndOf="parent"
-                />
+                >
+                <com.google.android.material.textfield.TextInputEditText
+                    style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
+                    android:id="@+id/eventDeadlineRegistrationEndDate"
+                    android:text="@{createEvent.registrationEndDateDisplay}"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:cursorVisible="false"
+                    android:inputType="none"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -51,22 +75,46 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
-            <com.google.android.material.textfield.TextInputEditText
+            <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/inputEventDetailsSelectionStartDate"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:hint="Selection Start Date"
                 app:layout_constraintTop_toBottomOf="@id/inputEventDetailsSelectionTextview"
                 app:layout_constraintEnd_toStartOf="@id/inputEventDetailsSelectionEndDate"
                 app:layout_constraintStart_toStartOf="parent"
-                />
-            <com.google.android.material.textfield.TextInputEditText
+                >
+                <com.google.android.material.textfield.TextInputEditText
+                    style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
+                    android:id="@+id/eventDeadlineSelectionStartDate"
+                    android:text="@{createEvent.initialSelectionStartDateDisplay}"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:cursorVisible="false"
+                    android:inputType="none"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/inputEventDetailsSelectionEndDate"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:hint="Selection End Date"
                 app:layout_constraintTop_toBottomOf="@id/inputEventDetailsSelectionTextview"
                 app:layout_constraintStart_toEndOf="@id/inputEventDetailsSelectionStartDate"
                 app:layout_constraintEnd_toEndOf="parent"
-                />
+                >
+                <com.google.android.material.textfield.TextInputEditText
+                    style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
+                    android:id="@+id/eventDeadlineSelectionEndDate"
+                    android:text="@{createEvent.initialSelectionEndDateDisplay}"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:cursorVisible="false"
+                    android:inputType="none"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -80,14 +128,26 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
-            <com.google.android.material.textfield.TextInputEditText
+            <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/inputEventDetailsFinalDecisionStartDate"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:hint="Final Decision Date"
                 app:layout_constraintTop_toBottomOf="@id/inputEventDetailsFinalDecisionTextview"
                 app:layout_constraintEnd_toStartOf="@id/inputEventDetailsFinalDecisionEndDate"
                 app:layout_constraintStart_toStartOf="parent"
-                />
+                >
+                <com.google.android.material.textfield.TextInputEditText
+                    style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
+                    android:id="@+id/eventDeadlineFinalDecisionDate"
+                    android:text="@{createEvent.finalAttendeeSelectionDateDisplay}"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:cursorVisible="false"
+                    android:inputType="none"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.textfield.TextInputLayout>
             <!-- Just a spacer view -->
             <View
                 android:id="@+id/inputEventDetailsFinalDecisionEndDate"
