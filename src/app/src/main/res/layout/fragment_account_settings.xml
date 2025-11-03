@@ -39,6 +39,15 @@
 
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/personal_information"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Personal Information"
+        android:textSize="18sp"
+        android:layout_marginLeft="32dp"
+        android:layout_gravity="left"/>
+
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -75,6 +84,42 @@
             android:layout_height="wrap_content" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <TextView
+        android:id="@+id/notification_settings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Notification Settings"
+        android:textSize="18sp"
+        android:layout_marginLeft="32dp"
+        android:layout_gravity="left"/>
+
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:checked="true"
+        android:layout_gravity="center_horizontal"
+        android:text="Allow notifications"
+        app:trackTint="@color/black"
+        />
+
+    <TextView
+        android:id="@+id/geolocation_settings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Geolocation Settings"
+        android:textSize="18sp"
+        android:layout_marginLeft="32dp"
+        android:layout_gravity="left"/>
+
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:checked="true"
+        android:layout_gravity="center_horizontal"
+        android:text="Allow geolocation"
+        app:trackTint="@color/black"
+        />
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/save_button"
         style="@style/Widget.MaterialComponents.Button.TextButton"
@@ -85,5 +130,4 @@
         android:textColor="@android:color/white"
         android:layout_gravity="center_horizontal"
         app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
-
 </LinearLayout>
