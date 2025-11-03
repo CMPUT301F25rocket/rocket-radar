@@ -21,11 +21,7 @@ public class ProfileModel {
 
     private Boolean notificationsEnabled, geolocationEnabled, isAdmin;
 
-    private ArrayList<Event> onWaitlistEvents;
-
-    private ArrayList<Event> attendedEvents;
-
-    private ArrayList<Event> pastEvents;
+    private ArrayList<String> onWaitlistEventIds;
 
     public ProfileModel() {}
 
@@ -79,43 +75,19 @@ public class ProfileModel {
         this.notificationsEnabled = notificationsEnabled;
     }
 
-    public ArrayList<Event> getOnWaitlistEvents() {
-        return onWaitlistEvents;
+    public ArrayList<String> getOnWaitlistEventIds() {
+        return onWaitlistEventIds;
     }
 
-    public void setOnWaitlistEvents(ArrayList<Event> onWaitlistEvents) {
-        this.onWaitlistEvents = onWaitlistEvents;
+    public void setOnWaitlistEventIds(ArrayList<String> onWaitlistEventIds) {
+        this.onWaitlistEventIds = onWaitlistEventIds;
     }
 
-    public void addOnWaitlistEvent(Event event) {
-        if (this.onWaitlistEvents == null) this.onWaitlistEvents = new ArrayList<>();
-        this.onWaitlistEvents.add(event);
-    }
-
-    public ArrayList<Event> getAttendedEvents() {
-        return attendedEvents;
-    }
-
-    public void setAttendedEvents(ArrayList<Event> attendedEvents) {
-        this.attendedEvents = attendedEvents;
-    }
-
-    public void addAttendedEvent(Event event) {
-        if (this.attendedEvents == null) this.attendedEvents = new ArrayList<>();
-        this.attendedEvents.add(event);
+    public void addOnWaitlistEventId(String eventId) {
+        if (this.onWaitlistEventIds == null) this.onWaitlistEventIds = new ArrayList<>();
+        this.onWaitlistEventIds.add(eventId);
     }
 
 
-    public ArrayList<Event> getPastEvents() {
-        return pastEvents;
-    }
-
-    public void setPastEvents(ArrayList<Event> pastEvents) {
-        this.pastEvents = pastEvents;
-    }
-
-    public void addPastEvent(Event event) {
-        if (this.pastEvents == null) this.pastEvents = new ArrayList<>();
-        this.pastEvents.add(event);
     }
 }

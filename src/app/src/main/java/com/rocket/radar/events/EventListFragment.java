@@ -127,26 +127,21 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         List<Event> filteredList = new ArrayList<>();
 
         if (checkedId == R.id.discover_filter_button) {
-            List<String> userEventTitles = new ArrayList<>(); // FIX: Use titles
-            if (currentUserProfile.getOnWaitlistEvents() != null) {
-                // FIX: Use getEventTitle() instead of getEventId()
-                userEventTitles.addAll(currentUserProfile.getOnWaitlistEvents().stream().map(Event::getEventTitle).collect(Collectors.toList()));
+            // List<String> userEventTitles = new ArrayList<>(); // FIX: Use titles
+            ArrayList<String> userEventIds = new ArrayList<>();
+            if (currentUserProfile.getOnWaitlistEventIds() != null) {
+                userEventIds.addAll(currentUserProfile.getOnWaitlistEventIds());
             }
-            if (currentUserProfile.getAttendedEvents() != null) {
-                // FIX: Use getEventTitle() instead of getEventId()
-                userEventTitles.addAll(currentUserProfile.getAttendedEvents().stream().map(Event::getEventTitle).collect(Collectors.toList()));
-            }
-            // Past events can be added here similarly if needed
 
             // FIX: Compare event titles
             filteredList = allEvents.stream()
-                    .filter(event -> !userEventTitles.contains(event.getEventTitle()))
+                    .filter(event -> !userEventIds.contains(event.getEventId()))
                     .collect(Collectors.toList());
         } else if (checkedId == R.id.waitlist_filter_button) {
-            if (currentUserProfile.getOnWaitlistEvents() != null) {
+            if (currentUserProfile.getOnWaitlistEventIds() != null) {
                 // Use getEventTitle() as the unique ID for matching
-                List<String> waitlistEventTitles = currentUserProfile.getOnWaitlistEvents().stream()
-                        .map(Event::getEventTitle)
+                List<String> waitlistEventIds = currentUserProfile.getOnWaitlistEventIds().stream()
+                        .map(Event::getEventId)
                         .collect(Collectors.toList());
 
                 filteredList = allEvents.stream()
