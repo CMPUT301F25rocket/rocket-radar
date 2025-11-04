@@ -101,8 +101,4 @@ public class ProfileModel {
         if (this.onWaitlistEventIds == null) return;
         this.onWaitlistEventIds.clear();
     }
-
-
-
-
 }

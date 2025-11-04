@@ -10,6 +10,7 @@ import com.google.firebase.firestore.SetOptions;
 import java.util.HashMap;
 import java.util.Map;
 
+//cite: general design was based on https://developer.android.com/topic/architecture, to separate the data layer in the architecture from the ui (view model)
 public class ProfileRepository {
 
     private static final String TAG = "ProfileRepository";

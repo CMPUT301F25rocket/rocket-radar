@@ -11,6 +11,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 
+//cite: general design was based on https://developer.android.com/topic/architecture, to separate the ui layer in the architecture from the data (repository)
 public class ProfileViewModel extends ViewModel {
 
     private final static String TAG = "ProfileViewModel";
