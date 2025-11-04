@@ -1,5 +1,6 @@
 package com.rocket.radar.events;
 
+import java.util.UUID;
 import com.google.firebase.firestore.Exclude; // CORRECT: Using the Firestore Exclude
 import java.io.Serializable;
 
@@ -15,7 +16,7 @@ public class Event implements Serializable {
     }
 
     public Event(String eventTitle, String date, String tagline, int image) {
-        this.eventId = eventTitle; // Set the ID from the title
+        this.eventId = UUID.randomUUID().toString(); // Generate a unique ID
         this.eventTitle = eventTitle;
         this.date = date;
         this.tagline = tagline;
@@ -26,7 +27,7 @@ public class Event implements Serializable {
     public String getEventTitle() { return eventTitle; }
     public String getDate() { return date; }
     public String getTagline() { return tagline; }
-    public String getEventId() { return eventId; } // REMOVE @Exclude
+    public String getEventId() { return eventId; }
 
     // Setter for eventId is good practice
     public void setEventId(String eventId) { this.eventId = eventId; }

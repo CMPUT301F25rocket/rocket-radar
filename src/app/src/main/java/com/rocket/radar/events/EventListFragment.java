@@ -94,12 +94,12 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
 
     private void observeEvents() {
         eventRepository.getAllEvents().observe(getViewLifecycleOwner(), newEvents -> {
-            if (newEvents != null) {
-                Log.d("EventListFragment", "Data updated. " + newEvents.size() + " events received.");
-                allEvents.clear();
-                allEvents.addAll(newEvents);
-                filterAndDisplayEvents();
-            }
+            //if (newEvents != null) {
+            Log.d("EventListFragment", "Data updated. " + newEvents.size() + " events received.");
+            allEvents.clear();
+            allEvents.addAll(newEvents);
+            filterAndDisplayEvents();
+            //}
         });
     }
 
@@ -126,42 +126,27 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         int checkedId = toggleGroup.getCheckedButtonId();
         List<Event> filteredList = new ArrayList<>();
 
+        ArrayList<String> userWaitlistEventIds = new ArrayList<>();
+        if (!currentUserProfile.getOnWaitlistEventIds().isEmpty()) {
+            Log.d("EventListFragment", "User has " + currentUserProfile.getOnWaitlistEventIds().size() + " events on waitlist.");
+            userWaitlistEventIds.addAll(currentUserProfile.getOnWaitlistEventIds());
+        }
         if (checkedId == R.id.discover_filter_button) {
-            List<String> userEventTitles = new ArrayList<>(); // FIX: Use titles
-            if (currentUserProfile.getOnWaitlistEvents() != null) {
-                // FIX: Use getEventTitle() instead of getEventId()
-                userEventTitles.addAll(currentUserProfile.getOnWaitlistEvents().stream().map(Event::getEventTitle).collect(Collectors.toList()));
-            }
-            if (currentUserProfile.getAttendedEvents() != null) {
-                // FIX: Use getEventTitle() instead of getEventId()
-                userEventTitles.addAll(currentUserProfile.getAttendedEvents().stream().map(Event::getEventTitle).collect(Collectors.toList()));
-            }
-            // Past events can be added here similarly if needed
-
-            // FIX: Compare event titles
             filteredList = allEvents.stream()
-                    .filter(event -> !userEventTitles.contains(event.getEventTitle()))
+                    .filter(event -> userWaitlistEventIds.isEmpty() || !userWaitlistEventIds.contains(event.getEventId()))
                     .collect(Collectors.toList());
         } else if (checkedId == R.id.waitlist_filter_button) {
-            if (currentUserProfile.getOnWaitlistEvents() != null) {
-                // Use getEventTitle() as the unique ID for matching
-                List<String> waitlistEventTitles = currentUserProfile.getOnWaitlistEvents().stream()
-                        .map(Event::getEventTitle)
-                        .collect(Collectors.toList());
-
+            if (!userWaitlistEventIds.isEmpty()) {
                 filteredList = allEvents.stream()
-                        .filter(event -> waitlistEventTitles.contains(event.getEventTitle()))
+                        .filter(event -> userWaitlistEventIds.contains(event.getEventId()))
                         .collect(Collectors.toList());
             }
-        } else if (checkedId == R.id.attending_filter_button) {
-            if (currentUserProfile.getAttendedEvents() != null) {
-                List<String> attendingEventIds = currentUserProfile.getAttendedEvents().stream().map(Event::getEventId).collect(Collectors.toList());
-                filteredList = allEvents.stream()
-                        .filter(event -> attendingEventIds.contains(event.getEventId()))
-                        .collect(Collectors.toList());
-            }
+        } else {
+            filteredList = allEvents;
         }
 
+
+        Log.d("EventListFragment", "Filtered list size: " + filteredList.size());
         displayedEvents.clear();
         displayedEvents.addAll(filteredList);
         adapter.notifyDataSetChanged();
@@ -185,12 +170,19 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         super.onResume();// This is crucial. When we return to this fragment, the underlying user profile
         // data might have changed (e.g., an event was added to the waitlist).
         // By calling filterAndDisplayEvents() here, we force the UI to re-evaluate
-        // the filters with the latest data from the ViewModel.
-        Log.d("EventListFragment", "onResume called.");
+        // the filters with the latest data from the ViewModel. We remove this because LiveData observers handle it.
 
-        // -- REMOVE THIS LINE --
-        // filterAndDisplayEvents(); // THIS IS THE CULPRIT CAUSING THE LOOP.
-        // The observeUserProfile() method already handles this automatically and more efficiently.
+        Log.d("EventListFragment", "onResume called.");
+        // Re-fetch events to ensure the list is up-to-date,
+        // for example if an event was added or modified.
+        // The observer will then handle updating the UI.
+        // This is a simple way to trigger a refresh. For a more sophisticated
+        // app, you might only re-fetch if data is considered stale.
+        // The LiveData observer on getAllEvents() will be triggered
+        // by this, which in turn calls filterAndDisplayEvents().
+        if (eventRepository != null) {
+            observeEvents();
+        }
 
         // Also, ensure the bottom nav bar is visible when returning to this screen.
         if (getActivity() instanceof MainActivity) {

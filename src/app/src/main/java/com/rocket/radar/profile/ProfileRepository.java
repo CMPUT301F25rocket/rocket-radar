@@ -47,14 +47,8 @@ public class ProfileRepository {
         if (profile.getPhoneNumber() != null) userMap.put("phoneNumber", profile.getPhoneNumber());
         if (profile.isNotificationsEnabled() != null) userMap.put("notificationsEnabled", profile.isNotificationsEnabled());
         if (profile.isGeolocationEnabled() != null) userMap.put("geolocationEnabled", profile.isGeolocationEnabled());
-        if (profile.getOnWaitlistEvents() != null) {
-            userMap.put("onWaitlistEvents", profile.getOnWaitlistEvents());
-        }
-        if (profile.getAttendedEvents() != null) {
-            userMap.put("attendedEvents", profile.getAttendedEvents());
-        }
-        if (profile.getPastEvents() != null) {
-            userMap.put("pastEvents", profile.getPastEvents());
+        if (profile.getOnWaitlistEventIds() != null) {
+            userMap.put("onWaitlistEventIds", profile.getOnWaitlistEventIds());
         }
         db.collection("users")
                 .document(profile.getUid())
@@ -62,6 +56,23 @@ public class ProfileRepository {
                 .addOnSuccessListener(aVoid -> {callback.onSuccess();;})
                 .addOnFailureListener(callback::onError);
     }
+
+    /**
+     * Atomically adds a new event ID to the user's waitlist in Firestore.
+     * This uses FieldValue.arrayUnion to ensure the operation is atomic and avoids race conditions.
+     *
+     * @param uid The user's unique ID.
+     * @param eventId The event ID to add to the waitlist.
+     * @param callback A callback to handle success or failure.
+     */
+    public void addEventIdToWaitlist(String uid, String eventId, WriteCallback callback) {
+        db.collection("users")
+                .document(uid)
+                .update("onWaitlistEventIds", FieldValue.arrayUnion(eventId))
+                .addOnSuccessListener(aVoid -> callback.onSuccess())
+                .addOnFailureListener(callback::onError);
+    }
+
 
     public void updateLastLogin(String uid) {
         db.collection("users")
