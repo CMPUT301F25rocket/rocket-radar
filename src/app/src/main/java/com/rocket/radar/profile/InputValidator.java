@@ -4,6 +4,9 @@ import android.util.Patterns;
 
 import com.google.android.material.textfield.TextInputEditText;
 
+
+// Email validation is based on https://stackoverflow.com/questions/1819142/how-should-i-validate-an-e-mail-address
+// Phone validation is based on https://stackoverflow.com/a/23675722
 public class InputValidator {
 
     // empty emails and phones are valid since they are optional in the user story
