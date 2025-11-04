@@ -16,6 +16,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.rocket.radar.R;
 
+// cite: toast code for save button based on https://developer.android.com/guide/topics/ui/notifiers/toasts
 public class AccountSettingsFragment extends Fragment {
 
     private MaterialButton backButton, saveButton;
