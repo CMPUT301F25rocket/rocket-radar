@@ -94,12 +94,12 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
 
     private void observeEvents() {
         eventRepository.getAllEvents().observe(getViewLifecycleOwner(), newEvents -> {
-            if (newEvents != null) {
-                Log.d("EventListFragment", "Data updated. " + newEvents.size() + " events received.");
-                allEvents.clear();
-                allEvents.addAll(newEvents);
-                filterAndDisplayEvents();
-            }
+            //if (newEvents != null) {
+            Log.d("EventListFragment", "Data updated. " + newEvents.size() + " events received.");
+            allEvents.clear();
+            allEvents.addAll(newEvents);
+            filterAndDisplayEvents();
+            //}
         });
     }
 
@@ -127,7 +127,8 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         List<Event> filteredList = new ArrayList<>();
 
         ArrayList<String> userWaitlistEventIds = new ArrayList<>();
-        if (currentUserProfile.getOnWaitlistEventIds() != null) {
+        if (!currentUserProfile.getOnWaitlistEventIds().isEmpty()) {
+            Log.d("EventListFragment", "User has " + currentUserProfile.getOnWaitlistEventIds().size() + " events on waitlist.");
             userWaitlistEventIds.addAll(currentUserProfile.getOnWaitlistEventIds());
         }
         if (checkedId == R.id.discover_filter_button) {
@@ -135,7 +136,7 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
                     .filter(event -> userWaitlistEventIds.isEmpty() || !userWaitlistEventIds.contains(event.getEventId()))
                     .collect(Collectors.toList());
         } else if (checkedId == R.id.waitlist_filter_button) {
-            if (currentUserProfile.getOnWaitlistEventIds() != null) {
+            if (!userWaitlistEventIds.isEmpty()) {
                 filteredList = allEvents.stream()
                         .filter(event -> userWaitlistEventIds.contains(event.getEventId()))
                         .collect(Collectors.toList());
@@ -170,7 +171,18 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         // data might have changed (e.g., an event was added to the waitlist).
         // By calling filterAndDisplayEvents() here, we force the UI to re-evaluate
         // the filters with the latest data from the ViewModel. We remove this because LiveData observers handle it.
+
         Log.d("EventListFragment", "onResume called.");
+        // Re-fetch events to ensure the list is up-to-date,
+        // for example if an event was added or modified.
+        // The observer will then handle updating the UI.
+        // This is a simple way to trigger a refresh. For a more sophisticated
+        // app, you might only re-fetch if data is considered stale.
+        // The LiveData observer on getAllEvents() will be triggered
+        // by this, which in turn calls filterAndDisplayEvents().
+        if (eventRepository != null) {
+            observeEvents();
+        }
 
         // Also, ensure the bottom nav bar is visible when returning to this screen.
         if (getActivity() instanceof MainActivity) {

@@ -1,5 +1,7 @@
 package com.rocket.radar.profile;
 
+import android.util.Log;
+
 import com.google.firebase.Timestamp;
 import com.rocket.radar.events.Event;
 
@@ -76,6 +78,7 @@ public class ProfileModel {
     }
 
     public ArrayList<String> getOnWaitlistEventIds() {
+        if (this.onWaitlistEventIds == null) this.onWaitlistEventIds = new ArrayList<>();
         return onWaitlistEventIds;
     }
 
@@ -85,6 +88,7 @@ public class ProfileModel {
 
     public void addOnWaitlistEventId(String eventId) {
         if (this.onWaitlistEventIds == null) this.onWaitlistEventIds = new ArrayList<>();
+        Log.d("Added to waitlist", "Event ID: " + eventId + "user: " + this.uid);
         this.onWaitlistEventIds.add(eventId);
     }
 
