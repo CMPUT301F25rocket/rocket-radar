@@ -112,9 +112,7 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
 
     private void setupToggleListener() {
         toggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-            if (isChecked) {
-                filterAndDisplayEvents();
-            }
+            filterAndDisplayEvents();
         });
     }
 
