@@ -12,6 +12,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull; // Import NonNull
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer; // Import Observer
 import androidx.lifecycle.ViewModelProvider;
 import androidx.core.content.ContextCompat;
 import androidx.navigation.NavController;
@@ -39,6 +40,9 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private ProfileViewModel profileViewModel;
 
+    // A flag to ensure we only set up the observer once.
+    private boolean isObserverInitialized = false;
+
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
@@ -63,27 +67,17 @@ public class MainActivity extends AppCompatActivity {
 
         askNotificationPermission();
 
-        // --- START: ADDED CODE FROM DOCUMENTATION ---
-        // This will proactively fetch the token and log it.
         FirebaseMessaging.getInstance().getToken()
-                .addOnCompleteListener(new OnCompleteListener<String>() {
-                    @Override
-                    public void onComplete(@NonNull Task<String> task) {
-                        if (!task.isSuccessful()) {
-                            Log.w(TAG, "Fetching FCM registration token failed", task.getException());
-                            return;
-                        }
-
-                        // Get new FCM registration token
-                        String token = task.getResult();
-
-                        // Log and toast the token
-                        String msg = "FCM Registration Token: " + token;
-                        Log.d(TAG, msg);
-                        Toast.makeText(MainActivity.this, "Token received! Check logs.", Toast.LENGTH_SHORT).show();
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+                        return;
                     }
+                    String token = task.getResult();
+                    String msg = "FCM Registration Token: " + token;
+                    Log.d(TAG, msg);
+                    Toast.makeText(MainActivity.this, "Token received! Check logs.", Toast.LENGTH_SHORT).show();
                 });
-        // --- END: ADDED CODE FROM DOCUMENTATION ---
     }
 
     private void askNotificationPermission() {
@@ -120,44 +114,37 @@ public class MainActivity extends AppCompatActivity {
 
     private void handleUserSignIn(FirebaseUser user) {
         if (user == null) {
-            Log.w(TAG, "No user signed in");
+            Log.w(TAG, "No user signed in, cannot proceed.");
             return;
         }
         String uid = user.getUid();
 
-        // Use a temporary, one-time observer to handle the initial sign-in logic
-        profileViewModel.getProfileLiveData().observeForever(new androidx.lifecycle.Observer<ProfileModel>() {
-            @Override
-            public void onChanged(ProfileModel profile) {
-                // Once we get a non-null profile, we perform our logic and then stop listening.
-                if (profile != null) {
-                    // If it's a known user, update their last login time.
-                    profileViewModel.updateLastLogin(profile.getUid());
-                    Log.d(TAG, "Profile loaded successfully: " + profile.getUid());
+        // **FIX**: Move the updateLastLogin call here. It now runs only once upon sign-in.
+        Log.d(TAG, "User signed in with UID: " + uid + ". Updating last login time.");
+        profileViewModel.updateLastLogin(uid);
 
-                    // IMPORTANT: Remove the observer to prevent the infinite loop.
-                    profileViewModel.getProfileLiveData().removeObserver(this);
-                } else {
-                    // This 'else' block will likely run briefly while the profile is first being fetched.
-                    // We can check if it's the very first time the user is ever seen.
-                    // The logic to create a new profile if it's truly null after a fetch is handled below.
+        // Explicitly tell the ViewModel to start listening for this user's profile.
+        profileViewModel.setUserIdForProfileListener(uid);
+
+        // **FIX**: Ensure the observer is only set up once to prevent re-attaching it on every onStart().
+        if (!isObserverInitialized) {
+            profileViewModel.getProfileLiveData().observe(this, new Observer<ProfileModel>() {
+                @Override
+                public void onChanged(ProfileModel profile) {
+                    // The observer's only job now is to create a profile if one doesn't exist.
+                    if (profile == null) {
+                        // The snapshot listener returned null, meaning this is a first-time user.
+                        Log.d(TAG, "First-time user detected. Creating default profile for UID: " + uid);
+                        ProfileModel defaultProfile = new ProfileModel(uid, "Anonymous User", "", "", null, true, true, false);
+                        profileViewModel.updateProfile(defaultProfile);
+                    } else {
+                        // The profile exists. We don't need to do anything here anymore.
+                        Log.d(TAG, "Profile data received for user: " + profile.getUid());
+                    }
                 }
-            }
-        });
-
-        // Initial fetch to get the process started.
-        profileViewModel.getProfile(uid);
-
-        // Separately, handle the case of a brand new user.
-        // This is a slightly different way to check for a new user.
-        FirebaseFirestore.getInstance().collection("users").document(uid).get().addOnCompleteListener(task -> {
-            if (task.isSuccessful() && !task.getResult().exists()) {
-                // The document does not exist, this is a first-time user.
-                Log.d(TAG, "First-time user detected. Creating default profile.");
-                ProfileModel defaultProfile = new ProfileModel(uid, "Anonymous User", "", "", null, true, true, false);
-                profileViewModel.updateProfile(defaultProfile);
-            }
-        });
+            });
+            isObserverInitialized = true;
+        }
     }
 
     public void setBottomNavigationVisibility(int visibility) {

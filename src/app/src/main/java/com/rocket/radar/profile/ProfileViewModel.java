@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
 public class ProfileViewModel extends ViewModel {
 
@@ -18,6 +19,7 @@ public class ProfileViewModel extends ViewModel {
     private final FirebaseAuth auth = FirebaseAuth.getInstance();
 
     private final ProfileRepository profileRepository = new ProfileRepository(db);
+    private ListenerRegistration profileListenerRegistration; // To manage listener lifecycle
 
     private final MutableLiveData<ProfileModel> profileLiveData = new MutableLiveData<>();
     public LiveData<ProfileModel> getProfileLiveData() {
@@ -25,23 +27,46 @@ public class ProfileViewModel extends ViewModel {
     }
 
     public ProfileViewModel() {
-        FirebaseUser currentUser = auth.getCurrentUser();
-        if (currentUser != null) {
-            String uid = currentUser.getUid();
-            db.collection("users").document(uid).addSnapshotListener((snapshot, e) -> {
-                if (e != null) {
-                    Log.e(TAG, "Listen failed.", e);
-                    return;
-                }
+        // The listener is no longer set in the constructor.
+        // It will be set explicitly when a user is signed in.
+    }
 
-                if (snapshot != null && snapshot.exists()) {
-                    ProfileModel profile = snapshot.toObject(ProfileModel.class);
-                    profileLiveData.setValue(profile);
-                } else {
-                    Log.d(TAG, "Current data: null");
-                }
-            });
+    /**
+     * Sets up the Firestore snapshot listener for the given user ID.
+     * This method ensures the ViewModel listens to real-time updates for the specified user's profile.
+     * If a listener is already active, it is first removed to prevent multiple listeners.
+     *
+     * @param uid The unique ID of the user to listen for.
+     */
+    public void setUserIdForProfileListener(String uid) {
+        if (uid == null) {
+            Log.w(TAG, "Cannot set listener for a null UID.");
+            return;
         }
+
+        // Remove any existing listener to avoid leaks or duplicate listeners
+        if (profileListenerRegistration != null) {
+            profileListenerRegistration.remove();
+        }
+
+        profileListenerRegistration = db.collection("users").document(uid).addSnapshotListener((snapshot, e) -> {
+            if (e != null) {
+                Log.e(TAG, "Listen failed for UID: " + uid, e);
+                profileLiveData.setValue(null); // Clear data on error
+                return;
+            }
+
+            if (snapshot != null && snapshot.exists()) {
+                ProfileModel profile = snapshot.toObject(ProfileModel.class);
+                if (profile != null) {
+                    profile.setUid(snapshot.getId()); // Ensure UID is set
+                    profileLiveData.setValue(profile);
+                }
+            } else {
+                Log.d(TAG, "Profile data is null for UID: " + uid);
+                profileLiveData.setValue(null); // User document doesn't exist yet
+            }
+        });
     }
 
 
@@ -83,6 +108,22 @@ public class ProfileViewModel extends ViewModel {
     }
 
     public void updateLastLogin(String uid) {
+        if (uid == null) {
+            Log.e(TAG, "Cannot update last login for null UID.");
+            return;
+        }
         profileRepository.updateLastLogin(uid);
+    }
+
+    /**
+     * Clean up the listener when the ViewModel is cleared.
+     */
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        if (profileListenerRegistration != null) {
+            profileListenerRegistration.remove();
+            Log.d(TAG, "Profile listener removed.");
+        }
     }
 }
