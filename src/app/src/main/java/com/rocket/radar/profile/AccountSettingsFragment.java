@@ -59,11 +59,35 @@ public class AccountSettingsFragment extends Fragment {
         });
 
         saveButton.setOnClickListener( v -> {
+            boolean isValid = true;
+            String username = InputValidator.cleanText(usernameField);
+            String email = InputValidator.cleanText(emailField);
+            String phone = InputValidator.cleanText(phoneNumberField);
+
+            if (!InputValidator.isValidEmail(email)) {
+                emailField.setError("Invalid email");
+                isValid = false;
+            } else {
+                emailField.setError(null);
+            }
+
+            if (!InputValidator.isValidPhone(phone)) {
+                phoneNumberField.setError("Invalid phone number");
+                isValid = false;
+            } else {
+                phoneNumberField.setError(null);
+            }
+
+            if (!isValid) {
+                Toast.makeText(getContext(), "Please fix the errors above", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             ProfileModel newProfile = new ProfileModel(
                     uid,
-                    usernameField.getText().toString().trim(),
-                    emailField.getText().toString().trim(),
-                    phoneNumberField.getText().toString().trim(),
+                    username,
+                    email,
+                    phone,
                     null,
                     notificationsEnabled.isChecked(),
                     geolocationEnabled.isChecked(),
