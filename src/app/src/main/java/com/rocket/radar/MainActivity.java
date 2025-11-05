@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
             // navController.navigate();
         } else if (action.equals(getString(R.string.intent_action_show_qr))) {
             String eventId = intent.getStringExtra("eventId");
-            QRDialog qrDialog = new QRDialog(eventId);
+            QRDialog qrDialog = new QRDialog(getApplicationContext(), eventId);
             qrDialog.show(getSupportFragmentManager(), QRDialog.TAG);
         } else  {
             Log.e(TAG, "Unrecognized action for MainActivity: " + action);
