@@ -62,7 +62,7 @@ public class Event implements Serializable {
     public Event(String eventTitle, Date date, String tagline, int image) {
         this.eventId = UUID.randomUUID().toString(); // Generate a unique ID
         this.eventTitle = eventTitle;
-        this.date = LocalDate.parse(date); // Assuming date is in "YYYY-MM-DD" format
+        this.date = date; // Assuming date is in "YYYY-MM-DD" format
         this.tagline = tagline;
         this.image = image;
     }
