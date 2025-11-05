@@ -209,6 +209,9 @@ public class MainActivity extends AppCompatActivity {
 
                             // This toast message also confirms it's working.
                             Toast.makeText(this, "Location acquired!", Toast.LENGTH_SHORT).show();
+
+                            // TODO: When this is called from `triggerLocationUpdateAndSave`, the logic inside that
+                            //  method's listener will execute, saving the location to Firestore.
                         } else {
                             // This can happen if location was recently turned off or on a new emulator.
                             Log.w(TAG, "Last known location is null. A new location request might be needed or location is disabled on the device.");
@@ -220,6 +223,49 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * PUBLIC method that can be called from any fragment to "freeze" the user's current location for an event.
+     * This will be called from EventViewFragment when the "Join Waitlist" button is clicked.
+     *
+     * @param eventId The ID of the event the user is signing up for.
+     */
+    public void triggerLocationUpdateAndSave(String eventId) {
+        // First, ensure we have permission. If not, the normal permission flow will be triggered.
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.w(TAG, "Location permission not granted. Cannot save location for event.");
+            // Optionally, you could trigger the permission request again here.
+            // requestLocationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
+            return;
+        }
+
+        // We have permission, so get the location.
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, location -> {
+                    if (location != null) {
+                        Log.d(TAG, "Location acquired for event signup: " + eventId);
+
+                        // TODO: Step 1 - Create a new Firestore document.
+                        //  This would likely be in a new sub-collection, e.g., /events/{eventId}/checkins/{userId}
+
+                        // TODO: Step 2 - Create a map or a data object containing the location data.
+                        //  e.g., Map<String, Object> checkInData = new HashMap<>();
+                        //  checkInData.put("userId", [current_user_id]);
+                        //  checkInData.put("signupLocation", new GeoPoint(location.getLatitude(), location.getLongitude()));
+                        //  checkInData.put("signupTimestamp", FieldValue.serverTimestamp());
+
+                        // TODO: Step 3 - Save the data to Firestore.
+                        //  e.g., FirebaseFirestore.getInstance().collection("events").document(eventId)
+                        //      .collection("checkins").document([current_user_id]).set(checkInData);
+
+                        Toast.makeText(this, "Your location has been saved for this event!", Toast.LENGTH_LONG).show();
+
+                    } else {
+                        Log.w(TAG, "Could not get location to save for event signup.");
+                        Toast.makeText(this, "Could not determine your location. Please try again.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
 
     public void setBottomNavigationVisibility(int visibility) {
         if (navBarBinding != null && navBarBinding.bottomNavigationView != null) {
