@@ -110,18 +110,21 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
         });
     }
     private void filterAndDisplayEvents() {
+        // 1. Wait until both the profile and event list are loaded.
         if (allEvents == null || currentUserProfile == null) {
             return;
+        }int checkedId = toggleGroup.getCheckedButtonId();
+        List<Event> filteredList;
+
+        // 2. Get the actual event IDs from the user's profile.
+        ArrayList<String> userMyEventIds = currentUserProfile.getOnMyEventIds();
+        if (userMyEventIds == null) {
+            // Ensure the list is not null to prevent crashes.
+            userMyEventIds = new ArrayList<>();
         }
 
-        int checkedId = toggleGroup.getCheckedButtonId();
-        List<Event> filteredList;
-        Log.d("ProfileFragment", "Filter button id: " + checkedId);
-        ArrayList<String> userMyEventIds = null;
-        // FIXME: replace the following dummy list with getMyEventIds() when create event stuff implemented
-        userMyEventIds = new ArrayList<String>();
-        userMyEventIds.add("952c30f1-3699-421d-a4bc-3c025f5bf91a");
-        userMyEventIds.add("d6c35663-dac1-49d5-8e77-5c7d88fc62a8");
+        Log.d("ProfileFragment", "Filtering with " + userMyEventIds.size() + " event IDs for My Events.");
+
 
         if (checkedId == R.id.my_events_filter_button) {
             ArrayList<String> finalUserMyEventIds = userMyEventIds;
