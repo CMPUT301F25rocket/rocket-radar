@@ -48,7 +48,8 @@
         style="@style/Widget.Material3.Button.IconButton.Outlined"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp">
+        android:layout_marginTop="32dp"
+        app:singleSelection="true">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/discover_filter_button"
