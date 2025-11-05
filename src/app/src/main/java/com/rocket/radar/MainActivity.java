@@ -56,17 +56,21 @@ public class MainActivity extends AppCompatActivity {
             });
 
     // Launcher for Location Permissions
+    // Launcher for Location Permissions
     private final ActivityResultLauncher<String> requestLocationPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                if (isGranted) {
-                    Log.d(TAG, "Location permission granted by user.");
-                    // Permission is granted. Now you can fetch the location.
+                // After the dialog closes, re-check the actual current permission status.
+                // This correctly handles the "Only this time" case for both Precise and Approximate.
+
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                        || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    // This block will now execute if the user grants ANY location permission.
+                    Log.d(TAG, "Location permission has been granted (Precise or Coarse).");
                     fetchLastKnownLocation();
                 } else {
-                    // Explain to the user that the feature is unavailable because
-                    // the features requires a permission that the user has denied.
-                    Log.w(TAG, "Location permission denied by user.");
-                    Toast.makeText(this, "Geolocation access is required for check-in features.", Toast.LENGTH_SHORT).show();
+                    // This block now only runs for an explicit "Deny".
+                    Log.w(TAG, "Location permission was explicitly denied by user.");
+                    Toast.makeText(this, "Geolocation access is required for some features.", Toast.LENGTH_SHORT).show();
                 }
             });
 
