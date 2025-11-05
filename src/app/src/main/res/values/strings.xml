@@ -11,5 +11,6 @@
     <string name="sample_date">18\nDEC</string>
     <string name="filter_view_qr">View QR</string>
     <string name="my_google_api_key">AIzaSyDGG-HGaYV19KxN23NtH6ccAOP0aNOejY0</string>
-
+    <string name="intent_action_view_event">com.rocket.radar.events.VIEW_EVENT</string>
+    <string name="intent_action_show_qr">com.rocket.radar.VIEW_QRCODE</string>
 </resources>

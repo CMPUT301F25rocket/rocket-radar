@@ -1,6 +1,7 @@
 package com.rocket.radar;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -30,6 +31,7 @@ import com.rocket.radar.databinding.NavBarBinding;
 import com.rocket.radar.events.EventRepository;
 import com.rocket.radar.profile.ProfileModel;
 import com.rocket.radar.profile.ProfileViewModel;
+import com.rocket.radar.qr.QRDialog;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private ProfileViewModel profileViewModel;
     private EventRepository eventRepository;
+    private NavController navController;
 
     // A flag to ensure we only set up the observer once.
     private boolean isObserverInitialized = false;
@@ -64,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
 
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.nav_host_fragment);
-        NavController navController = navHostFragment.getNavController();
+        navController = navHostFragment.getNavController();
         NavigationUI.setupWithNavController(navBarBinding.bottomNavigationView, navController);
 
         askNotificationPermission();
@@ -98,6 +101,20 @@ public class MainActivity extends AppCompatActivity {
             signInAnonymously();
         else
             handleUserSignIn(currentUser);
+
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        if (action == null) return;
+        if (action.equals(getString(R.string.intent_action_view_event))) {
+            // TODO
+            // navController.navigate();
+        } else if (action.equals(getString(R.string.intent_action_show_qr))) {
+            String eventId = intent.getStringExtra("eventId");
+            QRDialog qrDialog = new QRDialog(eventId);
+            qrDialog.show(getSupportFragmentManager(), QRDialog.TAG);
+        } else  {
+            Log.e(TAG, "Unrecognized action for MainActivity: " + action);
+        }
     }
 
     private void signInAnonymously() {
