@@ -36,10 +36,10 @@
 
         <!-- This invisible View is a spacer that balances the back button to achieve true centering -->
         <View
+            android:id="@+id/spacer"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp" />
+            android:visibility="invisible"/>
 
     </LinearLayout>
 
@@ -61,24 +61,22 @@
         android:text="@string/you_have_no_new_notifications"
         android:textColor="@android:color/darker_gray"
         android:textSize="16sp"
-        android:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/top_bar"
-        app:layout_constraintVertical_bias="0.049" />
+        tools:visibility="visible"/>
 
-    <com.google.android.material.divider.MaterialDivider
-        android:id="@+id/divider"
+    <!-- THE MISSING BUTTON -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/add_test_notification_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="28dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp"
+        android:layout_margin="16dp"
+        android:contentDescription="Add Test Notification"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/empty_notifications_text"
-        app:layout_constraintVertical_bias="0.0"
-        tools:layout_editor_absoluteX="0dp"
-        tools:ignore="MissingConstraints" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@android:drawable/ic_input_add" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
