@@ -60,6 +60,9 @@ dependencies {
     implementation(libs.clock)
     implementation(libs.color)
 
+    // QR code generation
+    implementation(libs.qrcodegen)
+
     // Instrumentation testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
