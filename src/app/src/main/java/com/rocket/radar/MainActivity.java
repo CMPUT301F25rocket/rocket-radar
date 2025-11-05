@@ -190,27 +190,36 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Fetches the device's last known location.
-     * This method must be called only after checking for ACCESS_FINE_LOCATION permission.
+    /**     * Fetches the device's last known location.
+     * This method must be called only after checking for location permission.
      */
     private void fetchLastKnownLocation() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        // Check if either FINE or COARSE location permission is granted.
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+
+            // This is the call that gets the location.
             fusedLocationClient.getLastLocation()
                     .addOnSuccessListener(this, location -> {
+                        // The 'location' object is what you want to print.
                         if (location != null) {
-                            // Location found. We can use it.
-                            // In a real scenario, you'd pass this to a ViewModel or save it during check-in.
-                            Log.i(TAG, "Last known location: Lat: " + location.getLatitude() + ", Lon: " + location.getLongitude());
-                            // For now, we will just show a toast.
+                            // Location was found successfully.
+                            // The following line will print the Latitude and Longitude to your Logcat.
+                            Log.i(TAG, "USER LOCATION: Latitude=" + location.getLatitude() + ", Longitude=" + location.getLongitude());
+
+                            // This toast message also confirms it's working.
                             Toast.makeText(this, "Location acquired!", Toast.LENGTH_SHORT).show();
                         } else {
-                            // Last known location is null. This can happen if GPS was recently turned off.
-                            Log.w(TAG, "Last known location is null. A new location request might be needed.");
+                            // This can happen if location was recently turned off or on a new emulator.
+                            Log.w(TAG, "Last known location is null. A new location request might be needed or location is disabled on the device.");
                         }
                     });
+        } else {
+            // This is a safeguard in case the method is called without permission.
+            Log.e(TAG, "fetchLastKnownLocation called without any location permissions granted.");
         }
     }
+
 
     public void setBottomNavigationVisibility(int visibility) {
         if (navBarBinding != null && navBarBinding.bottomNavigationView != null) {
