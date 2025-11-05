@@ -75,4 +75,5 @@ dependencies {
     // google maps dependency
     implementation(libs.play.services.maps)
     implementation(libs.firebase.messaging)
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 }
