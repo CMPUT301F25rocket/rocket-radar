@@ -5,9 +5,14 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.MutableLiveData;
@@ -264,10 +269,27 @@ public class CreateEventActivity extends AppCompatActivity {
                 sheet.onPositive(selected -> {
                     Color color = Color.valueOf(selected);
                     model.color.setValue(Optional.of(color));
+                    pickColor.setBackgroundColor(color.toArgb());
                     return Unit.INSTANCE;
                 });
                 return Unit.INSTANCE;
             });
+        });
+
+        ImageView bannerImage = binding.getRoot().findViewById(R.id.inputEventStylePickImage);
+        // https://developer.android.com/training/data-storage/shared/photo-picker#java
+        ActivityResultLauncher<PickVisualMediaRequest> pickMedia =
+            registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
+            if (uri != null) {
+                bannerImage.setImageURI(uri);
+            }
+        });
+        bannerImage.setOnClickListener(view -> {
+            pickMedia.launch(new PickVisualMediaRequest.Builder()
+                    .setMediaType(ActivityResultContracts
+                    .PickVisualMedia.ImageOnly.INSTANCE)
+                    .build()
+            );
         });
     }
 
