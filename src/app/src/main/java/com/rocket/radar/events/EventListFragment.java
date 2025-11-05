@@ -89,7 +89,7 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         // Optional: Call this once if you want to ensure dummy data exists in
         // Firestore.
         // You can comment this out after the first run.
-        // eventRepository.addDummyDatatodb();
+        eventRepository.addDummyDatatodb();
     }
 
     private void observeEvents() {

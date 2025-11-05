@@ -11,10 +11,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.databinding.BindingAdapter;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelStore;
 
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.databinding.ActivityCreateEventBinding;
 import com.rocket.radar.databinding.FragmentDraftEventsBinding;
+import com.rocket.radar.profile.ProfileViewModel;
 
 
 public class DraftEventsFragment extends Fragment {

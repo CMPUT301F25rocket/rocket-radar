@@ -9,6 +9,8 @@ import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
 
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.rocket.radar.events.Event;
+import com.rocket.radar.events.EventRepository;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -167,30 +169,26 @@ public class CreateEventModel extends ViewModel {
      * Serialize all relevant event data into a hashmap.
      * @param db A firestore database.
      */
-    public void createEvent(FirebaseFirestore db) {
-        HashMap<String, Object> eventDocument = new HashMap<>();
-        // I'm starting to feel like an LLM. aaaah.
-        // its the same line. ober and ober and ovber again.
-        // whats going on. whats wrong with these classes.
-        // im gonna go insane. Rust macros rust macros rust macros.
-        eventDocument.put("title", title.getValue());
-        eventDocument.put("description", description.getValue());
-        eventDocument.put("eventStartDate", eventDate.getValue().get());
-        eventDocument.put("eventStartTime", eventStartTime.getValue().get());
-        eventDocument.put("eventEndTime", eventEndTime.getValue().get());
-        eventDocument.put("registrationStartDate", registrationStartDate.getValue().get());
-        eventDocument.put("registrationEndDate", registrationEndDate.getValue().get());
-        eventDocument.put("selectionStartDate", initialSelectionStartDate.getValue().get());
-        eventDocument.put("selectionEndDate", initialSelectionEndDate.getValue().get());
-        eventDocument.put("finalSelectionDate", finalAttendeeSelectionDate.getValue().get());
-        if (hasWaitlistCapacity.getValue()) eventDocument.put("waitlistCapacity", waitlistCapacity.getValue().get());
-        eventDocument.put("requireLocation", hasLocationRequirement.getValue());
-        eventDocument.put("eventCapacity", eventCapacity.getValue().get());
-        eventDocument.put("lotteryDate", lotteryDate);
-        eventDocument.put("lotteryTime", lotteryTime);
 
-        // FIXME: We should probably deal with success failure and notify user.
-        db.collection("events")
-                .add(eventDocument);
+    public void createEvent(EventRepository eventRepository) {
+        Event event = new Event.Builder()
+                .title(title.getValue())
+                .description(description.getValue())
+                .eventStartDate(eventDate.getValue().get())
+                .eventStartTime(eventStartTime.getValue().get())
+                .eventEndTime(eventEndTime.getValue().get())
+                .registrationStartDate(registrationStartDate.getValue().get())
+                .registrationEndDate(registrationEndDate.getValue().get())
+                .initialSelectionStartDate(initialSelectionStartDate.getValue().get())
+                .initialSelectionEndDate(initialSelectionEndDate.getValue().get())
+                .finalSelectionDate(finalAttendeeSelectionDate.getValue().get())
+                .waitlistCapacity(waitlistCapacity.getValue())
+                .requireLocation(hasLocationRequirement.getValue())
+                .eventCapacity(eventCapacity.getValue().get())
+                .lotteryDate(lotteryDate.getValue().get())
+                .lotteryTime(lotteryTime.getValue().get())
+                .build();
+
+        eventRepository.createEvent(event);
     }
 }
