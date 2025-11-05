@@ -1,11 +1,12 @@
 package com.rocket.radar.events;
 
-import java.time.format.DateTimeFormatter;
-import java.util.UUID;
-import com.google.firebase.firestore.Exclude; // CORRECT: Using the Firestore Exclude
 import java.time.LocalDate;
+import java.util.Date;
 import java.time.format.TextStyle;
 import java.util.Locale;
+import java.util.UUID;
+import com.google.firebase.firestore.Exclude; // CORRECT: Using the Firestore Exclude
+
 
 import java.io.Serializable;
 
@@ -30,7 +31,7 @@ public class Event implements Serializable {
     /**
      * The formatted date string for when the event occurs (e.g., "30\nSEP").
      */
-    private LocalDate date;
+    private Date date;
     /**
      * A short, catchy description or subtitle for the event.
      */
@@ -80,8 +81,10 @@ public class Event implements Serializable {
     public String getFormattedDate() {
         // returns the date in format DD\nMMM where MMM three letter capital abbreviation for the month
         if (date == null) return "";
-        String day = String.format(Locale.US, "%02d", date.getDayOfMonth());
-        String month = date.getMonth().getDisplayName(TextStyle.SHORT, Locale.US).toUpperCase();
+        LocalDate localDate = date.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+        String day = localDate.getDayOfMonth() + "";
+        // capital letters for 3 letter month abbrev
+        String month = localDate.getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH).toUpperCase();
         return day + "\n" + month;
     }
     public String getTagline() { return tagline; }
