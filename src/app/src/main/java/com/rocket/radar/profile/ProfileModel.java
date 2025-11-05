@@ -6,6 +6,7 @@ import com.google.firebase.Timestamp;
 import com.rocket.radar.events.Event;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents a user profile in the application.
@@ -24,6 +25,7 @@ public class ProfileModel {
     private Boolean notificationsEnabled, geolocationEnabled, isAdmin;
 
     private ArrayList<String> onWaitlistEventIds;
+    private ArrayList<String> onMyEventIds;
 
     public ProfileModel() {}
 
@@ -95,6 +97,16 @@ public class ProfileModel {
         if (this.onWaitlistEventIds == null) this.onWaitlistEventIds = new ArrayList<>();
         return onWaitlistEventIds;
     }
+
+    public ArrayList<String> getOnMyEventIds() {
+        if (this.onMyEventIds == null) this.onMyEventIds = new ArrayList<>();
+        return onMyEventIds;
+    }
+
+    public void setOnMyEventIds(ArrayList<String> onMyEventIds) {
+        this.onMyEventIds = onMyEventIds;
+    }
+
 
     public void setOnWaitlistEventIds(ArrayList<String> onWaitlistEventIds) {
         this.onWaitlistEventIds = onWaitlistEventIds;

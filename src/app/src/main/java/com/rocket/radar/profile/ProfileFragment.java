@@ -114,10 +114,12 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
 
         int checkedId = toggleGroup.getCheckedButtonId();
         List<Event> filteredList;
-
-        ArrayList<String> userMyEventIds = currentUserProfile.getOnWaitlistEventIds();
+        Log.d("EventListFragment", "Filter button id: " + checkedId);
+        ArrayList<String> userMyEventIds = currentUserProfile.getOnMyEventIds();
         if (userMyEventIds == null) {
-            userMyEventIds = new ArrayList<>();
+            userMyEventIds = new ArrayList<String>();
+            userMyEventIds.add("952c30f1-3699-421d-a4bc-3c025f5bf91a");
+            userMyEventIds.add("d6c35663-dac1-49d5-8e77-5c7d88fc62a8");
         }
 
         if (checkedId == R.id.my_events_filter_button) {
