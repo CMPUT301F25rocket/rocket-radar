@@ -64,7 +64,11 @@ public class CreateEventActivity extends AppCompatActivity {
         binding.createEventWizardNavRightButton.setOnClickListener(btn -> {
             if (model.getSection().getValue() == Section.lastSection) {
                 try {
-                    model.createEvent(eventRepository);
+                    String uuid = model.createEvent(eventRepository);
+                    Intent intent = new Intent(CreateEventActivity.this, MainActivity.class);
+                    intent.setAction(getString(R.string.intent_action_show_qr));
+                    intent.putExtra("eventId", uuid);
+                    startActivity(intent);
                 } catch (NoSuchElementException e) {
                     MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(CreateEventActivity.this);
                     builder.setTitle("Something went wrong")
@@ -73,8 +77,6 @@ public class CreateEventActivity extends AppCompatActivity {
                             });
                     return;
                 }
-                Intent intent = new Intent(CreateEventActivity.this, MainActivity.class);
-                startActivity(intent);
             } else {
                 model.nextSection();
             }

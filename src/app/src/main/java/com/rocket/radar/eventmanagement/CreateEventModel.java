@@ -169,10 +169,12 @@ public class CreateEventModel extends ViewModel {
     }
 
     /**
-     * Serialize all relevant event data into a hashmap.
-     * @param EventRepository A firestore database.
+     * This is a wrapper for to build an event using the data in this model and create that event
+     * using a provided {@code EventRepository}.
+     * @param eventRepository A firestore database.
+     * @return UUID of the create event.
      */
-    public void createEvent(EventRepository eventRepository) throws NoSuchElementException {
+    public String createEvent(EventRepository eventRepository) throws NoSuchElementException {
         Event event = new Event.Builder()
                 .title(title.getValue())
                 .description(description.getValue())
@@ -191,6 +193,6 @@ public class CreateEventModel extends ViewModel {
                 .lotteryTime(lotteryTime.getValue().orElseThrow())
                 .build();
 
-        eventRepository.createEvent(event);
+        return eventRepository.createEvent(event);
     }
 }
