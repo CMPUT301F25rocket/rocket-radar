@@ -18,7 +18,6 @@ import com.rocket.radar.profile.ProfileModel;
 import com.rocket.radar.profile.ProfileViewModel;
 
 import java.text.DateFormat;
-import java.util.Date;
 
 // 1. Extend Fragment
 public class EventViewFragment extends Fragment {
@@ -70,14 +69,14 @@ public class EventViewFragment extends Fragment {
         Button joinAndLeaveWaitlistButton = view.findViewById(R.id.join_and_leave_waitlist_button);
         TextView eventTitle = view.findViewById(R.id.event_title);
         TextView eventDate = view.findViewById(R.id.event_date);
-        TextView eventTagline = view.findViewById(R.id.event_tagline);
+        TextView eventDescription = view.findViewById(R.id.event_desc);
 
         // Populate static event data
         if (event != null) {
             eventTitle.setText(event.getEventTitle());
             String FormattedDate = DateFormat.getDateInstance(DateFormat.FULL).format(event.getDate());
             eventDate.setText(FormattedDate);
-            eventTagline.setText(event.getTagline());
+            eventDescription.setText(event.getDescription());
         } else {
             // If there's no event data, there's nothing to show.
             navigateBack();

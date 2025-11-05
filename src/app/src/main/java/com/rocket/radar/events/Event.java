@@ -22,51 +22,24 @@ import java.io.Serializable;
  * passed in Bundles.
  */
 public class Event implements Serializable {
-    /**
-     * The unique identifier for the event. This is typically a UUID.
-     */
     private String eventId; // ADD THIS FIELD
-    /**
-     * The main title or name of the event.
-     */
     String eventTitle;
-    /**
-     * The formatted date string for when the event occurs (e.g., "30\nSEP").
-     */
     private Date date;
-    /**
-     * A short, catchy description or subtitle for the event.
-     */
     String tagline;
-    /**
-     * The local resource ID (e.g., {@code R.drawable.my_image}) for the event's banner image.
-     * This field is excluded from Firestore serialization.
-     */
+    String description;
     int image;
 
-    /**
-     * Default constructor required for Firestore data mapping.
-     * Should not be used directly in code.
-     */
     public Event() {
         // Default constructor required
     }
 
-    /**
-     * Constructs a new Event with specified details.
-     * A unique {@code eventId} is automatically generated using {@link UUID}.
-     *
-     * @param eventTitle The title of the event.
-     * @param date The date of the event.
-     * @param tagline A short tagline for the event.
-     * @param image The drawable resource ID for the event's image.
-     */
-    public Event(String eventTitle, Date date, String tagline, int image) {
+    public Event(String eventTitle, Date date, String tagline, String description, int image) {
         this.eventId = UUID.randomUUID().toString(); // Generate a unique ID
         this.eventTitle = eventTitle;
         this.date = date; // Assuming date is in "YYYY-MM-DD" format
         this.tagline = tagline;
         this.image = image;
+        this.description = description;
     }
 
     // Standard getters
@@ -112,6 +85,14 @@ public class Event implements Serializable {
     @com.google.firebase.firestore.Exclude
     public int getImage() { return image; }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public static class Builder {
         private Event event;
 
@@ -135,8 +116,15 @@ public class Event implements Serializable {
             return this;
         }
 
+        public Builder tagline(String tagline) {
+            event.tagline = tagline;
+            return this;
+        }
+
+
         public Builder description(String description) {
-            // TODO
+            new Event();
+            event.description = description;
             return this;
         }
 
