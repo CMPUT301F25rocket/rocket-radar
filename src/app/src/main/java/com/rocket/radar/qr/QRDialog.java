@@ -59,8 +59,6 @@ public class QRDialog extends DialogFragment {
         }
     }
 
-    // TODO: Should probably upscale the image.
-
     /**
      * Open the chooser menu on Android with the QR code attached so that the user can share the image
      * to other applications which support {@code image/png}.
@@ -80,7 +78,7 @@ public class QRDialog extends DialogFragment {
         // REMINDER: The try resource handles the close automagically.
         try (FileOutputStream fileStream = new FileOutputStream(stored)) {
             var byteStream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.PNG, 50, stream);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 50, byteStream);
             fileStream.write(byteStream.toByteArray());
             fileStream.flush();
         } catch (FileNotFoundException ignored) {
