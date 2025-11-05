@@ -15,6 +15,7 @@ import com.rocket.radar.events.EventRepository;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 public class CreateEventModel extends ViewModel {
@@ -108,6 +109,8 @@ public class CreateEventModel extends ViewModel {
     public CreateEventModel() {
         // TRIANGLE
         section = new MutableLiveData<>(Section.GENERAL);
+        title = new MutableLiveData<>("");
+        description = new MutableLiveData<>("");
         singleDayEvent = new MutableLiveData<>(true);
         eventDate = new MutableLiveData<>(Optional.empty());
         eventStartTime = new MutableLiveData<>(Optional.empty());
@@ -167,26 +170,25 @@ public class CreateEventModel extends ViewModel {
 
     /**
      * Serialize all relevant event data into a hashmap.
-     * @param db A firestore database.
+     * @param EventRepository A firestore database.
      */
-
-    public void createEvent(EventRepository eventRepository) {
+    public void createEvent(EventRepository eventRepository) throws NoSuchElementException {
         Event event = new Event.Builder()
                 .title(title.getValue())
                 .description(description.getValue())
-                .eventStartDate(eventDate.getValue().get())
-                .eventStartTime(eventStartTime.getValue().get())
-                .eventEndTime(eventEndTime.getValue().get())
-                .registrationStartDate(registrationStartDate.getValue().get())
-                .registrationEndDate(registrationEndDate.getValue().get())
-                .initialSelectionStartDate(initialSelectionStartDate.getValue().get())
-                .initialSelectionEndDate(initialSelectionEndDate.getValue().get())
-                .finalSelectionDate(finalAttendeeSelectionDate.getValue().get())
+                .eventStartDate(eventDate.getValue().orElseThrow())
+                .eventStartTime(eventStartTime.getValue().orElseThrow())
+                .eventEndTime(eventEndTime.getValue().orElseThrow())
+                .registrationStartDate(registrationStartDate.getValue().orElseThrow())
+                .registrationEndDate(registrationEndDate.getValue().orElseThrow())
+                .initialSelectionStartDate(initialSelectionStartDate.getValue().orElseThrow())
+                .initialSelectionEndDate(initialSelectionEndDate.getValue().orElseThrow())
+                .finalSelectionDate(finalAttendeeSelectionDate.getValue().orElseThrow())
                 .waitlistCapacity(waitlistCapacity.getValue())
                 .requireLocation(hasLocationRequirement.getValue())
-                .eventCapacity(eventCapacity.getValue().get())
-                .lotteryDate(lotteryDate.getValue().get())
-                .lotteryTime(lotteryTime.getValue().get())
+                .eventCapacity(eventCapacity.getValue().orElseThrow())
+                .lotteryDate(lotteryDate.getValue().orElseThrow())
+                .lotteryTime(lotteryTime.getValue().orElseThrow())
                 .build();
 
         eventRepository.createEvent(event);

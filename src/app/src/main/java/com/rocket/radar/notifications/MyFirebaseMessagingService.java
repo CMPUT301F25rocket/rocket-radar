@@ -13,7 +13,31 @@ import androidx.core.app.NotificationCompat;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.rocket.radar.R;
-import com.rocket.radar.notifications.NotificationRepository; // Corrected import path
+
+/*
+
+
+
+
+
+
+
+
+
+
+this file is deprecated unless we can get an api to use cloud functions.
+I will keep it just in case
+
+
+
+
+
+
+
+
+
+
+ */
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
@@ -25,8 +49,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         super.onMessageReceived(remoteMessage);
         Log.d(TAG, "FCM Message Received! From: " + remoteMessage.getFrom());
 
-
-        // TEMPORARILY COMMENTED OUT - We will re-add this when the Profile/Settings screen is built.
+        // This logic for user preferences is fine to keep.
         SharedPreferences prefs = getSharedPreferences("AppUserSettings", Context.MODE_PRIVATE);
         boolean areNotificationsEnabled = prefs.getBoolean("notificationsEnabled", true);
 
@@ -35,7 +58,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             return;
         }
 
-
         if (remoteMessage.getNotification() != null) {
             String title = remoteMessage.getNotification().getTitle();
             String body = remoteMessage.getNotification().getBody();
@@ -43,8 +65,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             Log.d(TAG, "Notification Title: " + title);
             Log.d(TAG, "Notification Body: " + body);
 
+            // 1. Display a system tray notification to the user.
             sendSystemNotification(title, body);
-            addNotificationToInAppList(title, body);
+
+            // 2. Add the notification to the in-app list for ALL users.
+            //addNotificationToInAppList(title, body);
         }
     }
 
@@ -71,17 +96,24 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         notificationManager.notify(notificationId, notificationBuilder.build());
     }
 
-    private void addNotificationToInAppList(String title, String body) {
-        com.rocket.radar.notifications.Notification newNotification =
-                new com.rocket.radar.notifications.Notification(title, body, false, 0);
-
-        NotificationRepository repository = new NotificationRepository();
-        repository.createNotification(newNotification);
-    }
+//    /**
+//     * Corrected method to add the notification to the in-app list.
+//     * This now correctly uses the repository's method.
+//     */
+//    private void addNotificationToInAppList(String title, String body) {
+//        // The service needs to know which user is logged in to add the notification stub.
+//        // A repository created here will correctly check for the current authenticated user.
+//        NotificationRepository repository = new NotificationRepository();
+//
+//        // We use the method designed for this purpose, which handles both creating the
+//        // main notification and linking it to the current user.
+//        repository.createTestNotificationForCurrentUser(title, body);
+//    }
 
     @Override
     public void onNewToken(@NonNull String token) {
         super.onNewToken(token);
         Log.d(TAG, "Refreshed FCM Token: " + token);
+        // Here you would typically send the new token to your server to store it against the user's profile.
     }
 }

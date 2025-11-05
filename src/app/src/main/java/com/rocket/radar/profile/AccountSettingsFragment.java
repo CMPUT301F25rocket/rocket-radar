@@ -55,8 +55,8 @@ public class AccountSettingsFragment extends Fragment {
             emailField.setText(profile.getEmail());
             phoneNumberField.setText(profile.getPhoneNumber());
             uid = profile.getUid();
-            notificationsEnabled.setChecked(profile.isNotificationsEnabled());
-            geolocationEnabled.setChecked(profile.isGeolocationEnabled());
+            notificationsEnabled.setChecked(Boolean.TRUE.equals(profile.isNotificationsEnabled()));
+            geolocationEnabled.setChecked(Boolean.TRUE.equals(profile.isGeolocationEnabled()));
         });
 
         saveButton.setOnClickListener( v -> {
@@ -84,17 +84,15 @@ public class AccountSettingsFragment extends Fragment {
                 return;
             }
 
-            ProfileModel newProfile = new ProfileModel(
-                    uid,
-                    username,
-                    email,
-                    phone,
-                    null,
-                    notificationsEnabled.isChecked(),
-                    geolocationEnabled.isChecked(),
-                    false
-            );
-            profileViewModel.updateProfile(newProfile);
+            ProfileModel profile = profileViewModel.getProfileLiveData().getValue();
+            if (profile != null) {
+                profile.setName(username);
+                profile.setEmail(email);
+                profile.setPhoneNumber(phone);
+                profile.setNotificationsEnabled(notificationsEnabled.isChecked());
+                profile.setGeolocationEnabled(geolocationEnabled.isChecked());
+                profileViewModel.updateProfile(profile);
+            }
             Toast saveToast = Toast.makeText(this.getContext(), "Account settings saved!", Toast.LENGTH_SHORT);
             saveToast.show();
         });

@@ -29,23 +29,36 @@
             android:layout_height="match_parent"
             android:background="#66000000" /> <!-- Semi-transparent black -->
 
-        <!-- 3. Event Title Text -->
+        <!-- 3. UNREAD STATUS INDICATOR (The missing view) -->
+        <View
+            android:id="@+id/unread_indicator"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:layout_marginStart="16dp"
+            android:background="@drawable/unread_dot_background"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/event_title_text"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/event_title_text"
+            tools:visibility="visible" />
+
+        <!-- 4. Event Title Text (Constraints adjusted) -->
         <TextView
             android:id="@+id/event_title_text"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="8dp"
             android:layout_marginEnd="16dp"
             android:layout_marginTop="16dp"
             android:textColor="@android:color/white"
             android:textSize="24sp"
             android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/unread_indicator"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Event Title Goes Here"/>
 
-        <!-- 4. Update Details Text -->
+        <!-- 5. Update Details Text -->
         <TextView
             android:id="@+id/update_details_text"
             android:layout_width="0dp"

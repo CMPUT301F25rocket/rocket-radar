@@ -1,0 +1,5 @@
+<!-- res/drawable/unread_dot_background.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="#FF0000"/> <!-- A bright red color -->
+</shape>

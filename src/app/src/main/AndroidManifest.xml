@@ -20,6 +20,17 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!--
+             android-app://{package_id}[/{scheme}[/{host}[/{path}]]][#Intent;{...}]
+             So our QR codes should contain the text:
+             'android-app://com.rocket.radar#Intent;action=com.rocket.radar.events.VIEW_EVENT;S.eventId=<event id here>;end'
+            -->
+            <!-- <category android:name="android.intent.category.DEFAULT" /> -->
+            <intent-filter android:label="@string/filter_view_qr">
+                <action android:name="com.rocket.radar.events.VIEW_EVENT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="android-app" />
+            </intent-filter>
         </activity>
 
         <activity android:name=".eventmanagement.CreateEventActivity" />
