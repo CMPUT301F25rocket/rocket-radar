@@ -13,8 +13,31 @@ import androidx.core.app.NotificationCompat;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.rocket.radar.R;
-// This import is no longer needed as the repository handles its own logic.
-// import com.rocket.radar.notifications.NotificationRepository;
+
+/*
+
+
+
+
+
+
+
+
+
+
+this file is deprecated unless we can get an api to use cloud functions.
+I will keep it just in case
+
+
+
+
+
+
+
+
+
+
+ */
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
