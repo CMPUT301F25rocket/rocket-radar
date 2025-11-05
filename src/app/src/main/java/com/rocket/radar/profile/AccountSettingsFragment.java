@@ -55,8 +55,8 @@ public class AccountSettingsFragment extends Fragment {
             emailField.setText(profile.getEmail());
             phoneNumberField.setText(profile.getPhoneNumber());
             uid = profile.getUid();
-            notificationsEnabled.setChecked(profile.isNotificationsEnabled());
-            geolocationEnabled.setChecked(profile.isGeolocationEnabled());
+            notificationsEnabled.setChecked(Boolean.TRUE.equals(profile.isNotificationsEnabled()));
+            geolocationEnabled.setChecked(Boolean.TRUE.equals(profile.isGeolocationEnabled()));
         });
 
         saveButton.setOnClickListener( v -> {
