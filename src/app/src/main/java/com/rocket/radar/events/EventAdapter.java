@@ -39,7 +39,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.MyViewHolder
     public void onBindViewHolder(@NonNull EventAdapter.MyViewHolder holder, int position) {
         holder.eventImage.setImageResource(eventList.get(position).getImage());
         holder.eventTitle.setText(eventList.get(position).getEventTitle());
-        holder.date.setText(eventList.get(position).getDate());
+        holder.date.setText(eventList.get(position).getFormattedDate());
         holder.tagline.setText(eventList.get(position).getTagline());
     }
 

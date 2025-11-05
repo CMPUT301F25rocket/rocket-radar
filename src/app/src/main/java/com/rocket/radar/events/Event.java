@@ -1,7 +1,12 @@
 package com.rocket.radar.events;
 
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 import com.google.firebase.firestore.Exclude; // CORRECT: Using the Firestore Exclude
+import java.time.LocalDate;
+import java.time.format.TextStyle;
+import java.util.Locale;
+
 import java.io.Serializable;
 
 /**
@@ -25,7 +30,7 @@ public class Event implements Serializable {
     /**
      * The formatted date string for when the event occurs (e.g., "30\nSEP").
      */
-    String date;
+    private LocalDate date;
     /**
      * A short, catchy description or subtitle for the event.
      */
@@ -56,7 +61,7 @@ public class Event implements Serializable {
     public Event(String eventTitle, String date, String tagline, int image) {
         this.eventId = UUID.randomUUID().toString(); // Generate a unique ID
         this.eventTitle = eventTitle;
-        this.date = date;
+        this.date = LocalDate.parse(date); // Assuming date is in "YYYY-MM-DD" format
         this.tagline = tagline;
         this.image = image;
     }
@@ -71,11 +76,14 @@ public class Event implements Serializable {
      * Gets the date of the event.
      * @return The event date as a String.
      */
-    public String getDate() { return date; }
-    /**
-     * Gets the tagline of the event.
-     * @return The event tagline as a String.
-     */
+    public String getDate() { return date != null ? date.toString() : null; }
+    public String getFormattedDate() {
+        // returns the date in format DD\nMMM where MMM three letter capital abbreviation for the month
+        if (date == null) return "";
+        String day = String.format(Locale.US, "%02d", date.getDayOfMonth());
+        String month = date.getMonth().getDisplayName(TextStyle.SHORT, Locale.US).toUpperCase();
+        return day + "\n" + month;
+    }
     public String getTagline() { return tagline; }
     /**
      * Gets the unique identifier of the event.
