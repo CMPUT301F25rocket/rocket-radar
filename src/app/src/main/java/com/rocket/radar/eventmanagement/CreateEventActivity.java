@@ -41,10 +41,13 @@ import kotlin.Unit;
 public class CreateEventActivity extends AppCompatActivity {
     ActivityCreateEventBinding binding;
     CreateEventModel model;
+    EventRepository eventRepository;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        eventRepository = new EventRepository();
+
         // These three lines took way too long to write. ʕノ•ᴥ•ʔノ ︵ ┻━┻
         // WARN: Make sure when you create variables you call setMyVarName(...) on the binding.
         binding = ActivityCreateEventBinding.inflate(getLayoutInflater());
@@ -55,7 +58,11 @@ public class CreateEventActivity extends AppCompatActivity {
             model.prevSection();
         });
         binding.createEventWizardNavRightButton.setOnClickListener(btn -> {
-            model.nextSection();
+            if (model.getSection().getValue() == Section.lastSection) {
+                model.createEvent(eventRepository);
+            } else {
+                model.nextSection();
+            }
         });
 
         setContentView(binding.getRoot());
@@ -245,13 +252,6 @@ public class CreateEventActivity extends AppCompatActivity {
                 return Unit.INSTANCE;
             });
         });
-    }
-
-    private void finishCreateEvent() {
-        EventRepository eventRepository = new EventRepository();
-        Event event = new Event();
-
-        eventRepository.createEvent(event);
     }
 
     @Override
