@@ -20,6 +20,8 @@ import com.maxkeppeler.sheets.color.ColorSheet;
 import com.maxkeppeler.sheets.core.SheetStyle;
 import com.rocket.radar.R;
 import com.rocket.radar.databinding.ActivityCreateEventBinding;
+import com.rocket.radar.events.Event;
+import com.rocket.radar.events.EventRepository;
 
 import org.w3c.dom.Text;
 
@@ -243,6 +245,13 @@ public class CreateEventActivity extends AppCompatActivity {
                 return Unit.INSTANCE;
             });
         });
+    }
+
+    private void finishCreateEvent() {
+        EventRepository eventRepository = new EventRepository();
+        Event event = new Event();
+
+        eventRepository.createEvent(event);
     }
 
     @Override

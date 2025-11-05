@@ -4,10 +4,12 @@ import java.time.LocalDate;
 import java.util.Date;
 import java.time.format.TextStyle;
 import java.util.Locale;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import java.util.Optional;
 import java.util.UUID;
 import com.google.firebase.firestore.Exclude; // CORRECT: Using the Firestore Exclude
-
-
+import com.rocket.radar.eventmanagement.Time;
 import java.io.Serializable;
 
 /**
@@ -109,4 +111,107 @@ public class Event implements Serializable {
      */
     @com.google.firebase.firestore.Exclude
     public int getImage() { return image; }
+
+    public static class Builder {
+        private Event event;
+
+        public Builder() {
+            event = new Event();
+            event.eventId = UUID.randomUUID().toString(); // Generate a unique ID
+        }
+
+        public Builder title(String title) {
+            event.eventTitle = title;
+            return this;
+        }
+
+        public Builder eventStartDate(Date date) {
+            // TODO
+            return this;
+        }
+
+        public Builder eventEndDate() {
+            // TODO
+            return this;
+        }
+
+        public Builder description(String description) {
+            // TODO
+            return this;
+        }
+
+        public Builder eventStartTime(Time time) {
+            // TODO
+            return this;
+        }
+
+        public Builder eventEndTime(Time time) {
+            // TODO
+            return this;
+        }
+
+        public Builder registrationStartDate(Date date) {
+            // TODO
+            return this;
+        }
+
+        public Builder registrationEndDate(Date date) {
+            // TODO
+            return this;
+        }
+
+        public Builder initialSelectionStartDate(Date date) {
+            // TODO
+            return this;
+        }
+
+        public Builder initialSelectionEndDate(Date date) {
+            // TODO
+            return this;
+        }
+
+        public Builder finalSelectionDate(Date date) {
+            // TODO
+            return this;
+        }
+
+        public Builder waitlistCapacity(Optional<Integer> capacity) {
+            // TODO
+            return this;
+        }
+
+        public Builder requireLocation(Boolean value) {
+            // TODO
+            return this;
+        }
+
+        public Builder eventCapacity(Integer capacity) {
+            // TODO
+            return this;
+        }
+
+        public Builder lotteryDate(Date date) {
+            // TODO
+            return this;
+        }
+
+        public Builder lotteryTime(Time time) {
+            // TODO
+            return this;
+        }
+
+        public Builder bannerImage(Bitmap image) {
+            // TODO
+            return this;
+        }
+
+        public Builder color(Color color) {
+            // TODO
+            return this;
+        }
+
+        public Event build() {
+            return event;
+        }
+    }
 }
