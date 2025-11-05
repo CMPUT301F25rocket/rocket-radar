@@ -117,10 +117,19 @@ public class ProfileModel {
         Log.d("Added to waitlist", "Event ID: " + eventId + "user: " + this.uid);
         this.onWaitlistEventIds.add(eventId);
     }
+    public void addOnMyEventId(String eventId) {
+        if (this.onMyEventIds == null) this.onMyEventIds = new ArrayList<>();
+        Log.d("Added to my Events", "Event ID: " + eventId + "user: " + this.uid);
+        this.onMyEventIds.add(eventId);
+    }
 
     public void removeOnWaitlistEventId(String eventId) {
         if (this.onWaitlistEventIds == null) return;
         this.onWaitlistEventIds.remove(eventId);
+    }
+    public void removeOnMyEventId(String eventId) {
+        if (this.onMyEventIds == null) return;
+        this.onMyEventIds.remove(eventId);
     }
 
     public void clearOnWaitlistEventIds() {
