@@ -1,5 +1,6 @@
 package com.rocket.radar.eventmanagement;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
@@ -12,12 +13,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.MutableLiveData;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.maxkeppeler.sheets.calendar.CalendarSheet;
 import com.maxkeppeler.sheets.calendar.SelectionMode;
 import com.maxkeppeler.sheets.clock.ClockSheet;
 import com.maxkeppeler.sheets.color.ColorSheet;
 import com.maxkeppeler.sheets.core.SheetStyle;
+import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
 import com.rocket.radar.databinding.ActivityCreateEventBinding;
 import com.rocket.radar.events.Event;
@@ -26,6 +29,7 @@ import com.rocket.radar.events.EventRepository;
 import org.w3c.dom.Text;
 
 import java.util.Date;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import kotlin.Unit;
@@ -59,7 +63,18 @@ public class CreateEventActivity extends AppCompatActivity {
         });
         binding.createEventWizardNavRightButton.setOnClickListener(btn -> {
             if (model.getSection().getValue() == Section.lastSection) {
-                model.createEvent(eventRepository);
+                try {
+                    model.createEvent(eventRepository);
+                } catch (NoSuchElementException e) {
+                    MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(CreateEventActivity.this);
+                    builder.setTitle("Something went wrong")
+                            .setNeutralButton("Ok", (dialogInterface, which) -> {
+                                dialogInterface.dismiss();
+                            });
+                    return;
+                }
+                Intent intent = new Intent(CreateEventActivity.this, MainActivity.class);
+                startActivity(intent);
             } else {
                 model.nextSection();
             }
