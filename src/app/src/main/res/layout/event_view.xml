@@ -234,6 +234,15 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="24dp"
                     android:text="Join Waitlist" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/manage_entrants_button"
+                    style="@style/Widget.MaterialComponents.Button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Manage Entrants"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
             </LinearLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>

@@ -27,7 +27,7 @@ public class ProfileModel {
 
     public ProfileModel() {}
 
-    public ProfileModel(String uid, String name, String email, String phoneNumber, Timestamp lastLogin, Boolean notificationsEnabled, boolean geolocationEnabled, boolean isAdmin) {
+    public ProfileModel(String uid, String name, String email, String phoneNumber, Timestamp lastLogin, boolean notificationsEnabled, boolean geolocationEnabled, boolean isAdmin) {
         this.uid = uid;
         this.name = name;
         this.email = email;
@@ -53,7 +53,12 @@ public class ProfileModel {
     public Timestamp getLastLogin() { return lastLogin; }
     public void setLastLogin(Timestamp lastLogin) { this.lastLogin = lastLogin; }
 
+    // --- START OF FIX ---
     public Boolean isAdmin() {
+        // If the value from Firestore is null, default to a safe value (false).
+        if (isAdmin == null) {
+            return false;
+        }
         return isAdmin;
     }
 
@@ -62,6 +67,10 @@ public class ProfileModel {
     }
 
     public Boolean isGeolocationEnabled() {
+        // If the value from Firestore is null, default to a safe value (false).
+        if (geolocationEnabled == null) {
+            return false;
+        }
         return geolocationEnabled;
     }
 
@@ -70,8 +79,13 @@ public class ProfileModel {
     }
 
     public Boolean isNotificationsEnabled() {
+        // If the value from Firestore is null, default to a safe value (true is a good default).
+        if (notificationsEnabled == null) {
+            return true;
+        }
         return notificationsEnabled;
     }
+    // --- END OF FIX ---
 
     public void setNotificationsEnabled(Boolean notificationsEnabled) {
         this.notificationsEnabled = notificationsEnabled;
@@ -102,3 +116,4 @@ public class ProfileModel {
         this.onWaitlistEventIds.clear();
     }
 }
+
