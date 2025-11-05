@@ -35,11 +35,9 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
     private ProfileModel currentUserProfile;
     private Button notificationButton;
     private MaterialButtonToggleGroup toggleGroup;
-
-    // === NEW VARIABLES ===
     private TextView notificationBadge;
     private NotificationRepository notificationRepository;
-    // =====================
+
 
     public EventListFragment() {
         // Required empty public constructor
@@ -51,10 +49,8 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         eventRecyclerView = view.findViewById(R.id.event_list_recycler_view);
         notificationButton = view.findViewById(R.id.btnNotification);
         toggleGroup = view.findViewById(R.id.toggleGroup);
-
-        // === FIND THE NEW BADGE VIEW ===
         notificationBadge = view.findViewById(R.id.notification_badge);
-        // ===============================
+
 
         return view;
     }
@@ -91,12 +87,7 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         // Start observing data
         observeUserProfile();
         observeEvents();
-        // === START OBSERVING FOR NOTIFICATIONS ===
         observeUnreadNotifications();
-        // =========================================
-
-        // Optional: comment out after first run.
-        // eventRepository.addDummyDatatodb();
     }
 
     private void observeEvents() {
@@ -115,7 +106,7 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         });
     }
 
-    // === NEW METHOD TO OBSERVE NOTIFICATIONS AND UPDATE BADGE ===
+
     private void observeUnreadNotifications() {
         // Observe the list of notifications from the repository
         notificationRepository.getMyNotifications().observe(getViewLifecycleOwner(), notifications -> {
@@ -133,7 +124,6 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
             }
         });
     }
-    // ============================================================
 
     private void setupToggleListener() {
         toggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {

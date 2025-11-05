@@ -94,7 +94,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
         notificationHolder.eventTitle.setText(notification.getEventTitle());
         notificationHolder.notificationType.setText(notification.getNotificationType());
-        // You can add image loading logic here, e.g., with Glide or Picasso
+        // add image loading logic here, e.g., with Glide or Picasso
         // notificationHolder.eventImage.setImageResource(notification.getImage());
 
         // Differentiate read/unread items visually

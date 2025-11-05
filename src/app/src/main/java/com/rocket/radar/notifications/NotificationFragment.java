@@ -41,8 +41,6 @@ public class NotificationFragment extends Fragment {
         notificationRecyclerView = view.findViewById(R.id.notification_recycler_view);
         emptyNotificationsTextView = view.findViewById(R.id.empty_notifications_text);
         backButton = view.findViewById(R.id.back_arrow);
-        // Ensure you have a FloatingActionButton with this ID in your notification_list.xml
-        addTestNotificationButton = view.findViewById(R.id.add_test_notification_button);
 
         return view;
     }
@@ -65,12 +63,6 @@ public class NotificationFragment extends Fragment {
 
     private void setupClickListeners() {
         backButton.setOnClickListener(v -> getParentFragmentManager().popBackStack());
-
-        // Use this button to test creating new notifications
-        addTestNotificationButton.setOnClickListener(v -> {
-            Log.d("NotificationFragment", "Add test notification button clicked!");
-            notificationRepository.createTestNotificationForCurrentUser("New Test Event", "A new event was just posted!");
-        });
     }
 
     private void observeNotifications() {
