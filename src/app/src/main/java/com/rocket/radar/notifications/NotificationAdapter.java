@@ -1,7 +1,7 @@
 package com.rocket.radar.notifications;
 
-import android.content.Context;
-import android.graphics.Typeface;
+import android.content.Context;import android.graphics.Typeface;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,14 +14,16 @@ import java.util.List;
 
 public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
+    // --- NEW VIEW TYPE ADDED ---
     private static final int VIEW_TYPE_NOTIFICATION = 1;
     private static final int VIEW_TYPE_SEPARATOR = 2;
+    private static final int VIEW_TYPE_EMPTY = 3; // For the "No notifications" message
 
     private final Context context;
     private final List<Notification> notificationList;
     private final NotificationRepository repository;
 
-    private int separatorIndex = -1; // The position where the separator should be
+    private int separatorIndex = -1;
 
     public NotificationAdapter(Context context, List<Notification> notificationList, NotificationRepository repository) {
         this.context = context;
@@ -38,7 +40,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     private void calculateSeparatorIndex() {
         separatorIndex = -1;
-        // Find the index of the first item that is marked as read
         for (int i = 0; i < notificationList.size(); i++) {
             if (notificationList.get(i).isReadStatus()) {
                 separatorIndex = i;
@@ -47,82 +48,104 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }
     }
 
+    // --- MODIFIED ---
     @Override
     public int getItemViewType(int position) {
-        // If a separator is needed and the current position is its calculated index, return separator type
+        // If the list is empty, we only show the empty view type.
+        if (notificationList.isEmpty()) {
+            return VIEW_TYPE_EMPTY;
+        }
+        // Otherwise, use the existing logic.
         if (separatorIndex != -1 && position == separatorIndex) {
             return VIEW_TYPE_SEPARATOR;
         }
         return VIEW_TYPE_NOTIFICATION;
     }
 
+    // --- MODIFIED ---
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(context);
+        // Handle creating the new empty view holder
+        if (viewType == VIEW_TYPE_EMPTY) {
+            View view = inflater.inflate(R.layout.notification_empty_state, parent, false);
+            return new EmptyViewHolder(view);
+        }
         if (viewType == VIEW_TYPE_SEPARATOR) {
             View view = inflater.inflate(R.layout.notification_separator, parent, false);
             return new SeparatorViewHolder(view);
         }
-        // Otherwise, it's a normal notification item
+        // Default is the notification item
         View view = inflater.inflate(R.layout.event_notification_item, parent, false);
         return new NotificationViewHolder(view);
     }
 
+    // --- MODIFIED ---
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        // If it's a separator, configure its text
-        if (holder.getItemViewType() == VIEW_TYPE_SEPARATOR) {
-            SeparatorViewHolder separatorHolder = (SeparatorViewHolder) holder;
-            // If the separator is at the top (index 0), it means there are no new notifications
-            if (separatorIndex == 0) {
-                separatorHolder.separatorText.setText("No New Notifications");
-            } else {
-                separatorHolder.separatorText.setText("Previously Read");
-            }
-            return;
+        // Handle each view type
+        switch (holder.getItemViewType()) {
+
+            case VIEW_TYPE_SEPARATOR:
+                ((SeparatorViewHolder) holder).separatorText.setText("Previously Read");
+                break;
+
+            case VIEW_TYPE_NOTIFICATION:
+                // This is the original binding logic
+                int listIndex = position;
+                if (separatorIndex != -1 && position > separatorIndex) {
+                    listIndex--;
+                }
+
+                NotificationViewHolder notificationHolder = (NotificationViewHolder) holder;
+
+                if (listIndex < 0 || listIndex >= notificationList.size()) {
+                    Log.e("NotificationAdapter", "CRITICAL BUG: Invalid index. Position: " + position + ", ListIndex: " + listIndex);
+                    holder.itemView.setVisibility(View.GONE);
+                    return;
+                }
+                holder.itemView.setVisibility(View.VISIBLE);
+
+                Notification notification = notificationList.get(listIndex);
+
+                notificationHolder.eventTitle.setText(notification.getEventTitle());
+                notificationHolder.notificationType.setText(notification.getNotificationType());
+
+                if (notification.isReadStatus()) {
+                    notificationHolder.unreadIndicator.setVisibility(View.GONE);
+                    notificationHolder.eventTitle.setTypeface(null, Typeface.NORMAL);
+                } else {
+                    notificationHolder.unreadIndicator.setVisibility(View.VISIBLE);
+                    notificationHolder.eventTitle.setTypeface(null, Typeface.BOLD);
+                }
+
+                notificationHolder.itemView.setOnClickListener(v -> {
+                    if (!notification.isReadStatus()) {
+                        repository.markNotificationAsRead(notification.getUserNotificationId());
+                    }
+                });
+                break;
         }
-
-        // Adjust index to account for the separator's presence in the list
-        int listIndex = position;
-        if (separatorIndex != -1 && position > separatorIndex) {
-            listIndex = position - 1;
-        }
-
-        NotificationViewHolder notificationHolder = (NotificationViewHolder) holder;
-        Notification notification = notificationList.get(listIndex);
-
-        notificationHolder.eventTitle.setText(notification.getEventTitle());
-        notificationHolder.notificationType.setText(notification.getNotificationType());
-        // add image loading logic here, e.g., with Glide or Picasso
-        // notificationHolder.eventImage.setImageResource(notification.getImage());
-
-        // Differentiate read/unread items visually
-        if (notification.isReadStatus()) {
-            notificationHolder.unreadIndicator.setVisibility(View.GONE);
-            notificationHolder.eventTitle.setTypeface(null, Typeface.NORMAL);
-        } else {
-            notificationHolder.unreadIndicator.setVisibility(View.VISIBLE);
-            notificationHolder.eventTitle.setTypeface(null, Typeface.BOLD);
-        }
-
-        // Set click listener to mark the item as read
-        notificationHolder.itemView.setOnClickListener(v -> {
-            if (!notification.isReadStatus()) {
-                repository.markNotificationAsRead(notification.getUserNotificationId());
-            }
-        });
     }
 
+    // --- MODIFIED ---
     @Override
     public int getItemCount() {
-        int listSize = notificationList.size();
-        // If a separator is present, the total item count is the list size + 1
-        if (listSize > 0 && separatorIndex != -1) {
-            return listSize + 1;
+        // If the list is empty, we must return 1 to show our single "Empty" view.
+        if (notificationList.isEmpty()) {
+            return 1;
         }
-        return listSize;
+
+        // Otherwise, use the corrected logic from before.
+        if (separatorIndex > 0) {
+            return notificationList.size() + 1;
+        }
+
+        return notificationList.size();
     }
+
+    // --- VIEW HOLDERS (New one added) ---
 
     // ViewHolder for the notification item
     public static class NotificationViewHolder extends RecyclerView.ViewHolder {
@@ -145,6 +168,13 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         public SeparatorViewHolder(@NonNull View itemView) {
             super(itemView);
             separatorText = itemView.findViewById(R.id.separator_text);
+        }
+    }
+
+    // --- NEW --- ViewHolder for the empty state message
+    public static class EmptyViewHolder extends RecyclerView.ViewHolder {
+        public EmptyViewHolder(@NonNull View itemView) {
+            super(itemView);
         }
     }
 }
