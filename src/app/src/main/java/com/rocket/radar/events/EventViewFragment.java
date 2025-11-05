@@ -140,10 +140,12 @@ public class EventViewFragment extends Fragment {
         boolean onWaitlist = isOnWaitlist(currentProfile);
 
         if (onWaitlist) {
-            profileViewModel.removeUserFromWaitlist(event.getEventId());
+            currentProfile.removeOnWaitlistEventId(event.getEventId());
+            currentProfile.removeOnMyEventId(event.getEventId());
             Toast.makeText(getContext(), "Removed from waitlist!", Toast.LENGTH_SHORT).show();
         } else {
-            profileViewModel.addUserToWaitlist(event.getEventId());
+            currentProfile.addOnWaitlistEventId(event.getEventId());
+            currentProfile.addOnMyEventId(event.getEventId());
             Toast.makeText(getContext(), "Added to waitlist!", Toast.LENGTH_SHORT).show();
         }
     }

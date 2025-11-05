@@ -51,6 +51,9 @@ public class ProfileRepository {
         if (profile.getOnWaitlistEventIds() != null) {
             userMap.put("onWaitlistEventIds", profile.getOnWaitlistEventIds());
         }
+        if (profile.getOnMyEventIds() != null) {
+            userMap.put("onMyEventIds", profile.getOnMyEventIds());
+        }
         db.collection("users")
                 .document(profile.getUid())
                 .set(userMap, SetOptions.merge()) // omitted fields remain untouched
@@ -70,6 +73,22 @@ public class ProfileRepository {
         db.collection("users")
                 .document(uid)
                 .update("onWaitlistEventIds", FieldValue.arrayUnion(eventId))
+                .addOnSuccessListener(aVoid -> callback.onSuccess())
+                .addOnFailureListener(callback::onError);
+    }
+
+    /**
+     * Atomically adds a new event ID to the user's MyEvents in Firestore.
+     * This uses FieldValue.arrayUnion to ensure the operation is atomic and avoids race conditions.
+     *
+     * @param uid The user's unique ID.
+     * @param eventId The event ID to add to the MyEvents.
+     * @param callback A callback to handle success or failure.
+     */
+    public void addEventIdToMyEvent(String uid, String eventId, WriteCallback callback) {
+        db.collection("users")
+                .document(uid)
+                .update("onMyEventIds", FieldValue.arrayUnion(eventId))
                 .addOnSuccessListener(aVoid -> callback.onSuccess())
                 .addOnFailureListener(callback::onError);
     }
