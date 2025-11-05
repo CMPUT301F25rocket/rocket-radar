@@ -54,7 +54,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/rellyleyyel"
-        app:singleSelection="true">
+        app:singleSelection="true"
+        app:checkedButton="@id/my_events_filter_button">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/my_events_filter_button"
