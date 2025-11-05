@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         applicationId = "com.rocket.radar"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -53,6 +53,15 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
+    implementation(libs.google.firebase.messaging)
+
+    // Bottom sheet pickers. Implementation was tried.
+    implementation(libs.calendar)
+    implementation(libs.clock)
+    implementation(libs.color)
+
+    // QR code generation
+    implementation(libs.qrcodegen)
 
     // Instrumentation testing
     testImplementation(libs.junit)

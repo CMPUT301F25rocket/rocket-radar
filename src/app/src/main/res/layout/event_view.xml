@@ -228,7 +228,7 @@
                     android:src="@drawable/progress_bar_first_round" />
 
                 <Button
-                    android:id="@+id/join_waitlist_button"
+                    android:id="@+id/join_and_leave_waitlist_button"
                     style="@style/Widget.AppCompat.Button.Colored"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

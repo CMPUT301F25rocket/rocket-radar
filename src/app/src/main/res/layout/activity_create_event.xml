@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:bind="http://schemas.android.com/tools">
     <data>
         <import type="com.rocket.radar.eventmanagement.Section"/>
         <import type="android.view.View"/>
@@ -35,16 +35,31 @@
                 app:layout_constraintTop_toBottomOf="@id/createEventWizardSectionHeader"
                 app:layout_constraintBottom_toTopOf="@id/createEventWizardNavigationPanel"
                 >
-                <include layout="@layout/view_input_event_general"
-                    android:visibility="@{createEvent.section == Section.GENERAL ? View.VISIBLE : View.GONE}" />
-                <include layout="@layout/view_input_event_datetime"
-                    android:visibility="@{createEvent.section == Section.DATETIME ? View.VISIBLE : View.GONE}" />
-                <include layout="@layout/view_input_event_deadlines"
-                    android:visibility="@{createEvent.section == Section.DEADLINES ? View.VISIBLE : View.GONE}" />
-                <include layout="@layout/view_input_event_lottery"
-                    android:visibility="@{createEvent.section == Section.LOTTERY ? View.VISIBLE : View.GONE}" />
-                <include layout="@layout/view_input_event_style"
-                    android:visibility="@{createEvent.section == Section.STYLE ? View.VISIBLE : View.GONE}" />
+                <include
+                    layout="@layout/view_input_event_general"
+                    android:id="@+id/createEventGeneralSection"
+                    android:visibility="@{createEvent.section == Section.GENERAL ? View.VISIBLE : View.GONE}"
+                    />
+                <include
+                    layout="@layout/view_input_event_datetime"
+                    android:id="@+id/createEventDatetimeSection"
+                    android:visibility="@{createEvent.section == Section.DATETIME ? View.VISIBLE : View.GONE}"
+                    />
+                <include
+                    layout="@layout/view_input_event_deadlines"
+                    android:id="@+id/createEventDeadlineSection"
+                    android:visibility="@{createEvent.section == Section.DEADLINES ? View.VISIBLE : View.GONE}"
+                    />
+                <include
+                    layout="@layout/view_input_event_lottery"
+                    android:id="@+id/createEventLotterySection"
+                    android:visibility="@{createEvent.section == Section.LOTTERY ? View.VISIBLE : View.GONE}"
+                    />
+                <include
+                    layout="@layout/view_input_event_style"
+                    android:id="@+id/createEventStyleSection"
+                    android:visibility="@{createEvent.section == Section.STYLE ? View.VISIBLE : View.GONE}"
+                    />
             </FrameLayout>
 
             <LinearLayout
@@ -52,6 +67,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:layout_marginBottom="30dp"
                 app:layout_constraintBottom_toBottomOf="parent">
 
                 <com.google.android.material.button.MaterialButton
@@ -76,7 +92,7 @@
         really matters is that without app:behavior_hideable we are completely unable to hide the sheet.
         Because who would ever want to do that by default.
         -->
-        <FrameLayout
+        <androidx.fragment.app.FragmentContainerView
             android:id="@+id/createEventWizardBottomSheet"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -84,11 +100,6 @@
             app:behavior_hideable="true"
             app:behavior_peekHeight="70dp"
         >
-            <com.google.android.material.textview.MaterialTextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Botom Sheet Content"
-                />
-        </FrameLayout>
+        </androidx.fragment.app.FragmentContainerView>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>

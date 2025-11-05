@@ -4,7 +4,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:focusable="true"
+    android:focusableInTouchMode="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -37,6 +39,15 @@
 
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/personal_information"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Personal Information"
+        android:textSize="18sp"
+        android:layout_marginLeft="32dp"
+        android:layout_gravity="left"/>
+
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -68,10 +79,55 @@
         android:padding="24dp">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/PhoneField"
+            android:id="@+id/phoneField"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <TextView
+        android:id="@+id/notification_settings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Notification Settings"
+        android:textSize="18sp"
+        android:layout_marginLeft="32dp"
+        android:layout_gravity="left"/>
 
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/notification_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:checked="true"
+        android:layout_gravity="center_horizontal"
+        android:text="Allow notifications"
+        />
+
+    <TextView
+        android:id="@+id/geolocation_settings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Geolocation Settings"
+        android:textSize="18sp"
+        android:layout_marginLeft="32dp"
+        android:layout_gravity="left"/>
+
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/geolocation_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:checked="true"
+        android:layout_gravity="center_horizontal"
+        android:text="Allow geolocation"
+        />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/save_button"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/black"
+        android:text="Save"
+        android:textColor="@android:color/white"
+        android:layout_gravity="center_horizontal"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
 </LinearLayout>

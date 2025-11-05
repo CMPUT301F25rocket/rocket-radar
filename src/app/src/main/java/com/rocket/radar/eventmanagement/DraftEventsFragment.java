@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.databinding.BindingAdapter;
 import androidx.fragment.app.Fragment;
 
+import com.rocket.radar.MainActivity;
 import com.rocket.radar.databinding.ActivityCreateEventBinding;
 import com.rocket.radar.databinding.FragmentDraftEventsBinding;
 
@@ -31,11 +32,9 @@ public class DraftEventsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         binding.organizingEventsCreateButton.setOnClickListener(button -> {
-            Context context = getContext();
             // Rhu roh.
-            assert context != null;
-            Intent createEvent = new Intent(context, CreateEventActivity.class);
-            context.startActivity(createEvent);
+            Intent createEvent = new Intent(getActivity(), CreateEventActivity.class);
+            startActivity(createEvent);
         });
     }
 
