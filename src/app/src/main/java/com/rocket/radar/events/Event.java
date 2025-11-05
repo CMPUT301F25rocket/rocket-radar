@@ -77,7 +77,7 @@ public class Event implements Serializable {
      * Gets the date of the event.
      * @return The event date as a String.
      */
-    public String getDate() { return date != null ? date.toString() : null; }
+    public Date getDate() { return date != null ? date: null;}
     public String getFormattedDate() {
         // returns the date in format DD\nMMM where MMM three letter capital abbreviation for the month
         if (date == null) return "";

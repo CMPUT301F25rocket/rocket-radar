@@ -17,6 +17,9 @@ import com.rocket.radar.R;
 import com.rocket.radar.profile.ProfileModel;
 import com.rocket.radar.profile.ProfileViewModel;
 
+import java.text.DateFormat;
+import java.util.Date;
+
 // 1. Extend Fragment
 public class EventViewFragment extends Fragment {
 
@@ -72,7 +75,8 @@ public class EventViewFragment extends Fragment {
         // Populate static event data
         if (event != null) {
             eventTitle.setText(event.getEventTitle());
-            eventDate.setText(event.getDate());
+            String FormattedDate = DateFormat.getDateInstance(DateFormat.FULL).format(event.getDate());
+            eventDate.setText(FormattedDate);
             eventTagline.setText(event.getTagline());
         } else {
             // If there's no event data, there's nothing to show.
