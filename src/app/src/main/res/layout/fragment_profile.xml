@@ -1,15 +1,17 @@
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    tools:context=".profile.ProfileFragment">
+    android:layout_height="match_parent">
 
     <RelativeLayout
+        android:id="@+id/rellyleyyel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
             android:id="@+id/profile_image"
@@ -24,9 +26,9 @@
             android:id="@+id/profile_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@id/profile_image"
             android:layout_marginStart="16dp"
             android:layout_marginTop="24dp"
+            android:layout_toEndOf="@id/profile_image"
             android:text="Anonymous User"
             android:textSize="20sp" />
 
@@ -48,7 +50,9 @@
         style="@style/Widget.Material3.Button.IconButton.Outlined"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/rellyleyyel"
         app:singleSelection="true">
 
         <com.google.android.material.button.MaterialButton
@@ -69,4 +73,17 @@
 
     </com.google.android.material.button.MaterialButtonToggleGroup>
 
-</LinearLayout>
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toggleGroup" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+
