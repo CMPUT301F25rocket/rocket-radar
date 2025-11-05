@@ -69,14 +69,15 @@ public class CreateEventActivity extends AppCompatActivity {
         binding.createEventWizardNavRightButton.setOnClickListener(btn -> {
             if (model.getSection().getValue() == Section.lastSection) {
                 try {
-                    String uuid = model.createEvent(eventRepository);
+                    String uuid = model.createEvent(getContentResolver(), eventRepository);
                     Intent intent = new Intent(CreateEventActivity.this, MainActivity.class);
                     intent.setAction(getString(R.string.intent_action_show_qr));
                     intent.putExtra("eventId", uuid);
                     startActivity(intent);
-                } catch (NoSuchElementException e) {
+                } catch (Exception e) {
                     MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(CreateEventActivity.this);
                     builder.setTitle("Something went wrong")
+                            .setMessage(e.toString())
                             .setNeutralButton("Ok", (dialogInterface, which) -> {
                                 dialogInterface.dismiss();
                             });

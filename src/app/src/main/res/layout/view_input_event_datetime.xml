@@ -83,7 +83,7 @@
                 <com.google.android.material.textfield.TextInputEditText
                     style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
                     android:id="@+id/inputEventDatetimeStartTextInput"
-                    android:text="@{createEvent.eventStartTime.toString()}"
+                    android:text="@{createEvent.eventStartTimeDisplay()}"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     />
@@ -104,7 +104,7 @@
                 <com.google.android.material.textfield.TextInputEditText
                     style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
                     android:id="@+id/inputEventDatetimeEndTextInput"
-                    android:text="@{createEvent.eventEndTime.toString()}"
+                    android:text="@{createEvent.eventEndTimeDisplay()}"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     />
