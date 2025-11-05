@@ -1,56 +1,66 @@
 package com.rocket.radar.events;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.rocket.radar.R;
-import com.rocket.radar.profile.ProfileModel;
 import java.util.List;
 
 public class EntrantAdapter extends RecyclerView.Adapter<EntrantAdapter.EntrantViewHolder> {
 
-    private final List<ProfileModel> entrants;
+    private final List<CheckIn> checkInList;
+    private final OnEntrantClickListener listener;
 
-    public EntrantAdapter(Context context, List<ProfileModel> entrants) {
-        this.entrants = entrants;
+    /**
+     * Interface for handling clicks on an entrant in the list.
+     */
+    public interface OnEntrantClickListener {
+        void onEntrantClick(CheckIn checkIn);
+    }
+
+    public EntrantAdapter(List<CheckIn> checkInList, OnEntrantClickListener listener) {
+        this.checkInList = checkInList;
+        this.listener = listener;
     }
 
     @NonNull
     @Override
     public EntrantViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_entrant, parent, false);
-        return new EntrantViewHolder(itemView);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_entrant, parent, false);
+        return new EntrantViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull EntrantViewHolder holder, int position) {
-        ProfileModel currentEntrant = entrants.get(position);
-        holder.bind(currentEntrant);
+        CheckIn checkIn = checkInList.get(position);
+        holder.bind(checkIn, listener);
     }
 
     @Override
     public int getItemCount() {
-        return entrants.size();
+        return checkInList.size();
     }
 
     /**
-     * ViewHolder class for each entrant item.
+     * ViewHolder for displaying a single entrant's name.
      */
     static class EntrantViewHolder extends RecyclerView.ViewHolder {
-        private final TextView nameTextView;
+        TextView entrantNameTextView;
 
-        EntrantViewHolder(View itemView) {
+        public EntrantViewHolder(@NonNull View itemView) {
             super(itemView);
-            nameTextView = itemView.findViewById(R.id.entrant_name);
+            // Ensure you have a TextView with this ID in your item_entrant.xml layout
+            entrantNameTextView = itemView.findViewById(R.id.entrant_name);
         }
 
-        void bind(ProfileModel entrant) {
-            nameTextView.setText(entrant.getName());
+        public void bind(final CheckIn checkIn, final OnEntrantClickListener listener) {
+            // Display the user's name from the CheckIn object
+            entrantNameTextView.setText(checkIn.getUserName());
+            // Set a click listener on the entire item view
+            itemView.setOnClickListener(v -> listener.onEntrantClick(checkIn));
         }
     }
 }

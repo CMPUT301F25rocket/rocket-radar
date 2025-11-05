@@ -65,19 +65,16 @@ public class EventViewFragment extends Fragment {
         TextView eventTitle = view.findViewById(R.id.event_title);
         TextView eventDate = view.findViewById(R.id.event_date);
         TextView eventDescription = view.findViewById(R.id.event_desc);
-        // START OF CHANGE: Find the manage button
-        MaterialButton manageEntrantsButton = view.findViewById(R.id.manage_entrants_button);
-        // END OF CHANGE
 
         // Populate static event data
         if (event != null) {
             // Use correct getters
-            eventTitle.setText(event.getEventName());
-            if (event.getEventStart() != null) {
-                String FormattedDate = DateFormat.getDateInstance(DateFormat.FULL).format(event.getEventStart());
+            eventTitle.setText(event.getEventTitle());
+            if (event.getEventTitle() != null) {
+                String FormattedDate = DateFormat.getDateInstance(DateFormat.FULL).format(event.getDate());
                 eventDate.setText(FormattedDate);
             }
-            eventDescription.setText(event.getEventDesc());
+            eventDescription.setText(event.getDescription());
         } else {
             Toast.makeText(getContext(), "Error: Event data missing.", Toast.LENGTH_SHORT).show();
             navigateBack();
@@ -87,20 +84,6 @@ public class EventViewFragment extends Fragment {
         // Setup listeners
         backButton.setOnClickListener(v -> navigateBack());
         joinAndLeaveWaitlistButton.setOnClickListener(v -> handleJoinLeaveWaitlist());
-
-        // START OF CHANGE: Add click listener for the manage button
-        manageEntrantsButton.setOnClickListener(v -> {
-            if (event != null) {
-                OrganizerEntrantsFragment organizerFragment = OrganizerEntrantsFragment.newInstance(event);
-                requireActivity().getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.nav_host_fragment, organizerFragment)
-                        .addToBackStack(null) // Allows the user to press "back" to return here
-                        .commit();
-            } else {
-                Toast.makeText(getContext(), "Error: Event data is missing.", Toast.LENGTH_SHORT).show();
-            }
-        });
-        // END OF CHANGE
 
         // Observe LiveData to update UI dynamically
         profileViewModel.getProfileLiveData().observe(getViewLifecycleOwner(), profile -> {

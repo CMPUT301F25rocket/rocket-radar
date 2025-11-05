@@ -30,6 +30,7 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.rocket.radar.MainActivity; // Import MainActivity
 import com.rocket.radar.R;
 import com.rocket.radar.notifications.NotificationRepository;
 
@@ -37,6 +38,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCallback, EntrantAdapter.OnEntrantClickListener {
 
@@ -56,12 +58,14 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
     private TabLayout tabs;
     private RecyclerView entrantsRecyclerView;
     private EntrantAdapter entrantAdapter;
-    private List<CheckIn> checkInList = new ArrayList<>();
-    private final Map<String, Marker> userMarkers = new HashMap<>(); // Maps userId to Map Marker
 
-    // --- START OF FIX: Add a variable to hold the bottom sheet view ---
+    // --- START OF CHANGE: Separate lists for all entrants and filtered entrants ---
+    private List<CheckIn> allEntrantsList = new ArrayList<>();
+    private List<CheckIn> filteredEntrantsList = new ArrayList<>();
+    // --- END OF CHANGE ---
+
+    private final Map<String, Marker> userMarkers = new HashMap<>();
     private MaterialCardView bottomSheet;
-    // --- END OF FIX ---
 
     public static OrganizerEntrantsFragment newInstance(Event event) {
         OrganizerEntrantsFragment fragment = new OrganizerEntrantsFragment();
@@ -89,19 +93,32 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map_container);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
-
-        // The order is important: setupBottomSheet must be called before setupRecyclerView
         setupBottomSheet(view);
-        setupActionBars(view);
         setupTabs(view);
+        setupActionBars();
+        setupRecyclerView(); // Use the new filtered list
         setupButtons(view);
         setupDialog(view);
-        setupRecyclerView(view); // Now this will work correctly
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).setBottomNavigationVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).setBottomNavigationVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -109,9 +126,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         googleMap = map;
         LatLng edmonton = new LatLng(53.5461, -113.4938);
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(edmonton, 10f));
-
-        // Fetch and display check-in locations as pins
-        fetchAndDisplayCheckInLocations();
+        fetchAndDisplayCheckInLocations(); // This will now fetch ALL users
     }
 
     private void fetchAndDisplayCheckInLocations() {
@@ -122,102 +137,175 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
 
         FirebaseFirestore.getInstance()
                 .collection("events").document(event.getEventId())
-                .collection("checkins") // Assumes you create this sub-collection
+                .collection("checkins")
                 .get()
                 .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && googleMap != null) {
-                        googleMap.clear(); // Clear old pins
-                        checkInList.clear();
-                        userMarkers.clear();
-
+                    if (task.isSuccessful()) {
+                        allEntrantsList.clear();
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             CheckIn checkIn = document.toObject(CheckIn.class);
-                            checkInList.add(checkIn);
-
-                            GeoPoint geoPoint = checkIn.getSignupLocation();
-                            if (geoPoint != null) {
-                                LatLng position = new LatLng(geoPoint.getLatitude(), geoPoint.getLongitude());
-                                Marker marker = googleMap.addMarker(new MarkerOptions()
-                                        .position(position)
-                                        .title(checkIn.getUserName()) // Set the user's name as the marker title
-                                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))); // Custom color
-
-                                if (marker != null) {
-                                    userMarkers.put(checkIn.getUserId(), marker);
-                                }
-                            }
+                            // Store every fetched entrant
+                            allEntrantsList.add(checkIn);
                         }
-                        entrantAdapter.notifyDataSetChanged(); // Update the RecyclerView
-                        Log.d(TAG, "Fetched and displayed " + checkInList.size() + " check-in locations.");
+                        Log.d(TAG, "Fetched " + allEntrantsList.size() + " total entrants.");
+
+                        // After fetching, apply the initial filter based on the current tab
+                        if (tabs != null) {
+                            filterAndDisplayEntrants(tabs.getTabAt(tabs.getSelectedTabPosition()));
+                        }
+
                     } else {
                         Log.w(TAG, "Error getting check-in documents.", task.getException());
                     }
                 });
     }
 
+    // --- START OF NEW METHOD: Filters and updates the UI ---
+    private void filterAndDisplayEntrants(TabLayout.Tab tab) {
+        if (tab == null || allEntrantsList.isEmpty()) {
+            return;
+        }
+
+        String currentFilter = tab.getText().toString();
+        String statusToFilterBy;
+
+        switch (currentFilter) {
+            case "On Waitlist":
+                statusToFilterBy = "waitlist";
+                break;
+            case "Attending":
+                statusToFilterBy = "attending";
+                break;
+            case "Invited":
+                statusToFilterBy = "invited";
+                break;
+            case "Cancelled":
+                statusToFilterBy = "cancelled";
+                break;
+            default:
+                statusToFilterBy = ""; // Show none if unknown
+                break;
+        }
+
+        // Filter the main list into the displayed list
+        String finalStatusToFilterBy = statusToFilterBy;
+        filteredEntrantsList.clear();
+        filteredEntrantsList.addAll(
+                allEntrantsList.stream()
+                        .filter(c -> finalStatusToFilterBy.equals(c.getStatus()))
+                        .collect(Collectors.toList())
+        );
+
+        // Update the RecyclerView adapter
+        if (entrantAdapter != null) {
+            entrantAdapter.notifyDataSetChanged();
+        }
+
+        // Clear the map and show only pins for the filtered users
+        if (googleMap != null) {
+            googleMap.clear();
+            userMarkers.clear();
+            for (CheckIn checkIn : filteredEntrantsList) {
+                GeoPoint geoPoint = checkIn.getSignupLocation();
+                if (geoPoint != null) {
+                    LatLng position = new LatLng(geoPoint.getLatitude(), geoPoint.getLongitude());
+                    Marker marker = googleMap.addMarker(new MarkerOptions()
+                            .position(position)
+                            .title(checkIn.getUserName())
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+                    if (marker != null) {
+                        userMarkers.put(checkIn.getUserId(), marker);
+                    }
+                }
+            }
+        }
+        Log.d(TAG, "Filtered and displayed " + filteredEntrantsList.size() + " users for status: " + statusToFilterBy);
+    }
+    // --- END OF NEW METHOD ---
+
     @Override
     public void onEntrantClick(CheckIn checkIn) {
         Marker marker = userMarkers.get(checkIn.getUserId());
         if (googleMap != null && marker != null) {
-            // Animate the camera to recenter on the clicked user's pin
             googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 15f));
-            marker.showInfoWindow(); // Show the user's name on the pin
+            marker.showInfoWindow();
             Toast.makeText(getContext(), "Showing location for " + checkIn.getUserName(), Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(getContext(), "Location not available for this user.", Toast.LENGTH_SHORT).show();
         }
     }
 
-    // --- START OF FIX: Corrected RecyclerView setup ---
-    private void setupRecyclerView(View view) {
-        // Find the RecyclerView *inside* the bottomSheet view
-        entrantsRecyclerView = bottomSheet.findViewById(R.id.entrants_recycler_view);
+    private void setupBottomSheet(View view) {
+        bottomSheet = view.findViewById(R.id.bottom_sheet);
+        if (bottomSheet != null) {
+            bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
+            bottomSheetBehavior.setHideable(false);
+        } else {
+            Log.e(TAG, "CRITICAL: bottom_sheet could not be found in the layout.");
+        }
+    }
 
+    private void setupRecyclerView() {
+        if (bottomSheet == null) return;
+        entrantsRecyclerView = bottomSheet.findViewById(R.id.entrants_recycler_view);
         if (entrantsRecyclerView != null) {
             entrantsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-            // Initialize the adapter with the list and this fragment as the listener
-            entrantAdapter = new EntrantAdapter(checkInList, this);
+            // --- START OF CHANGE: Adapter now uses the filtered list ---
+            entrantAdapter = new EntrantAdapter(filteredEntrantsList, this);
+            // --- END OF CHANGE ---
             entrantsRecyclerView.setAdapter(entrantAdapter);
         } else {
-            // This log helps if the ID is still wrong for some reason
             Log.e(TAG, "CRITICAL: entrants_recycler_view could not be found within the bottom sheet.");
         }
     }
-    // --- END OF FIX ---
 
-    // --- START OF FIX: Corrected BottomSheet setup ---
-    private void setupBottomSheet(View view) {
-        // Find the bottom sheet and assign it to the class variable so other methods can use it
-        bottomSheet = view.findViewById(R.id.bottom_sheet);
-        bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet);
-        bottomSheetBehavior.setHideable(false);
-        bottomSheetBehavior.setPeekHeight(getResources().getDisplayMetrics().heightPixels / 4);
-    }
-    // --- END OF FIX ---
-
-    private void setupActionBars(View view) {
-        waitlistActions = view.findViewById(R.id.waitlist_actions);
-        invitedActions = view.findViewById(R.id.invited_actions);
-        attendingActions = view.findViewById(R.id.attending_actions);
-        cancelledActions = view.findViewById(R.id.cancelled_actions);
+    private void setupActionBars() {
+        if (bottomSheet == null) return;
+        waitlistActions = bottomSheet.findViewById(R.id.waitlist_actions);
+        invitedActions = bottomSheet.findViewById(R.id.invited_actions);
+        attendingActions = bottomSheet.findViewById(R.id.attending_actions);
+        cancelledActions = bottomSheet.findViewById(R.id.cancelled_actions);
     }
 
     private void setupTabs(View view) {
         tabs = view.findViewById(R.id.entrants_filter_tabs);
-        updateActionButtons(tabs.getTabAt(0));
+        if (tabs != null) {
+            tabs.post(() -> {
+                updateActionButtons(tabs.getTabAt(tabs.getSelectedTabPosition()));
+                // Apply initial filter after layout
+                filterAndDisplayEntrants(tabs.getTabAt(tabs.getSelectedTabPosition()));
+            });
 
-        tabs.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                updateActionButtons(tab);
-                // TODO: Add logic to filter the map markers and recycler view list based on the selected tab
+            tabs.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+                @Override
+                public void onTabSelected(TabLayout.Tab tab) {
+                    updateActionButtons(tab);
+                    // --- START OF CHANGE: Re-filter the list when a new tab is selected ---
+                    filterAndDisplayEntrants(tab);
+                    // --- END OF CHANGE ---
+                }
+                @Override public void onTabUnselected(TabLayout.Tab tab) { /* No-op */ }
+                @Override public void onTabReselected(TabLayout.Tab tab) { /* No-op */ }
+            });
+        }
+    }
+
+    private void setupButtons(View view) {
+        view.findViewById(R.id.back_button).setOnClickListener(v -> {
+            if (getActivity() != null) {
+                getActivity().getOnBackPressedDispatcher().onBackPressed();
             }
-            @Override public void onTabUnselected(TabLayout.Tab tab) { /* No action */ }
-            @Override public void onTabReselected(TabLayout.Tab tab) { /* No action */ }
         });
+        if (bottomSheet == null) return;
+        View.OnClickListener openDialogListener = v -> showSendNotificationDialog(true);
+        bottomSheet.findViewById(R.id.waitlist_send_notification_button).setOnClickListener(openDialogListener);
+        bottomSheet.findViewById(R.id.invited_send_notification_button).setOnClickListener(openDialogListener);
+        bottomSheet.findViewById(R.id.attending_send_notification_button).setOnClickListener(openDialogListener);
+        bottomSheet.findViewById(R.id.cancelled_send_notification_button).setOnClickListener(openDialogListener);
     }
 
     private void updateActionButtons(TabLayout.Tab tab) {
+        if (waitlistActions == null) return;
         waitlistActions.setVisibility(View.GONE);
         invitedActions.setVisibility(View.GONE);
         attendingActions.setVisibility(View.GONE);
@@ -241,16 +329,6 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         }
     }
 
-    private void setupButtons(View view) {
-        view.findViewById(R.id.back_button).setOnClickListener(v -> requireActivity().getOnBackPressedDispatcher().onBackPressed());
-
-        View.OnClickListener openDialogListener = v -> showSendNotificationDialog(true);
-        view.findViewById(R.id.waitlist_send_notification_button).setOnClickListener(openDialogListener);
-        view.findViewById(R.id.invited_send_notification_button).setOnClickListener(openDialogListener);
-        view.findViewById(R.id.attending_send_notification_button).setOnClickListener(openDialogListener);
-        view.findViewById(R.id.cancelled_send_notification_button).setOnClickListener(openDialogListener);
-    }
-
     private void setupDialog(View view) {
         sendNotificationDialog = view.findViewById(R.id.send_notification_dialog);
         dialogScrim = view.findViewById(R.id.dialog_scrim);
@@ -265,17 +343,14 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         sendButton.setOnClickListener(v -> {
             String title = notificationTitleInput.getText().toString().trim();
             String body = notificationBodyInput.getText().toString().trim();
-
             if (title.isEmpty() || body.isEmpty()) {
                 Toast.makeText(getContext(), "Title and message cannot be empty.", Toast.LENGTH_SHORT).show();
                 return;
             }
-
             if (event == null || event.getEventId() == null) {
                 Toast.makeText(getContext(), "Error: Event ID is missing.", Toast.LENGTH_SHORT).show();
                 return;
             }
-
             String groupField = getGroupFieldForCurrentTab();
             if (groupField != null) {
                 notificationRepository.sendNotificationToGroup(title, body, event.getEventId(), groupField);
@@ -288,6 +363,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
     }
 
     private void showSendNotificationDialog(boolean show) {
+        if (sendNotificationDialog == null) return;
         sendNotificationDialog.setVisibility(show ? View.VISIBLE : View.GONE);
         dialogScrim.setVisibility(show ? View.VISIBLE : View.GONE);
         if (!show) {
@@ -297,23 +373,17 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
     }
 
     private String getGroupFieldForCurrentTab() {
+        if (tabs == null) return null;
         int selectedTabPosition = tabs.getSelectedTabPosition();
         if (selectedTabPosition == -1) return null;
-
         TabLayout.Tab tab = tabs.getTabAt(selectedTabPosition);
         if (tab == null || tab.getText() == null) return null;
-
         switch (tab.getText().toString()) {
-            case "On Waitlist":
-                return "onWaitlistEventIds";
-            case "Attending":
-                return "attendees";
-            case "Invited":
-                return "invited";
-            case "Cancelled":
-                return "cancelled";
-            default:
-                return null;
+            case "On Waitlist": return "onWaitlistEventIds";
+            case "Attending": return "attendees";
+            case "Invited": return "invited";
+            case "Cancelled": return "cancelled";
+            default: return null;
         }
     }
 }
