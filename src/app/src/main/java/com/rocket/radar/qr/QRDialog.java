@@ -1,0 +1,99 @@
+package com.rocket.radar.qr;
+
+import android.app.Activity;
+import android.app.Dialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
+import android.os.Bundle;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.rocket.radar.databinding.DialogQrcodeBinding;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+public class QRDialog extends DialogFragment {
+    public static final String TAG = QRDialog.class.getSimpleName();
+    private final Bitmap bitmap;
+
+    public QRDialog(String eventId) {
+        bitmap = QRGenerator.generate(eventId);
+    }
+
+    @NonNull
+    @Override
+    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        Activity activity = requireActivity();
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(activity);
+        DialogQrcodeBinding binding = DialogQrcodeBinding.inflate(activity.getLayoutInflater());
+        binding.qrCodeImageView.setImageBitmap(bitmap);
+
+        return builder.setView(binding.getRoot())
+                .setNegativeButton("Cancel", this::buttonClick)
+                .setPositiveButton("Share", this::buttonClick)
+                .create();
+    }
+
+    private void buttonClick(DialogInterface dialog, int which) {
+        switch (which) {
+            case DialogInterface.BUTTON_POSITIVE:
+                shareQrCode();
+                break;
+
+            case DialogInterface.BUTTON_NEGATIVE:
+                dialog.dismiss();
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    // TODO: Should probably upscale the image.
+
+    /**
+     * Open the chooser menu on Android with the QR code attached so that the user can share the image
+     * to other applications which support {@code image/png}.
+     */
+    private void shareQrCode() {
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        // NOTE: Would do svg but I don't know if the default message client support it.
+        // https://stackoverflow.com/a/73547282 (non doc help)
+        File stored;
+        try {
+            stored = File.createTempFile("com.rocket.radar.qrcode",".png");
+        } catch (IOException e) {
+            Log.e(TAG, "Failed to create temporary file for QR code");
+            return;
+        }
+
+        // REMINDER: The try resource handles the close automagically.
+        try (FileOutputStream fileStream = new FileOutputStream(stored)) {
+            var byteStream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 50, stream);
+            fileStream.write(byteStream.toByteArray());
+            fileStream.flush();
+        } catch (FileNotFoundException ignored) {
+            // I mean we should have just created it. This should be unreachable.
+            Log.e(TAG, "Something is very wrong");
+            return;
+        } catch (IOException e) {
+            Log.e(TAG, e.toString());
+            return;
+        }
+
+        intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(stored));
+        intent.setType("image/png");
+        startActivity(Intent.createChooser(intent, "Share QR code"));
+    }
+}
