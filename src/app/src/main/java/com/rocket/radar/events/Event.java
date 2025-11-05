@@ -59,7 +59,7 @@ public class Event implements Serializable {
      * @param tagline A short tagline for the event.
      * @param image The drawable resource ID for the event's image.
      */
-    public Event(String eventTitle, String date, String tagline, int image) {
+    public Event(String eventTitle, Date date, String tagline, int image) {
         this.eventId = UUID.randomUUID().toString(); // Generate a unique ID
         this.eventTitle = eventTitle;
         this.date = LocalDate.parse(date); // Assuming date is in "YYYY-MM-DD" format
