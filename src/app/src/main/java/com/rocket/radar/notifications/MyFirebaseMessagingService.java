@@ -69,7 +69,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             sendSystemNotification(title, body);
 
             // 2. Add the notification to the in-app list for ALL users.
-            addNotificationToInAppList(title, body);
+            //addNotificationToInAppList(title, body);
         }
     }
 
@@ -96,19 +96,19 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         notificationManager.notify(notificationId, notificationBuilder.build());
     }
 
-    /**
-     * Corrected method to add the notification to the in-app list.
-     * This now correctly uses the repository's method.
-     */
-    private void addNotificationToInAppList(String title, String body) {
-        // The service needs to know which user is logged in to add the notification stub.
-        // A repository created here will correctly check for the current authenticated user.
-        NotificationRepository repository = new NotificationRepository();
-
-        // We use the method designed for this purpose, which handles both creating the
-        // main notification and linking it to the current user.
-        repository.createTestNotificationForCurrentUser(title, body);
-    }
+//    /**
+//     * Corrected method to add the notification to the in-app list.
+//     * This now correctly uses the repository's method.
+//     */
+//    private void addNotificationToInAppList(String title, String body) {
+//        // The service needs to know which user is logged in to add the notification stub.
+//        // A repository created here will correctly check for the current authenticated user.
+//        NotificationRepository repository = new NotificationRepository();
+//
+//        // We use the method designed for this purpose, which handles both creating the
+//        // main notification and linking it to the current user.
+//        repository.createTestNotificationForCurrentUser(title, body);
+//    }
 
     @Override
     public void onNewToken(@NonNull String token) {
