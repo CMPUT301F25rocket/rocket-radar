@@ -17,8 +17,10 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Date;
+import java.util.Map;
 
 public class EventRepository {
 
@@ -87,11 +89,22 @@ public class EventRepository {
             return;
         }
         else {
-            DocumentReference userStubRef = db.collection("events").document(userId)
-                    .collection("waitlist").document();
+            // --- START OF FIX ---
+            // 1. Get the correct path: events -> {event-id} -> waitlistedUsers -> {user-id}
+            DocumentReference waitlistRef = db.collection("events").document(event.getEventTitle())
+                    .collection("waitlistedUsers").document(userId);
 
-            userStubRef.set(userId);
+            // 2. Create a map to hold some data, like a timestamp.
+            // Firestore documents cannot be completely empty.
+            Map<String, Object> waitlistData = new HashMap<>();
+            waitlistData.put("timestamp", FieldValue.serverTimestamp());
 
+            // 3. Set the data. If the document already exists, this overwrites it but
+            // that's fine. If it doesn't exist, it is created.
+            waitlistRef.set(waitlistData)
+                    .addOnSuccessListener(aVoid -> Log.d(TAG, "User " + userId + " successfully added to waitlist for event " + event.getEventId()))
+                    .addOnFailureListener(e -> Log.e(TAG, "Error adding user to waitlist", e));
+            // --- END OF FIX ---
         }
     }
 
