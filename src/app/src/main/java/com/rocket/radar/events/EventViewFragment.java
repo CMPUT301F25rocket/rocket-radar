@@ -30,6 +30,8 @@ public class EventViewFragment extends Fragment {
     private static final String ARG_IS_ORGANIZER = "is_organizer";
     private Event event;
     private ProfileViewModel profileViewModel;
+    EventRepository repo = new EventRepository();
+
 
     // 2. ADD isOrganizer aS A MEMBER VARIABLE
     private boolean isOrganizer;
@@ -94,9 +96,27 @@ public class EventViewFragment extends Fragment {
                 eventDate.setText(FormattedDate);
             }
             eventDescription.setText(event.getDescription());
-            int waitlistSize = event.getEventWaitlistIds().size();
-            Log.d("EventViewFragment", "Waitlist size: " + waitlistSize);
-            eventWaitlistSize.setText("People on waitlist: " + String.valueOf(waitlistSize));
+
+            repo.getWaitlistSize(event, new EventRepository.WaitlistSizeListener() {
+                @Override
+                public void onSizeReceived(int size) {
+                    // This code runs when the size is successfully fetched.
+                    // Update the UI on the main thread.
+                    if (isAdded()) { // Ensure fragment is still attached
+                        Log.d("EventViewFragment", "Waitlist size received: " + size);
+                        eventWaitlistSize.setText("People on waitlist: " + size);
+                    }
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    // This code runs on failure.
+                    Log.e("EventViewFragment", "Error getting waitlist size.", e);
+                    if (isAdded()) {
+                        eventWaitlistSize.setText("Waitlist size unavailable");
+                    }
+                }
+            });
         } else {
             Toast.makeText(getContext(), "Error: Event data missing.", Toast.LENGTH_SHORT).show();
             navigateBack();
@@ -166,7 +186,6 @@ public class EventViewFragment extends Fragment {
     }
 
     private void handleJoinLeaveWaitlist() {
-        EventRepository repo = new EventRepository();
         ProfileModel currentProfile = profileViewModel.getProfileLiveData().getValue();
         if (currentProfile == null || event == null) {
             Toast.makeText(getContext(), "Error: Profile or event data not available.", Toast.LENGTH_SHORT).show();
