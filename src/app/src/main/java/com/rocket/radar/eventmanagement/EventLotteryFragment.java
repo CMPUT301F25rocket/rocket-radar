@@ -16,6 +16,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.rocket.radar.databinding.ViewInputEventLotteryBinding;
 import com.rocket.radar.events.Event;
 
+import java.util.Date;
 import java.util.Optional;
 
 /**
@@ -121,13 +122,25 @@ public class EventLotteryFragment extends Fragment implements InputFragment {
 
     @Override
     public boolean valid(InputFragment inputFragment) {
-        return false;
+        Optional<Integer> waitlistCapacity = model.waitlistCapacity.getValue();
+        Optional<Integer> eventCapacity = model.eventCapacity.getValue();
+        Optional<Date> lotteryDate = model.lotteryDate.getValue();
+        Optional<Time> lotteryTime = model.lotteryTime.getValue();
+
+        if (model.hasWaitlistCapacity.getValue() && waitlistCapacity.isEmpty())  {
+            return false;
+        }
+
+        return eventCapacity.isPresent() && lotteryDate.isPresent() && lotteryTime.isPresent();
     }
 
 
     @Override
     public Event.Builder extract(Event.Builder builder) {
-        return null;
+        return builder.waitlistCapacity(model.waitlistCapacity.getValue())
+                .eventCapacity(model.eventCapacity.getValue().orElseThrow())
+                .lotteryDate(model.lotteryDate.getValue().orElseThrow())
+                .lotteryTime(model.lotteryTime.getValue().orElseThrow());
     }
 
     @Override
