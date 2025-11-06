@@ -70,17 +70,7 @@ public class ProfileRepository {
         db.collection("users")
                 .document(profile.getUid())
                 .delete()
-                .addOnSuccessListener(aVoid -> { // delete auth for user
-                    user.delete()
-                            .addOnSuccessListener(unused -> {
-                                Log.d(TAG, "User account deleted successfully.");
-                                callback.onSuccess();
-                            })
-                            .addOnFailureListener(e -> {
-                                Log.e(TAG, "Failed to delete Firebase Auth user", e);
-                                callback.onError(e);
-                            });
-                })
+                .addOnSuccessListener(aVoid -> {callback.onSuccess();;})
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Failed to delete Firestore document", e);
                     callback.onError(e);
