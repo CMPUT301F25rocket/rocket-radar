@@ -307,6 +307,283 @@ public class EventRepository {
             .addOnFailureListener(callback::onError);
     }
 
+    // --- START OF INVITED ENTRANTS METHODS ---
+
+    /**
+     * Callback interface for fetching invited entrants.
+     */
+    public interface InvitedEntrantsCallback {
+        void onInvitedEntrantsFetched(List<String> userIds);
+        void onError(Exception e);
+    }
+
+    /**
+     * Asynchronously fetches the list of user IDs from the invited list of a specific event.
+     */
+    public void getInvitedEntrants(String eventId, InvitedEntrantsCallback callback) {
+        if (eventId == null || eventId.isEmpty()) {
+            callback.onError(new IllegalArgumentException("Event ID cannot be null or empty."));
+            return;
+        }
+        db.collection("events").document(eventId).collection("invitedUsers")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<String> userIds = new ArrayList<>();
+                    queryDocumentSnapshots.forEach(doc -> userIds.add(doc.getId()));
+                    callback.onInvitedEntrantsFetched(userIds);
+                })
+                .addOnFailureListener(callback::onError);
+    }
+
+    /**
+     * Callback interface for fetching a user's location from the invited list.
+     */
+    public interface UserLocationFromInvitedCallback {
+        void onLocationFetched(GeoPoint location);
+        void onError(Exception e);
+    }
+
+    /**
+     * Fetches the GeoPoint for a specific user from an event's invited list.
+     */
+    public void getUserLocationFromInvited(String userId, String eventId, UserLocationFromInvitedCallback callback) {
+        if (eventId == null || eventId.isEmpty() || userId == null || userId.isEmpty()) {
+            callback.onError(new IllegalArgumentException("Event ID and User ID cannot be null or empty."));
+            return;
+        }
+        db.collection("events").document(eventId).collection("invitedUsers").document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        GeoPoint location = documentSnapshot.getGeoPoint("signupLocation");
+                        callback.onLocationFetched(location);
+                    } else {
+                        callback.onError(new Exception("User " + userId + " not found in invited list for event " + eventId));
+                    }
+                })
+                .addOnFailureListener(callback::onError);
+    }
+
+    /**
+     * Callback interface for fetching invited list locations.
+     */
+    public interface InvitedLocationsCallback {
+        void onInvitedLocationsFetched(List<GeoPoint> locations);
+        void onError(Exception e);
+    }
+
+    /**
+     * Asynchronously fetches the list of signup locations from the invited list of a specific event.
+     */
+    public void getInvitedLocations(String eventId, InvitedLocationsCallback callback) {
+        if (eventId == null || eventId.isEmpty()) {
+            callback.onError(new IllegalArgumentException("Event ID cannot be null or empty."));
+            return;
+        }
+        db.collection("events").document(eventId).collection("invitedUsers")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<GeoPoint> locations = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        GeoPoint location = doc.getGeoPoint("signupLocation");
+                        if (location != null) {
+                            locations.add(location);
+                        } else {
+                            Log.w(TAG, "Document " + doc.getId() + " in invited list for event " + eventId + " does not have a signupLocation.");
+                        }
+                    }
+                    callback.onInvitedLocationsFetched(locations);
+                })
+                .addOnFailureListener(callback::onError);
+    }
+
+    // --- END OF INVITED ENTRANTS METHODS ---
+
+    // --- START OF CANCELLED ENTRANTS METHODS ---
+
+    /**
+     * Callback interface for fetching cancelled entrants.
+     */
+    public interface CancelledEntrantsCallback {
+        void onCancelledEntrantsFetched(List<String> userIds);
+        void onError(Exception e);
+    }
+
+    /**
+     * Asynchronously fetches the list of user IDs from the cancelled list of a specific event.
+     */
+    public void getCancelledEntrants(String eventId, CancelledEntrantsCallback callback) {
+        if (eventId == null || eventId.isEmpty()) {
+            callback.onError(new IllegalArgumentException("Event ID cannot be null or empty."));
+            return;
+        }
+        db.collection("events").document(eventId).collection("cancelledUsers")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<String> userIds = new ArrayList<>();
+                    queryDocumentSnapshots.forEach(doc -> userIds.add(doc.getId()));
+                    callback.onCancelledEntrantsFetched(userIds);
+                })
+                .addOnFailureListener(callback::onError);
+    }
+
+    /**
+     * Callback interface for fetching a user's location from the cancelled list.
+     */
+    public interface UserLocationFromCancelledCallback {
+        void onLocationFetched(GeoPoint location);
+        void onError(Exception e);
+    }
+
+    /**
+     * Fetches the GeoPoint for a specific user from an event's cancelled list.
+     */
+    public void getUserLocationFromCancelled(String userId, String eventId, UserLocationFromCancelledCallback callback) {
+        if (eventId == null || eventId.isEmpty() || userId == null || userId.isEmpty()) {
+            callback.onError(new IllegalArgumentException("Event ID and User ID cannot be null or empty."));
+            return;
+        }
+        db.collection("events").document(eventId).collection("cancelledUsers").document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        GeoPoint location = documentSnapshot.getGeoPoint("signupLocation");
+                        callback.onLocationFetched(location);
+                    } else {
+                        callback.onError(new Exception("User " + userId + " not found in cancelled list for event " + eventId));
+                    }
+                })
+                .addOnFailureListener(callback::onError);
+    }
+
+    /**
+     * Callback interface for fetching cancelled list locations.
+     */
+    public interface CancelledLocationsCallback {
+        void onCancelledLocationsFetched(List<GeoPoint> locations);
+        void onError(Exception e);
+    }
+
+    /**
+     * Asynchronously fetches the list of signup locations from the cancelled list of a specific event.
+     */
+    public void getCancelledLocations(String eventId, CancelledLocationsCallback callback) {
+        if (eventId == null || eventId.isEmpty()) {
+            callback.onError(new IllegalArgumentException("Event ID cannot be null or empty."));
+            return;
+        }
+        db.collection("events").document(eventId).collection("cancelledUsers")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<GeoPoint> locations = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        GeoPoint location = doc.getGeoPoint("signupLocation");
+                        if (location != null) {
+                            locations.add(location);
+                        } else {
+                            Log.w(TAG, "Document " + doc.getId() + " in cancelled list for event " + eventId + " does not have a signupLocation.");
+                        }
+                    }
+                    callback.onCancelledLocationsFetched(locations);
+                })
+                .addOnFailureListener(callback::onError);
+    }
+
+    // --- END OF CANCELLED ENTRANTS METHODS ---
+
+    // --- START OF SELECTED ENTRANTS METHODS ---
+
+    /**
+     * Callback interface for fetching selected entrants.
+     */
+    public interface SelectedEntrantsCallback {
+        void onSelectedEntrantsFetched(List<String> userIds);
+        void onError(Exception e);
+    }
+
+    /**
+     * Asynchronously fetches the list of user IDs from the selected list of a specific event.
+     */
+    public void getSelectedEntrants(String eventId, SelectedEntrantsCallback callback) {
+        if (eventId == null || eventId.isEmpty()) {
+            callback.onError(new IllegalArgumentException("Event ID cannot be null or empty."));
+            return;
+        }
+        db.collection("events").document(eventId).collection("selectedUsers")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<String> userIds = new ArrayList<>();
+                    queryDocumentSnapshots.forEach(doc -> userIds.add(doc.getId()));
+                    callback.onSelectedEntrantsFetched(userIds);
+                })
+                .addOnFailureListener(callback::onError);
+    }
+
+    /**
+     * Callback interface for fetching a user's location from the selected list.
+     */
+    public interface UserLocationFromSelectedCallback {
+        void onLocationFetched(GeoPoint location);
+        void onError(Exception e);
+    }
+
+    /**
+     * Fetches the GeoPoint for a specific user from an event's selected list.
+     */
+    public void getUserLocationFromSelected(String userId, String eventId, UserLocationFromSelectedCallback callback) {
+        if (eventId == null || eventId.isEmpty() || userId == null || userId.isEmpty()) {
+            callback.onError(new IllegalArgumentException("Event ID and User ID cannot be null or empty."));
+            return;
+        }
+        db.collection("events").document(eventId).collection("selectedUsers").document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        GeoPoint location = documentSnapshot.getGeoPoint("signupLocation");
+                        callback.onLocationFetched(location);
+                    } else {
+                        callback.onError(new Exception("User " + userId + " not found in selected list for event " + eventId));
+                    }
+                })
+                .addOnFailureListener(callback::onError);
+    }
+
+    /**
+     * Callback interface for fetching selected list locations.
+     */
+    public interface SelectedLocationsCallback {
+        void onSelectedLocationsFetched(List<GeoPoint> locations);
+        void onError(Exception e);
+    }
+
+    /**
+     * Asynchronously fetches the list of signup locations from the selected list of a specific event.
+     */
+    public void getSelectedLocations(String eventId, SelectedLocationsCallback callback) {
+        if (eventId == null || eventId.isEmpty()) {
+            callback.onError(new IllegalArgumentException("Event ID cannot be null or empty."));
+            return;
+        }
+        db.collection("events").document(eventId).collection("selectedUsers")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<GeoPoint> locations = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        GeoPoint location = doc.getGeoPoint("signupLocation");
+                        if (location != null) {
+                            locations.add(location);
+                        } else {
+                            Log.w(TAG, "Document " + doc.getId() + " in selected list for event " + eventId + " does not have a signupLocation.");
+                        }
+                    }
+                    callback.onSelectedLocationsFetched(locations);
+                })
+                .addOnFailureListener(callback::onError);
+    }
+
+    // --- END OF SELECTED ENTRANTS METHODS ---
+
     // --- END OF NEW METHODS ---
     // --- END OF FIX ---
+
 }

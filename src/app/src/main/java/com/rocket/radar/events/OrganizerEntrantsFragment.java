@@ -58,7 +58,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
     private ProfileRepository profileRepository;
 
     // UI elements
-    private LinearLayout waitlistActions, invitedActions, attendingActions, cancelledActions;
+    private LinearLayout waitlistActions, invitedActions, selectedActions, cancelledActions;
     private MaterialCardView sendNotificationDialog;
     private View dialogScrim;
     private EditText notificationTitleInput, notificationBodyInput;
@@ -287,26 +287,151 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                     // Do not notify the adapter here. It will be notified inside the callback.
                     break;
 
+
                 case "invited":
-                    // For static data, just add it to the member list and notify the adapter.
-                    currentEntrants.add("Daenerys Targaryen");
-                    currentEntrants.add("Jon Snow");
-                    currentEntrants.add("Tyrion Lannister");
-                    entrantsAdapter.notifyDataSetChanged(); // Refresh the list
+                    // Check for valid event data before making a network call
+                    if (event == null || event.getEventTitle() == null) {
+                        Log.e(TAG, "Event or Event ID is null. Cannot fetch invited entrants.");
+                        Toast.makeText(getContext(), "Event data is missing.", Toast.LENGTH_SHORT).show();
+                        entrantsAdapter.notifyDataSetChanged(); // Ensure the list is shown as empty
+                        return; // Stop execution
+                    }
+
+                    eventRepository.getInvitedEntrants(event.getEventTitle(), new EventRepository.InvitedEntrantsCallback() {
+                        @Override
+                        public void onInvitedEntrantsFetched(List<String> userIds) {
+                            Log.d(TAG, "Fetched " + userIds.size() + " invited entrants.");
+                            if (userIds.isEmpty()) {
+                                entrantsAdapter.notifyDataSetChanged();
+                                return;
+                            }
+
+                            ArrayList<String> userNames = new ArrayList<>();
+                            final int[] profilesToFetch = {userIds.size()};
+
+                            for (String userId : userIds) {
+                                profileRepository.readProfile(userId, new ProfileRepository.ReadCallback() {
+                                    @Override
+                                    public void onProfileLoaded(ProfileModel profile) {
+                                        userNames.add(profile.getName());
+                                        profilesToFetch[0]--;
+                                        if (profilesToFetch[0] == 0) {
+                                            currentEntrants.addAll(userNames);
+                                            entrantsAdapter.notifyDataSetChanged();
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onError(Exception e) {
+                                        Log.e(TAG, "Error fetching user profile for invited", e);
+                                        profilesToFetch[0]--;
+                                    }
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            Log.e(TAG, "Error fetching invited entrants", e);
+                            Toast.makeText(getContext(), "Failed to load invited list.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                     break;
 
-                case "attending":
-                    currentEntrants.add("Frodo Baggins");
-                    currentEntrants.add("Samwise Gamgee");
-                    currentEntrants.add("Gandalf the Grey");
-                    entrantsAdapter.notifyDataSetChanged(); // Refresh the list
+                case "selected":
+                    if (event == null || event.getEventTitle() == null) {
+                        Log.e(TAG, "Event or Event ID is null. Cannot fetch selected entrants.");
+                        Toast.makeText(getContext(), "Event data is missing.", Toast.LENGTH_SHORT).show();
+                        entrantsAdapter.notifyDataSetChanged();
+                        return;
+                    }
+
+                    eventRepository.getSelectedEntrants(event.getEventTitle(), new EventRepository.SelectedEntrantsCallback() {
+                        @Override
+                        public void onSelectedEntrantsFetched(List<String> userIds) {
+                            Log.d(TAG, "Fetched " + userIds.size() + " selected entrants.");
+                            if (userIds.isEmpty()) {
+                                entrantsAdapter.notifyDataSetChanged();
+                                return;
+                            }
+
+                            ArrayList<String> userNames = new ArrayList<>();
+                            final int[] profilesToFetch = { userIds.size() };
+
+                            for (String userId : userIds) {
+                                profileRepository.readProfile(userId, new ProfileRepository.ReadCallback() {
+                                    @Override
+                                    public void onProfileLoaded(ProfileModel profile) {
+                                        userNames.add(profile.getName());
+                                        if (--profilesToFetch[0] == 0) {
+                                            currentEntrants.addAll(userNames);
+                                            entrantsAdapter.notifyDataSetChanged();
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onError(Exception e) {
+                                        Log.e(TAG, "Error fetching user profile for selected", e);
+                                        profilesToFetch[0]--;
+                                    }
+                                });
+                            }
+                        }
+                        @Override
+                        public void onError(Exception e) {
+                            Log.e(TAG, "Error fetching selected entrants", e);
+                            Toast.makeText(getContext(), "Failed to load selected list.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                     break;
 
                 case "cancelled":
-                    currentEntrants.add("Luke Skywalker");
-                    currentEntrants.add("Han Solo");
-                    currentEntrants.add("Leia Organa");
-                    entrantsAdapter.notifyDataSetChanged(); // Refresh the list
+                    if (event == null || event.getEventTitle() == null) {
+                        Log.e(TAG, "Event or Event ID is null. Cannot fetch cancelled entrants.");
+                        Toast.makeText(getContext(), "Event data is missing.", Toast.LENGTH_SHORT).show();
+                        entrantsAdapter.notifyDataSetChanged();
+                        return;
+                    }
+
+                    eventRepository.getCancelledEntrants(event.getEventTitle(), new EventRepository.CancelledEntrantsCallback() {
+                        @Override
+                        public void onCancelledEntrantsFetched(List<String> userIds) {
+                            Log.d(TAG, "Fetched " + userIds.size() + " cancelled entrants.");
+                            if (userIds.isEmpty()) {
+                                entrantsAdapter.notifyDataSetChanged();
+                                return;
+                            }
+
+                            ArrayList<String> userNames = new ArrayList<>();
+                            final int[] profilesToFetch = {userIds.size()};
+
+                            for (String userId : userIds) {
+                                profileRepository.readProfile(userId, new ProfileRepository.ReadCallback() {
+                                    @Override
+                                    public void onProfileLoaded(ProfileModel profile) {
+                                        userNames.add(profile.getName());
+                                        profilesToFetch[0]--;
+                                        if (profilesToFetch[0] == 0) {
+                                            currentEntrants.addAll(userNames);
+                                            entrantsAdapter.notifyDataSetChanged();
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onError(Exception e) {
+                                        Log.e(TAG, "Error fetching user profile for cancelled", e);
+                                        profilesToFetch[0]--;
+                                    }
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            Log.e(TAG, "Error fetching cancelled entrants", e);
+                            Toast.makeText(getContext(), "Failed to load cancelled list.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                     break;
 
                 default:
@@ -327,8 +452,8 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                 return "waitlisted";
             case "Invited":
                 return "invited";
-            case "Attending":
-                return "attending";
+            case "Selected":
+                return "selected";
             case "Cancelled":
                 return "cancelled";
             default:
@@ -378,7 +503,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         if (bottomSheet == null) return;
         waitlistActions = bottomSheet.findViewById(R.id.waitlist_actions);
         invitedActions = bottomSheet.findViewById(R.id.invited_actions);
-        attendingActions = bottomSheet.findViewById(R.id.attending_actions);
+        selectedActions = bottomSheet.findViewById(R.id.attending_actions);
         cancelledActions = bottomSheet.findViewById(R.id.cancelled_actions);
     }
 
@@ -420,7 +545,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         View.OnClickListener openDialogListener = v -> showSendNotificationDialog(true);
         bottomSheet.findViewById(R.id.waitlist_send_notification_button).setOnClickListener(openDialogListener);
         bottomSheet.findViewById(R.id.invited_send_notification_button).setOnClickListener(openDialogListener);
-        bottomSheet.findViewById(R.id.attending_send_notification_button).setOnClickListener(openDialogListener);
+        bottomSheet.findViewById(R.id.attending_send_notification_button).setOnClickListener(openDialogListener); // ID remains attending_...
         bottomSheet.findViewById(R.id.cancelled_send_notification_button).setOnClickListener(openDialogListener);
     }
 
@@ -428,7 +553,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         if (waitlistActions == null) return;
         waitlistActions.setVisibility(View.GONE);
         invitedActions.setVisibility(View.GONE);
-        attendingActions.setVisibility(View.GONE);
+        selectedActions.setVisibility(View.GONE);
         cancelledActions.setVisibility(View.GONE);
 
         if (tab == null || tab.getText() == null) return;
@@ -440,8 +565,8 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
             case "Invited":
                 invitedActions.setVisibility(View.VISIBLE);
                 break;
-            case "Attending":
-                attendingActions.setVisibility(View.VISIBLE);
+            case "Selected":
+                selectedActions.setVisibility(View.VISIBLE);
                 break;
             case "Cancelled":
                 cancelledActions.setVisibility(View.VISIBLE);
@@ -500,7 +625,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         if (tab == null || tab.getText() == null) return null;
         switch (tab.getText().toString()) {
             case "On Waitlist": return "onWaitlistEventIds";
-            case "Attending": return "attendees";
+            case "Selected": return "attendees";
             case "Invited": return "invited";
             case "Cancelled": return "cancelled";
             default: return null;
