@@ -106,25 +106,27 @@ public class NotificationFragment extends Fragment {
         notificationRepository.getMyNotifications().observe(getViewLifecycleOwner(), newNotifications -> {
             Log.d("NotificationFragment", "Data updated. " + newNotifications.size() + " notifications received.");
 
-            // Sort the list: unread first, then by newest timestamp
+            // --- START OF CHANGE ---
+            // Only sort the list by newest timestamp. The visual distinction for unread
+            // notifications will be handled by the adapter.
             newNotifications.sort((n1, n2) -> {
-                int readCompare = Boolean.compare(n1.isReadStatus(), n2.isReadStatus());
-                if (readCompare != 0) {
-                    return readCompare; // false (unread) comes before true (read)
-                }
                 if (n1.getTimestamp() != null && n2.getTimestamp() != null) {
-                    return n2.getTimestamp().compareTo(n1.getTimestamp()); // Newest first
+                    // Return n2 compared to n1 for descending order (newest first).
+                    return n2.getTimestamp().compareTo(n1.getTimestamp());
                 }
-                return 0;
+                return 0; // If timestamps are null, keep original order.
             });
+            // --- END OF CHANGE ---
 
-            // Update the adapter with the new, sorted list
+            // Update the adapter with the new, chronologically sorted list.
+            // The adapter will now receive a list where items can be read or unread at any position.
             adapter.setNotifications(newNotifications);
 
-            // Update the visibility of the "empty" text view
-            checkEmpty();
+            // The checkEmpty() logic, handled by the AdapterDataObserver, remains correct
+            // and does not need to be called here directly.
         });
     }
+
 
     // This is the checkEmpty() method, now part of the observer's logic.
     private void checkEmpty() {

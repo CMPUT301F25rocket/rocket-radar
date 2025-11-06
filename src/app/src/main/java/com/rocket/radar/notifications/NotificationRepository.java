@@ -3,6 +3,9 @@ package com.rocket.radar.notifications;
 import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
@@ -12,6 +15,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.WriteBatch;
 import com.rocket.radar.R;
+import com.rocket.radar.profile.ProfileModel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,62 +38,76 @@ public class NotificationRepository {
     }
 
     public LiveData<List<Notification>> getMyNotifications() {
-        MutableLiveData<List<Notification>> resolvedNotificationsLiveData = new MutableLiveData<>();
+        // Use MutableLiveData to be able to post values to it.
+        MutableLiveData<List<Notification>> notificationsLiveData = new MutableLiveData<>();
+
+        // If the user reference was not set in the constructor (user not logged in), post an empty list.
         if (userNotificationsRef == null) {
-            Log.e(TAG, "User is not logged in. Cannot fetch notifications.");
-            resolvedNotificationsLiveData.postValue(new ArrayList<>());
-            return resolvedNotificationsLiveData;
+            Log.e(TAG, "User is not logged in, cannot fetch notifications.");
+            notificationsLiveData.postValue(new ArrayList<>());
+            return notificationsLiveData;
         }
 
+        // Use addSnapshotListener to get real-time updates. Every time a notification's
+        // readStatus changes, this code will re-run automatically.
         userNotificationsRef.addSnapshotListener((userNotificationsSnapshot, error) -> {
             if (error != null) {
                 Log.e(TAG, "Listen failed on user notifications.", error);
                 return;
             }
+
+            // Handle the case where the user has no notification documents.
             if (userNotificationsSnapshot == null || userNotificationsSnapshot.isEmpty()) {
-                resolvedNotificationsLiveData.postValue(new ArrayList<>()); // Post empty list if no notifications
+                notificationsLiveData.postValue(new ArrayList<>());
                 return;
             }
 
-            List<Notification> resolvedList = new ArrayList<>();
-            // Use an atomic counter to know when all async fetches are complete
-            AtomicInteger pendingFetches = new AtomicInteger(userNotificationsSnapshot.size());
+            List<Task<Notification>> tasks = new ArrayList<>();
+            Map<String, Boolean> readStatusMap = new HashMap<>();
 
             for (QueryDocumentSnapshot userDoc : userNotificationsSnapshot) {
-                // Get the reference from the user's notification stub
                 DocumentReference notificationContentRef = userDoc.getDocumentReference("notificationRef");
-                boolean readStatus = Boolean.TRUE.equals(userDoc.getBoolean("readStatus"));
-
                 if (notificationContentRef != null) {
-                    notificationContentRef.get().addOnSuccessListener(contentDoc -> {
-                        if (contentDoc.exists()) {
-                            Notification notification = contentDoc.toObject(Notification.class);
+                    // For each notification stub, create a Task to fetch its full content.
+                    Task<Notification> fetchTask = notificationContentRef.get().continueWith(contentTask -> {
+                        if (contentTask.isSuccessful() && contentTask.getResult() != null && contentTask.getResult().exists()) {
+                            Notification notification = contentTask.getResult().toObject(Notification.class);
                             if (notification != null) {
-                                // Manually set the UI-specific fields
                                 notification.setUserNotificationId(userDoc.getId());
-                                notification.setReadStatus(readStatus);
-                                resolvedList.add(notification);
+                                return notification;
                             }
                         }
-                        // Decrement counter and check if all fetches are done
-                        if (pendingFetches.decrementAndGet() == 0) {
-                            resolvedNotificationsLiveData.postValue(resolvedList);
-                        }
-                    }).addOnFailureListener(e -> {
-                        Log.e(TAG, "Failed to fetch notification content.", e);
-                        if (pendingFetches.decrementAndGet() == 0) {
-                            resolvedNotificationsLiveData.postValue(resolvedList);
-                        }
+                        // If the fetch fails for any reason, return null for this task.
+                        Log.e(TAG, "Failed to fetch content for notification: " + userDoc.getId(), contentTask.getException());
+                        return null;
                     });
-                } else {
-                    // If ref is null, just decrement and continue
-                    if (pendingFetches.decrementAndGet() == 0) {
-                        resolvedNotificationsLiveData.postValue(resolvedList);
-                    }
+                    tasks.add(fetchTask);
+
+                    // Store the read status, keyed by the user-specific notification ID.
+                    readStatusMap.put(userDoc.getId(), Boolean.TRUE.equals(userDoc.getBoolean("readStatus")));
                 }
             }
+
+            // Use Tasks.whenAllSuccess to wait for ALL fetch tasks to complete successfully.
+            Tasks.whenAllSuccess(tasks).addOnSuccessListener(results -> {
+                List<Notification> finalNotifications = new ArrayList<>();
+                for (Object result : results) {
+                    // The result list contains Notification objects (or nulls if any failed).
+                    if (result instanceof Notification) {
+                        Notification notification = (Notification) result;
+                        // Look up the correct read status from our map.
+                        boolean isRead = readStatusMap.getOrDefault(notification.getUserNotificationId(), false);
+                        notification.setReadStatus(isRead);
+                        finalNotifications.add(notification);
+                    }
+                }
+                // Post the final, complete list to LiveData. The fragment will receive this update.
+                notificationsLiveData.postValue(finalNotifications);
+                Log.d(TAG, "Successfully fetched and processed " + finalNotifications.size() + " notifications.");
+            });
         });
-        return resolvedNotificationsLiveData;
+
+        return notificationsLiveData;
     }
 
     public void markNotificationAsRead(String userNotificationId) {

@@ -85,48 +85,34 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         // Handle each view type
-        switch (holder.getItemViewType()) {
 
-            case VIEW_TYPE_SEPARATOR:
-                ((SeparatorViewHolder) holder).separatorText.setText("Previously Read");
-                break;
 
-            case VIEW_TYPE_NOTIFICATION:
-                // This is the original binding logic
-                int listIndex = position;
-                if (separatorIndex != -1 && position > separatorIndex) {
-                    listIndex--;
-                }
-
-                NotificationViewHolder notificationHolder = (NotificationViewHolder) holder;
-
-                if (listIndex < 0 || listIndex >= notificationList.size()) {
-                    Log.e("NotificationAdapter", "CRITICAL BUG: Invalid index. Position: " + position + ", ListIndex: " + listIndex);
-                    holder.itemView.setVisibility(View.GONE);
-                    return;
-                }
-                holder.itemView.setVisibility(View.VISIBLE);
-
-                Notification notification = notificationList.get(listIndex);
-
-                notificationHolder.eventTitle.setText(notification.getEventTitle());
-                notificationHolder.notificationType.setText(notification.getNotificationType());
-
-                if (notification.isReadStatus()) {
-                    notificationHolder.unreadIndicator.setVisibility(View.GONE);
-                    notificationHolder.eventTitle.setTypeface(null, Typeface.NORMAL);
-                } else {
-                    notificationHolder.unreadIndicator.setVisibility(View.VISIBLE);
-                    notificationHolder.eventTitle.setTypeface(null, Typeface.BOLD);
-                }
-
-                notificationHolder.itemView.setOnClickListener(v -> {
-                    if (!notification.isReadStatus()) {
-                        repository.markNotificationAsRead(notification.getUserNotificationId());
-                    }
-                });
-                break;
+        // This is the original binding logic
+        int listIndex = position;
+        if (separatorIndex != -1 && position > separatorIndex) {
+            listIndex--;
         }
+
+        NotificationViewHolder notificationHolder = (NotificationViewHolder) holder;
+
+        Notification notification = notificationList.get(listIndex);
+
+        notificationHolder.eventTitle.setText(notification.getEventTitle());
+        notificationHolder.notificationType.setText(notification.getNotificationType());
+
+        if (notification.isReadStatus()) {
+            notificationHolder.unreadIndicator.setVisibility(View.GONE);
+            notificationHolder.eventTitle.setTypeface(null, Typeface.NORMAL);
+        } else {
+            notificationHolder.unreadIndicator.setVisibility(View.VISIBLE);
+            notificationHolder.eventTitle.setTypeface(null, Typeface.BOLD);
+        }
+
+        notificationHolder.itemView.setOnClickListener(v -> {
+            if (!notification.isReadStatus()) {
+                repository.markNotificationAsRead(notification.getUserNotificationId());
+            }
+        });
     }
 
     // --- MODIFIED ---
