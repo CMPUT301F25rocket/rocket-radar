@@ -14,7 +14,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.google.android.material.button.MaterialButton;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
 import com.rocket.radar.profile.ProfileModel;
@@ -91,8 +90,8 @@ public class EventViewFragment extends Fragment {
         // Populate static event data
         if (event != null) {
             eventTitle.setText(event.getEventTitle());
-            if (event.getDate() != null) { // Check event.getDate() for null
-                String FormattedDate = DateFormat.getDateInstance(DateFormat.FULL).format(event.getDate());
+            if (event.getEventStartDate() != null) { // Check event.getDate() for null
+                String FormattedDate = DateFormat.getDateInstance(DateFormat.FULL).format(event.getEventStartDate());
                 eventDate.setText(FormattedDate);
             }
             eventDescription.setText(event.getDescription());
