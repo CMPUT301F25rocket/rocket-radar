@@ -1,7 +1,7 @@
+// C:/Users/bwood/Cmput301/rocket-radar/src/app/src/main/java/com/rocket/radar/MainActivity.java
 package com.rocket.radar;
 
-import android.Manifest;
-import android.content.Intent;
+import android.Manifest;import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
@@ -16,8 +16,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer;
-import androidx.core.content.ContextCompat;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
@@ -25,15 +23,14 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.rocket.radar.databinding.NavBarBinding;
-import com.rocket.radar.events.EventRepository;
 import com.rocket.radar.profile.ProfileModel;
+import com.rocket.radar.profile.ProfileRepository;
 import com.rocket.radar.profile.ProfileViewModel;
 import com.rocket.radar.qr.QRDialog;
 
@@ -47,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
     // Location & Permission services
     private FusedLocationProviderClient fusedLocationClient;
     private NavController navController;
+    private ProfileRepository repo = new ProfileRepository(FirebaseFirestore.getInstance());
 
     private boolean isObserverInitialized = false;
 
@@ -61,19 +59,13 @@ public class MainActivity extends AppCompatActivity {
             });
 
     // Launcher for Location Permissions
-    // Launcher for Location Permissions
     private final ActivityResultLauncher<String> requestLocationPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                // After the dialog closes, re-check the actual current permission status.
-                // This correctly handles the "Only this time" case for both Precise and Approximate.
-
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                         || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                    // This block will now execute if the user grants ANY location permission.
                     Log.d(TAG, "Location permission has been granted (Precise or Coarse).");
                     fetchLastKnownLocation();
                 } else {
-                    // This block now only runs for an explicit "Deny".
                     Log.w(TAG, "Location permission was explicitly denied by user.");
                     Toast.makeText(this, "Geolocation access is required for some features.", Toast.LENGTH_SHORT).show();
                 }
@@ -95,7 +87,6 @@ public class MainActivity extends AppCompatActivity {
         // Initialize location client
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        // Ask for standard permissions
         askNotificationPermission();
 
         FirebaseMessaging.getInstance().getToken()
@@ -131,7 +122,6 @@ public class MainActivity extends AppCompatActivity {
         if (action == null) return;
         if (action.equals(getString(R.string.intent_action_view_event))) {
             // TODO
-            // navController.navigate();
         } else if (action.equals(getString(R.string.intent_action_show_qr))) {
             String eventId = intent.getStringExtra("eventId");
             QRDialog qrDialog = new QRDialog(getApplicationContext(), eventId);
@@ -165,7 +155,6 @@ public class MainActivity extends AppCompatActivity {
         }
         String uid = user.getUid();
 
-        // **FIX**: Move the updateLastLogin call here. It now runs only once upon sign-in.
         Log.d(TAG, "User signed in with UID: " + uid + ". Updating last login time.");
         navController.navigate(R.id.action_returning_user_event_list);
         profileViewModel.updateLastLogin(uid);
@@ -177,14 +166,10 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onChanged(ProfileModel profile) {
                     if (profile == null) {
-                        // The snapshot listener returned null, meaning this is a first-time user.
-
                         navController.navigate(R.id.action_first_time_login_main);
                         Log.d(TAG, "First-time user detected. Creating default profile for UID: " + uid);
-
                     } else {
                         Log.d(TAG, "Profile data received for user: " + profile.getUid());
-                        // Profile exists, now check if we should ask for system location permission.
                         checkGeolocationPermission(profile);
                     }
                 }
@@ -193,21 +178,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Checks if the user has enabled geolocation in their profile and if the app has system-level permission.
-     * @param profile The user's profile model.
-     */
     private void checkGeolocationPermission(ProfileModel profile) {
-        // Step 1: Check if the user has consented in their app profile settings.
-        if (profile.isGeolocationEnabled()) { // This call is now safe.
+        if (profile.isGeolocationEnabled()) {
             Log.d(TAG, "User has geolocation enabled in their profile.");
-            // Step 2: Check if the app has been granted the Android system permission.
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                // If permission is not granted, request it from the user.
                 Log.d(TAG, "System location permission not granted. Requesting it now.");
                 requestLocationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
             } else {
-                // Both profile setting and system permission are granted. We can fetch location.
                 Log.d(TAG, "System location permission is already granted.");
                 fetchLastKnownLocation();
             }
@@ -216,81 +193,28 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**     * Fetches the device's last known location.
-     * This method must be called only after checking for location permission.
-     */
     private void fetchLastKnownLocation() {
-        // Check if either FINE or COARSE location permission is granted.
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                 || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
-            // This is the call that gets the location.
             fusedLocationClient.getLastLocation()
                     .addOnSuccessListener(this, location -> {
-                        // The 'location' object is what you want to print.
                         if (location != null) {
-                            // Location was found successfully.
-                            // The following line will print the Latitude and Longitude to your Logcat.
                             Log.i(TAG, "USER LOCATION: Latitude=" + location.getLatitude() + ", Longitude=" + location.getLongitude());
-
-                            // This toast message also confirms it's working.
-                            Toast.makeText(this, "Location acquired!", Toast.LENGTH_SHORT).show();
-
-                            // TODO: When this is called from `triggerLocationUpdateAndSave`, the logic inside that
-                            //  method's listener will execute, saving the location to Firestore.
+                            FirebaseUser currentUser = mAuth.getCurrentUser();
+                            if (currentUser != null) {
+                                GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
+                                // Use the repository to update the user's profile
+                                repo.updateUserProfileLocation(currentUser.getUid(), geoPoint);
+                            }
+                            Toast.makeText(this, "Location acquired and updated!", Toast.LENGTH_SHORT).show();
                         } else {
-                            // This can happen if location was recently turned off or on a new emulator.
-                            Log.w(TAG, "Last known location is null. A new location request might be needed or location is disabled on the device.");
+                            Log.w(TAG, "Last known location is null.");
                         }
                     });
         } else {
-            // This is a safeguard in case the method is called without permission.
             Log.e(TAG, "fetchLastKnownLocation called without any location permissions granted.");
         }
-    }
-
-    /**
-     * PUBLIC method that can be called from any fragment to "freeze" the user's current location for an event.
-     * This will be called from EventViewFragment when the "Join Waitlist" button is clicked.
-     *
-     * @param eventId The ID of the event the user is signing up for.
-     */
-    public void triggerLocationUpdateAndSave(String eventId) {
-        // First, ensure we have permission. If not, the normal permission flow will be triggered.
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.w(TAG, "Location permission not granted. Cannot save location for event.");
-            // Optionally, you could trigger the permission request again here.
-            // requestLocationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
-            return;
-        }
-
-        // We have permission, so get the location.
-        fusedLocationClient.getLastLocation()
-                .addOnSuccessListener(this, location -> {
-                    if (location != null) {
-                        Log.d(TAG, "Location acquired for event signup: " + eventId);
-
-                        // TODO: Step 1 - Create a new Firestore document.
-                        //  This would likely be in a new sub-collection, e.g., /events/{eventId}/checkins/{userId}
-
-                        // TODO: Step 2 - Create a map or a data object containing the location data.
-                        //  e.g., Map<String, Object> checkInData = new HashMap<>();
-                        //  checkInData.put("userId", [current_user_id]);
-                        //  checkInData.put("signupLocation", new GeoPoint(location.getLatitude(), location.getLongitude()));
-                        //  checkInData.put("signupTimestamp", FieldValue.serverTimestamp());
-
-                        // TODO: Step 3 - Save the data to Firestore.
-                        //  e.g., FirebaseFirestore.getInstance().collection("events").document(eventId)
-                        //      .collection("checkins").document([current_user_id]).set(checkInData);
-
-                        Toast.makeText(this, "Your location has been saved for this event!", Toast.LENGTH_LONG).show();
-
-                    } else {
-                        Log.w(TAG, "Could not get location to save for event signup.");
-                        Toast.makeText(this, "Could not determine your location. Please try again.", Toast.LENGTH_SHORT).show();
-                    }
-                });
     }
 
     public void setBottomNavigationVisibility(int visibility) {

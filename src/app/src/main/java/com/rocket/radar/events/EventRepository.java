@@ -7,6 +7,7 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.rocket.radar.R;
 
@@ -36,25 +37,20 @@ public class EventRepository {
      */
     public LiveData<List<Event>> getAllEvents() {
         MutableLiveData<List<Event>> eventsLiveData = new MutableLiveData<>();
-
         eventRef.addSnapshotListener((value, error) -> {
             if (error != null) {
                 Log.e(TAG, "Listen failed.", error);
                 return;
             }
-
             ArrayList<Event> eventList = new ArrayList<>();
             if (value != null) {
                 for (QueryDocumentSnapshot doc : value) {
-                    // Convert each document into an Event object
                     Event event = doc.toObject(Event.class);
                     eventList.add(event);
                 }
             }
-            // Post the new list to observers (like your fragment)
             eventsLiveData.postValue(eventList);
         });
-
         return eventsLiveData;
     }
 
@@ -112,29 +108,29 @@ public class EventRepository {
         }
     }
 
-    public void addUserToWaitlist(Event event, String userId){
+    public void addUserToWaitlist(Event event, String userId, GeoPoint location){
         if (event == null || event.getEventId() == null) {
             Log.e(TAG, "Event is null or has no ID.");
             return;
         }
-        else {
-            // --- START OF FIX ---
-            // 1. Get the correct path: events -> {event-id} -> waitlistedUsers -> {user-id}
-            DocumentReference waitlistRef = db.collection("events").document(event.getEventTitle())
-                    .collection("waitlistedUsers").document(userId);
 
-            // 2. Create a map to hold some data, like a timestamp.
-            // Firestore documents cannot be completely empty.
-            Map<String, Object> waitlistData = new HashMap<>();
-            waitlistData.put("timestamp", FieldValue.serverTimestamp());
+        // Use a more descriptive name for the sub-collection, like "checkins".
+        DocumentReference checkinRef = db.collection("events").document(event.getEventTitle())
+                .collection("waitlistedUsers").document(userId);
 
-            // 3. Set the data. If the document already exists, this overwrites it but
-            // that's fine. If it doesn't exist, it is created.
-            waitlistRef.set(waitlistData)
-                    .addOnSuccessListener(aVoid -> Log.d(TAG, "User " + userId + " successfully added to waitlist for event " + event.getEventId()))
-                    .addOnFailureListener(e -> Log.e(TAG, "Error adding user to waitlist", e));
-            // --- END OF FIX ---
+        Map<String, Object> checkinData = new HashMap<>();
+        checkinData.put("userId", userId);
+        checkinData.put("signupTimestamp", FieldValue.serverTimestamp());
+        // Only add the location if it's not null
+        if (location != null) {
+            checkinData.put("signupLocation", location);
+        } else {
+            Log.w(TAG, "User location is null. Not adding to check-in document.");
         }
+
+        checkinRef.set(checkinData)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "User " + userId + " check-in for event " + event.getEventId() + " created."))
+                .addOnFailureListener(e -> Log.e(TAG, "Error creating check-in for user " + userId, e));
     }
 
     public void removeUserFromWaitlist(Event event, String userId) {
