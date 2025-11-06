@@ -213,10 +213,64 @@ public class EventRepository {
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<String> userIds = new ArrayList<>();
                     // The document ID of each document in the 'waitlistedUsers' subcollection is the user's ID.
+
                     queryDocumentSnapshots.forEach(doc -> userIds.add(doc.getId()));
                     callback.onWaitlistEntrantsFetched(userIds);
                 })
                 .addOnFailureListener(callback::onError);
     }
+
+    // --- START OF NEW METHODS ---
+
+    /**
+     * Callback interface for fetching waitlist locations.
+     */
+    public interface WaitlistLocationsCallback {
+        /**
+         * Called when the list of GeoPoint locations is successfully fetched.
+         * @param locations A list of GeoPoint objects from the waitlist.
+         */
+        void onWaitlistLocationsFetched(List<GeoPoint> locations);
+
+        /**
+         * Called when an error occurs while fetching the waitlist locations.
+         * @param e The exception that occurred.
+         */
+        void onError(Exception e);
+    }
+
+    /**
+     * Asynchronously fetches the list of signup locations from the waitlist of a specific event.
+     *
+     * @param eventId The ID of the event to fetch the waitlist locations for.
+     * @param callback The callback to handle the success or failure of the operation.
+     */
+    public void getWaitlistLocations(String eventId, WaitlistLocationsCallback callback) {
+        if (eventId == null || eventId.isEmpty()) {
+            callback.onError(new IllegalArgumentException("Event ID cannot be null or empty."));
+            return;
+        }
+
+        // The path is events -> {eventId} -> waitlistedUsers
+        db.collection("events").document(eventId).collection("waitlistedUsers")
+            .get()
+            .addOnSuccessListener(queryDocumentSnapshots -> {
+                List<GeoPoint> locations = new ArrayList<>();
+                // Iterate through each document in the 'waitlistedUsers' subcollection.
+                for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                    // Try to get the 'signupLocation' field which is a GeoPoint.
+                    GeoPoint location = doc.getGeoPoint("signupLocation");
+                    if (location != null) {
+                        locations.add(location);
+                    } else {
+                        Log.w(TAG, "Document " + doc.getId() + " in waitlist for event " + eventId + " does not have a signupLocation.");
+                    }
+                }
+                callback.onWaitlistLocationsFetched(locations);
+            })
+            .addOnFailureListener(callback::onError);
+    }
+
+    // --- END OF NEW METHODS ---
     // --- END OF FIX ---
 }
