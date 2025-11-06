@@ -1,133 +1,150 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:focusable="true"
-    android:focusableInTouchMode="true">
+    android:layout_height="match_parent">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="32dp">
+        android:orientation="vertical"
+        android:focusable="true"
+        android:focusableInTouchMode="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="32dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/back_button"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/button_background_color"
+                android:text="Back"
+                android:textColor="@android:color/black"
+                app:icon="@drawable/ic_arrow_back_24dp"
+                app:iconPadding="4dp"
+                app:iconTint="@android:color/black"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+
+            <TextView
+                android:id="@+id/profile_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Account Settings"
+                android:textSize="20sp"
+                android:layout_marginStart="32dp"
+                android:layout_gravity="center"/>
+
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/personal_information"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Personal Information"
+            android:textSize="18sp"
+            android:layout_marginLeft="32dp"
+            android:layout_gravity="left"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Username"
+            android:padding="24dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/usernameField"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Email"
+            android:padding="24dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/emailField"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Phone Number"
+            android:padding="24dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/phoneField"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:id="@+id/notification_settings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Notification Settings"
+            android:textSize="18sp"
+            android:layout_marginLeft="32dp"
+            android:layout_gravity="left"/>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/notification_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:checked="true"
+            android:layout_gravity="center_horizontal"
+            android:text="Allow notifications"
+            />
+
+        <TextView
+            android:id="@+id/geolocation_settings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Geolocation Settings"
+            android:textSize="18sp"
+            android:layout_marginLeft="32dp"
+            android:layout_gravity="left"/>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/geolocation_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:checked="true"
+            android:layout_gravity="center_horizontal"
+            android:text="Allow geolocation"
+            />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/back_button"
+            android:id="@+id/save_button"
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:backgroundTint="@color/button_background_color"
-            android:text="Back"
-            android:textColor="@android:color/black"
-            app:icon="@drawable/ic_arrow_back_24dp"
-            app:iconPadding="4dp"
-            app:iconTint="@android:color/black"
+            android:backgroundTint="@color/black"
+            android:text="Save"
+            android:textColor="@android:color/white"
+            android:layout_gravity="center_horizontal"
             app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
 
-        <TextView
-            android:id="@+id/profile_name"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/delete_button"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Account Settings"
-            android:textSize="20sp"
-            android:layout_marginStart="32dp"
-            android:layout_gravity="center"/>
-
-
+            android:backgroundTint="@color/button_delete"
+            android:text="Delete Account"
+            android:textColor="@android:color/white"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/personal_information"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Personal Information"
-        android:textSize="18sp"
-        android:layout_marginLeft="32dp"
-        android:layout_gravity="left"/>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Username"
-        android:padding="24dp">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/usernameField"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Email"
-        android:padding="24dp">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/emailField"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Phone Number"
-        android:padding="24dp">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/phoneField"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <TextView
-        android:id="@+id/notification_settings"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Notification Settings"
-        android:textSize="18sp"
-        android:layout_marginLeft="32dp"
-        android:layout_gravity="left"/>
-
-    <com.google.android.material.materialswitch.MaterialSwitch
-        android:id="@+id/notification_switch"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:checked="true"
-        android:layout_gravity="center_horizontal"
-        android:text="Allow notifications"
-        />
-
-    <TextView
-        android:id="@+id/geolocation_settings"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Geolocation Settings"
-        android:textSize="18sp"
-        android:layout_marginLeft="32dp"
-        android:layout_gravity="left"/>
-
-    <com.google.android.material.materialswitch.MaterialSwitch
-        android:id="@+id/geolocation_switch"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:checked="true"
-        android:layout_gravity="center_horizontal"
-        android:text="Allow geolocation"
-        />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/save_button"
-        style="@style/Widget.MaterialComponents.Button.TextButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:backgroundTint="@color/black"
-        android:text="Save"
-        android:textColor="@android:color/white"
-        android:layout_gravity="center_horizontal"
-        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
-</LinearLayout>
+</ScrollView>
