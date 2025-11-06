@@ -1,8 +1,6 @@
 package com.rocket.radar.events;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.time.LocalDate;
 import java.util.Base64;
 import java.util.Date;
@@ -11,14 +9,13 @@ import java.util.Locale;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
 
 import java.util.Optional;
 import java.util.UUID;
+
+import com.google.firebase.firestore.Blob;
 import com.google.firebase.firestore.Exclude; // CORRECT: Using the Firestore Exclude
 import com.rocket.radar.eventmanagement.Time;
-
-import org.checkerframework.checker.units.qual.A;
 
 import java.io.Serializable;
 
@@ -38,7 +35,7 @@ public class Event implements Serializable {
     String tagline;
     String description;
 
-    private String bannerImageBase64;
+    private Blob bannerImageBlob;
 
     // WARN: DO NOT REMOVE TRANSIENT. WE WILL CONSUME OUR FIRESTORE USAGE FAST (maybe).
     // We don't want this one serialized.
@@ -118,13 +115,18 @@ public class Event implements Serializable {
      * base64 image field.
      * @return the banner image.
      */
-    public Bitmap getBannerImage() {
+    @com.google.firebase.firestore.Exclude
+    public Bitmap getBannerImageBitmap() {
         if (bannerImage == null) {
-            byte[] compressedBlob = Base64.getDecoder().decode(bannerImageBase64);
+            byte[] compressedBlob = bannerImageBlob.toBytes();
             bannerImage = BitmapFactory.decodeByteArray(compressedBlob, 0, compressedBlob.length);
         }
         return bannerImage;
     }
+
+    public Blob getBannerImageBlob() { return this.bannerImageBlob; }
+
+    public void setBannerImageBlob(Blob data) { this.bannerImageBlob = data; }
 
     private static Bitmap resizeBanner(Bitmap image)
     throws Exception {
@@ -280,7 +282,7 @@ public class Event implements Serializable {
             Bitmap resized = resizeBanner(image);
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             resized.compress(Bitmap.CompressFormat.JPEG, 70, outputStream);
-            event.bannerImageBase64 = Base64.getEncoder().encodeToString(outputStream.toByteArray());
+            event.bannerImageBlob = Blob.fromBytes(outputStream.toByteArray());
             event.bannerImage = resized;
             return this;
         }

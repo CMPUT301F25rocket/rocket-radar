@@ -48,6 +48,7 @@ import kotlin.Unit;
  * - https://medium.com/@mananwason/bottoms-sheets-in-android-280c03280072
  */
 public class CreateEventActivity extends AppCompatActivity {
+    public static final String TAG = CreateEventActivity.class.getSimpleName();
     ActivityCreateEventBinding binding;
     CreateEventModel model;
     EventRepository eventRepository;
@@ -75,13 +76,15 @@ public class CreateEventActivity extends AppCompatActivity {
                     intent.putExtra("eventId", uuid);
                     startActivity(intent);
                 } catch (Exception e) {
+                    Log.e(TAG, "Create event failure: ", e);
                     MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(CreateEventActivity.this);
                     builder.setTitle("Something went wrong")
                             .setMessage(e.toString())
                             .setNeutralButton("Ok", (dialogInterface, which) -> {
                                 dialogInterface.dismiss();
-                            });
-                    return;
+                            })
+                            .create()
+                            .show();
                 }
             } else {
                 model.nextSection();
@@ -283,6 +286,7 @@ public class CreateEventActivity extends AppCompatActivity {
             registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
             if (uri != null) {
                 bannerImage.setImageURI(uri);
+                model.image.setValue(Optional.of(uri));
             }
         });
         bannerImage.setOnClickListener(view -> {

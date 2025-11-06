@@ -116,7 +116,7 @@ public class CreateEventModel extends ViewModel {
     }
 
     // Style section field values
-    private MutableLiveData<Optional<Uri>> image;
+    public MutableLiveData<Optional<Uri>> image;
     public MutableLiveData<Optional<Color>> color;
 
     public CreateEventModel() {
@@ -190,7 +190,9 @@ public class CreateEventModel extends ViewModel {
      * @return UUID of the create event.
      */
     public String createEvent(ContentResolver contentResolver, EventRepository eventRepository) throws Exception {
-        Uri bannerImageUri = image.getValue().orElseThrow();
+        Uri bannerImageUri = image.getValue().orElseThrow(
+            () -> new NoSuchElementException("The banner image is missing")
+        );
 
         Bitmap bitmap;
         try {
@@ -199,25 +201,39 @@ public class CreateEventModel extends ViewModel {
             throw new Exception("Provided image could not be read from storage");
         }
 
+
+        // NOTE: Had ChatGPT fill in the NoSuchElementExceptions. Was too lazy.
         Event event = new Event.Builder()
-                .title(title.getValue())
-                .description(description.getValue())
-                .eventStartDate(eventDate.getValue().orElseThrow())
-                .eventStartTime(eventStartTime.getValue().orElseThrow())
-                .eventEndTime(eventEndTime.getValue().orElseThrow())
-                .registrationStartDate(registrationStartDate.getValue().orElseThrow())
-                .registrationEndDate(registrationEndDate.getValue().orElseThrow())
-                .initialSelectionStartDate(initialSelectionStartDate.getValue().orElseThrow())
-                .initialSelectionEndDate(initialSelectionEndDate.getValue().orElseThrow())
-                .finalSelectionDate(finalAttendeeSelectionDate.getValue().orElseThrow())
-                .waitlistCapacity(waitlistCapacity.getValue())
-                .requireLocation(hasLocationRequirement.getValue())
-                .eventCapacity(eventCapacity.getValue().orElseThrow())
-                .lotteryDate(lotteryDate.getValue().orElseThrow())
-                .lotteryTime(lotteryTime.getValue().orElseThrow())
-                .bannerImage(bitmap)
-                .color(color.getValue().orElseThrow())
-                .build();
+            .title(title.getValue())
+            .description(description.getValue())
+            .eventStartDate(eventDate.getValue()
+                    .orElseThrow(() -> new NoSuchElementException("The event start date is missing.")))
+            .eventStartTime(eventStartTime.getValue()
+                    .orElseThrow(() -> new NoSuchElementException("The event start time is missing.")))
+            .eventEndTime(eventEndTime.getValue()
+                    .orElseThrow(() -> new NoSuchElementException("The event end time is missing.")))
+            .registrationStartDate(registrationStartDate.getValue()
+                    .orElseThrow(() -> new NoSuchElementException("The registration start date is missing.")))
+            .registrationEndDate(registrationEndDate.getValue()
+                    .orElseThrow(() -> new NoSuchElementException("The registration end date is missing.")))
+            .initialSelectionStartDate(initialSelectionStartDate.getValue()
+                    .orElseThrow(() -> new NoSuchElementException("The initial selection start date is missing.")))
+            .initialSelectionEndDate(initialSelectionEndDate.getValue()
+                    .orElseThrow(() -> new NoSuchElementException("The initial selection end date is missing.")))
+            .finalSelectionDate(finalAttendeeSelectionDate.getValue()
+                    .orElseThrow(() -> new NoSuchElementException("The final selection date is missing.")))
+            .waitlistCapacity(waitlistCapacity.getValue())
+            .requireLocation(hasLocationRequirement.getValue())
+            .eventCapacity(eventCapacity.getValue()
+                    .orElseThrow(() -> new NoSuchElementException("The event capacity is missing.")))
+            .lotteryDate(lotteryDate.getValue()
+                    .orElseThrow(() -> new NoSuchElementException("The lottery date is missing.")))
+            .lotteryTime(lotteryTime.getValue()
+                    .orElseThrow(() -> new NoSuchElementException("The lottery time is missing.")))
+            .bannerImage(bitmap)
+            .color(color.getValue()
+                    .orElseThrow(() -> new NoSuchElementException("The event color is missing.")))
+            .build();
 
         return eventRepository.createEvent(event);
     }
