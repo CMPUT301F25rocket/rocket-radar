@@ -170,10 +170,7 @@
                             android:text="@string/people_on_waitlist_loading"
                             android:textStyle="bold" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Click to view list of entrants" />
+
                     </LinearLayout>
 
                     <ImageView
