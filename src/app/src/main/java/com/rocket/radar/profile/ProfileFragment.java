@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -149,8 +150,13 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
     @Override
     public void onEventClick(int position) {
         Event clickedEvent = displayedEvents.get(position);
-        EventViewFragment eventViewFragment = EventViewFragment.newInstance(clickedEvent);
 
+        boolean isOrganizer = (toggleGroup.getCheckedButtonId() == R.id.my_events_filter_button);
+
+        EventViewFragment eventViewFragment =
+                EventViewFragment.newInstance(clickedEvent, isOrganizer);
+
+        // The transaction code remains the same
         if (getActivity() != null) {
             getActivity().getSupportFragmentManager().beginTransaction()
                     .replace(R.id.nav_host_fragment, eventViewFragment)
