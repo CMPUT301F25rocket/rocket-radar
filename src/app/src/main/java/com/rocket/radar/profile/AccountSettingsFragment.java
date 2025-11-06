@@ -14,6 +14,7 @@ import androidx.navigation.fragment.NavHostFragment;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.materialswitch.MaterialSwitch;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.rocket.radar.R;
 
 // cite: toast code for save button based on https://developer.android.com/guide/topics/ui/notifiers/toasts
@@ -115,20 +116,33 @@ public class AccountSettingsFragment extends Fragment {
             saveToast.show();
         });
         deleteButton.setOnClickListener( v -> {
-            ProfileModel profile = profileViewModel.getProfileLiveData().getValue();
-            profileViewModel.deleteProfile(profile);
-
-            profileViewModel.getDeleteSuccess().observe(getViewLifecycleOwner(), success -> {
-                if (success != null && success) {
-                    Toast.makeText(getContext(), "Account deleted", Toast.LENGTH_SHORT).show();
-                    NavHostFragment.findNavController(this)
-                            .navigate(R.id.action_account_settings_to_login);
-                } else if (success != null) {
-                    Toast.makeText(getContext(), "Failed to delete account", Toast.LENGTH_SHORT).show();
-                }
-            });
+            new MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("Delete your account?")
+                    .setMessage("This will permanently remove your profile and all associated data. This action cannot be undone.")
+                    .setNegativeButton("Cancel", (dialog, which) -> {
+                        dialog.dismiss();
+                    })
+                    .setPositiveButton("Delete Account", (dialog, which) -> {
+                        confirmAccountDelete();
+                    })
+                    .show();
         });
 
         return view;
+    }
+
+    public void confirmAccountDelete() {
+        ProfileModel profile = profileViewModel.getProfileLiveData().getValue();
+        profileViewModel.deleteProfile(profile);
+
+        profileViewModel.getDeleteSuccess().observe(getViewLifecycleOwner(), success -> {
+            if (success != null && success) {
+                Toast.makeText(getContext(), "Account deleted", Toast.LENGTH_SHORT).show();
+                NavHostFragment.findNavController(this)
+                        .navigate(R.id.action_account_settings_to_login);
+            } else if (success != null) {
+                Toast.makeText(getContext(), "Failed to delete account", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
