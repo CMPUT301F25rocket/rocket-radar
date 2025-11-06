@@ -165,7 +165,18 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         adapter.notifyDataSetChanged();
     }
 
+    @Override
+    public void onEventClick(int position) {
+        Event clickedEvent = displayedEvents.get(position);
+        EventViewFragment eventViewFragment = EventViewFragment.newInstance(clickedEvent);
 
+        if (getActivity() != null) {
+            getActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.nav_host_fragment, eventViewFragment)
+                    .addToBackStack(null)
+                    .commit();
+        }
+    }
 
     @Override
     public void onResume() {
