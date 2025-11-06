@@ -102,6 +102,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+
         super.onViewCreated(view, savedInstanceState);
 
         entrantsListView = view.findViewById(R.id.entrants_list);
@@ -160,6 +161,31 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         LatLng edmonton = new LatLng(53.5461, -113.4938);
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(edmonton, 10f));
         // fetchAndDisplayCheckInLocations(); // This will now fetch ALL users
+    }
+
+    private void fetchAndDisplayWaitlistLocations() {
+        if (event == null || event.getEventTitle() == null) {
+            Log.e(TAG, "Event is null, cannot fetch user locations.");
+            return;
+
+        }
+        eventRepository.getWaitlistLocations(event.getEventTitle(), new EventRepository.WaitlistLocationsCallback() {
+            @Override
+            public void onWaitlistLocationsFetched(List<GeoPoint> locations) {
+                if (googleMap == null) return;
+                googleMap.clear(); // Clear existing markers before adding new ones
+                for (GeoPoint location : locations) {
+                    LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                    googleMap.addMarker(new MarkerOptions().position(latLng));
+                }
+                Log.d(TAG, "Displayed " + locations.size() + " waitlist locations on the map.");
+            }
+            @Override
+            public void onError(Exception e) {
+                Log.e(TAG, "Error fetching waitlist locations", e);
+            }
+        });
+
     }
 
 //    private void fetchAndDisplayCheckInLocations() {
@@ -340,6 +366,11 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                     updateActionButtons(tab);
                     // --- START OF CHANGE: Re-filter the list when a new tab is selected ---
                     filterAndDisplayEntrants(tab);
+
+                    if (tab.getText() != null && tab.getText().toString().equals("On Waitlist")) {
+                        fetchAndDisplayWaitlistLocations();
+                    }
+
                     // --- END OF CHANGE ---
                 }
                 @Override public void onTabUnselected(TabLayout.Tab tab) { /* No-op */ }
