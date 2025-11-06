@@ -1,0 +1,66 @@
+// In your Event Creation/Editing Fragment...
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
+// .../**
+ * Schedules the lottery to run at the specified lottery date.
+ * @param event The event object containing the lottery details.
+ */
+private void scheduleLottery(Event event) {
+    if (event.getLotteryDate() == null) {
+        // No lottery date set, so nothing to schedule.
+        // You might also want to cancel any previously scheduled work for this event.
+        WorkManager.getInstance(getContext()).cancelAllWorkByTag(event.getEventId());
+        return;
+    }
+
+    // 1. Calculate the delay from now until the lottery date.
+    long currentTime = System.currentTimeMillis();
+    long lotteryTime = event.getLotteryDate().getTime();
+    long delay = lotteryTime - currentTime;
+
+    if (delay <= 0) {
+        // The time is in the past, don't schedule.
+        Log.w("EventCreation", "Lottery date is in the past. Not scheduling.");
+        return;
+    }
+
+    // 2. Pass the event ID to the worker.
+    Data inputData = new Data.Builder()
+            .putString(LotteryWorker.KEY_EVENT_ID, event.getEventId())
+            .build();
+
+    // 3. Create a OneTimeWorkRequest.
+    OneTimeWorkRequest lotteryWorkRequest = new OneTimeWorkRequest.Builder(LotteryWorker.class)
+            .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+            .setInputData(inputData)
+            .addTag(event.getEventId()) // Tag the work with the event ID for easy cancellation
+            .build();
+
+    // 4. Enqueue the work.
+    // Use `enqueueUniqueWork` to prevent scheduling the same lottery multiple times.
+    // If the user edits the event, this will replace the old scheduled work.
+    WorkManager.getInstance(getContext()).enqueueUniqueWork(
+            event.getEventId(), // A unique name for this work
+            ExistingWorkPolicy.REPLACE, // If work with this name exists, replace it
+            lotteryWorkRequest
+    );
+
+    Log.d("EventCreation", "Lottery scheduled for event " + event.getEventId() + " in " + delay + " ms.");
+    Toast.makeText(getContext(), "Lottery has been scheduled!", Toast.LENGTH_SHORT).show();
+}
+
+
+// When the user clicks the "Save" or "Create Event" button:
+private void onSaveEvent() {
+    // ... code to build your Event object from user input ...
+    Event newEvent = // ... build the event
+
+    // ... code to save the event to Firestore ...
+
+    // After saving, schedule the lottery worker
+    scheduleLottery(newEvent);
+}
