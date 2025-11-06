@@ -184,9 +184,9 @@ public class EventRepository {
     public interface WaitlistEntrantsCallback {
         /**
          * Called when the list of user names (entrants) is successfully fetched.
-         * @param userNames A list of user IDs from the waitlist.
+         * @param userIds A list of user IDs from the waitlist.
          */
-        void onWaitlistEntrantsFetched(List<String> userNames);
+        void onWaitlistEntrantsFetched(List<String> userIds);
 
         /**
          * Called when an error occurs while fetching the waitlist.

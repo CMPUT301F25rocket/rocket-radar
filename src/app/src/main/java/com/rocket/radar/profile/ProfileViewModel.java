@@ -19,7 +19,7 @@ public class ProfileViewModel extends ViewModel {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth auth = FirebaseAuth.getInstance();
 
-    private final ProfileRepository profileRepository = new ProfileRepository(db);
+    private final ProfileRepository profileRepository = new ProfileRepository();
     private ListenerRegistration profileListenerRegistration; // To manage listener lifecycle
 
     private final MutableLiveData<ProfileModel> profileLiveData = new MutableLiveData<>();

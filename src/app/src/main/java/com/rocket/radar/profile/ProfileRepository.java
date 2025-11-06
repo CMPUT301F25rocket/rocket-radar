@@ -2,9 +2,6 @@ package com.rocket.radar.profile;
 
 import android.util.Log;
 
-import com.google.firebase.Firebase;
-import com.google.firebase.Timestamp;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -21,8 +18,8 @@ public class ProfileRepository {
     private final FirebaseFirestore db;
 
     // dependency injection
-    public ProfileRepository(FirebaseFirestore db) {
-        this.db = db;
+    public ProfileRepository() {
+        this.db = FirebaseFirestore.getInstance();
     }
 
     public interface ReadCallback {

@@ -9,7 +9,6 @@ import android.widget.Button;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.ListAdapter;
 import android.widget.Toast;
 import android.widget.ListView;
 
@@ -23,26 +22,23 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.tabs.TabLayout;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
-import com.rocket.radar.events.EventRepository;
 import com.rocket.radar.notifications.NotificationRepository;
+import com.rocket.radar.profile.ProfileModel;
+import com.rocket.radar.profile.ProfileRepository;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCallback {
 
@@ -59,6 +55,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
     private Event event;
     private EventRepository eventRepository;
     private NotificationRepository notificationRepository;
+    private ProfileRepository profileRepository;
 
     // UI elements
     private LinearLayout waitlistActions, invitedActions, attendingActions, cancelledActions;
@@ -75,6 +72,10 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
     private final Map<String, Marker> userMarkers = new HashMap<>();
     private MaterialCardView bottomSheet;
 
+    public OrganizerEntrantsFragment() {
+
+    }
+
     public static OrganizerEntrantsFragment newInstance(Event event) {
         OrganizerEntrantsFragment fragment = new OrganizerEntrantsFragment();
         Bundle args = new Bundle();
@@ -90,6 +91,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
             event = (Event) getArguments().getSerializable(ARG_EVENT);
         }
         notificationRepository = new NotificationRepository();
+        profileRepository = new ProfileRepository();
         eventRepository = new EventRepository();
         currentEntrants = new ArrayList<>();
     }
@@ -241,11 +243,39 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                     // Start the asynchronous call to get data from Firestore
                     eventRepository.getWaitlistEntrants(event.getEventTitle(), new EventRepository.WaitlistEntrantsCallback() {
                         @Override
-                        public void onWaitlistEntrantsFetched(List<String> userNames) {
+                        public void onWaitlistEntrantsFetched(List<String> userIds) {
                             // This code runs when the data is successfully fetched.
-                            Log.d(TAG, "Fetched " + userNames.size() + " waitlisted entrants.");
-                            currentEntrants.addAll(userNames); // Add the new data to the MEMBER list
-                            entrantsAdapter.notifyDataSetChanged(); // Tell the adapter to refresh the ListView. THIS WILL NOW WORK.
+                            Log.d(TAG, "Fetched " + userIds.size() + " waitlisted entrants.");
+                            if (userIds.isEmpty()) {
+                                entrantsAdapter.notifyDataSetChanged(); // Refresh to show an empty list
+                                return;
+                            }
+
+                            ArrayList<String> userNames = new ArrayList<>();
+                            // Use an array to make the counter 'final' for use in the inner class
+                            final int[] profilesToFetch = {userIds.size()};
+
+                            for (String userId : userIds) {
+                                profileRepository.readProfile(userId, new ProfileRepository.ReadCallback() {
+                                    @Override
+                                    public void onProfileLoaded(ProfileModel profile) {
+                                        userNames.add(profile.getName());
+                                        Log.d(TAG, "Fetched user name: " + profile.getName());
+                                        profilesToFetch[0]--; // Decrement the counter
+                                        // If this was the last profile to fetch, update the UI
+                                        if (profilesToFetch[0] == 0) {
+                                            currentEntrants.addAll(userNames);
+                                            entrantsAdapter.notifyDataSetChanged();
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onError(Exception e) {
+                                        Log.e(TAG, "Error fetching user profile", e);
+                                        profilesToFetch[0]--; // Also decrement on error to avoid getting stuck
+                                    }
+                                });
+                            }
                         }
 
                         @Override

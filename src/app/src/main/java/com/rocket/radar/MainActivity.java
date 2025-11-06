@@ -3,16 +3,13 @@ package com.rocket.radar;
 
 import android.Manifest;import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer;
@@ -25,7 +22,6 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.rocket.radar.databinding.NavBarBinding;
@@ -44,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
     // Location & Permission services
     private FusedLocationProviderClient fusedLocationClient;
     private NavController navController;
-    private ProfileRepository repo = new ProfileRepository(FirebaseFirestore.getInstance());
+    private ProfileRepository repo = new ProfileRepository();
 
     private boolean isObserverInitialized = false;
 
