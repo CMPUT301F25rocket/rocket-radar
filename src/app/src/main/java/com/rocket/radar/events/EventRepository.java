@@ -11,7 +11,9 @@ import com.rocket.radar.R;
 
 import org.checkerframework.common.returnsreceiver.qual.This;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Date;
@@ -63,7 +65,7 @@ public class EventRepository {
      */
     public String createEvent(Event event) {
         // Use the event's title as the document ID for simplicity, or use .add() for auto-ID
-        eventRef.document(event.getEventTitle()).set(event)
+        eventRef.document(event.getEventId()).set(event)
                 .addOnSuccessListener(aVoid -> Log.d(TAG, "Event successfully written: " + event.getEventTitle()))
                 .addOnFailureListener(e -> Log.e(TAG, "Error writing event", e));
         return event.getEventId();
