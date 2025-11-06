@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCallback, EntrantAdapter.OnEntrantClickListener {
+public class OrganizerEntrantsFragment extends Fragment /*implements OnMapReadyCallback, EntrantAdapter.OnEntrantClickListener*/ {
 
     private static final String ARG_EVENT = "event";
     private static final String TAG = "OrganizerEntrants";
@@ -96,17 +96,16 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map_container);
-        if (mapFragment != null) {
-            mapFragment.getMapAsync(this);
-        }
+        //SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map_container);
+//        if (mapFragment != null) {
+//            mapFragment.getMapAsync(this);
+//        }
         setupBottomSheet(view);
         setupTabs(view);
         setupActionBars();
         setupButtons(view);
         setupDialog(view);
     }
-
 
 
     @Override
@@ -125,93 +124,124 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         }
     }
 
-    @Override
-    public void onMapReady(@NonNull GoogleMap map) {
-        googleMap = map;
-        LatLng edmonton = new LatLng(53.5461, -113.4938);
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(edmonton, 10f));
-        fetchAndDisplayCheckInLocations(); // This will now fetch ALL users
-    }
+//    @Override
+//    public void onMapReady(@NonNull GoogleMap map) {
+//        googleMap = map;
+//        LatLng edmonton = new LatLng(53.5461, -113.4938);
+//        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(edmonton, 10f));
+//        fetchAndDisplayCheckInLocations(); // This will now fetch ALL users
+//    }
 
-    private void fetchAndDisplayCheckInLocations() {
-        if (event == null || event.getEventId() == null) {
-            Log.e(TAG, "Event is null, cannot fetch check-ins.");
-            return;
-        }
-
-        FirebaseFirestore.getInstance()
-                .collection("events").document(event.getEventId())
-                .collection("checkins")
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        allEntrantsList.clear();
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            CheckIn checkIn = document.toObject(CheckIn.class);
-                            // Store every fetched entrant
-                            allEntrantsList.add(checkIn);
-                        }
-                        Log.d(TAG, "Fetched " + allEntrantsList.size() + " total entrants.");
-
-                        // After fetching, apply the initial filter based on the current tab
-                        if (tabs != null) {
-                            filterAndDisplayEntrants(tabs.getTabAt(tabs.getSelectedTabPosition()));
-                        }
-
-                    } else {
-                        Log.w(TAG, "Error getting check-in documents.", task.getException());
-                    }
-                });
-    }
+//    private void fetchAndDisplayCheckInLocations() {
+//        if (event == null || event.getEventId() == null) {
+//            Log.e(TAG, "Event is null, cannot fetch check-ins.");
+//            return;
+//        }
+//
+//        FirebaseFirestore.getInstance()
+//                .collection("events").document(event.getEventId())
+//                .collection("checkins")
+//                .get()
+//                .addOnCompleteListener(task -> {
+//                    if (task.isSuccessful()) {
+//                        allEntrantsList.clear();
+//                        for (QueryDocumentSnapshot document : task.getResult()) {
+//                            CheckIn checkIn = document.toObject(CheckIn.class);
+//                            // Store every fetched entrant
+//                            allEntrantsList.add(checkIn);
+//                        }
+//                        Log.d(TAG, "Fetched " + allEntrantsList.size() + " total entrants.");
+//
+//                        // After fetching, apply the initial filter based on the current tab
+//                        if (tabs != null) {
+//                            filterAndDisplayEntrants(tabs.getTabAt(tabs.getSelectedTabPosition()));
+//                        }
+//
+//                    } else {
+//                        Log.w(TAG, "Error getting check-in documents.", task.getException());
+//                    }
+//                });
+//    }
 
     // --- START OF NEW METHOD: Filters and updates the UI ---
     private void filterAndDisplayEntrants(TabLayout.Tab tab) {
-        if (tab == null || allEntrantsList.isEmpty()) {
+        // --- START OF CHANGE: Add sample data and populate ListView ---
+
+        ListView entrantsListView = getView().findViewById(R.id.entrants_list);
+        if (entrantsListView == null) {
+            Log.e(TAG, "ListView not found!");
             return;
         }
 
-        String statusToFilterBy = getStatusStringForTab(tab);
-        filteredEntrantsList.clear();
+        // --- START OF CHANGE: Create sample data based on tab ---
+        ArrayList<String> currentEntrants = new ArrayList<>();
+        String status = getStatusStringForTab(tab);
 
-        // Filter the allEntrantsList into the filteredEntrantsList
-        if (statusToFilterBy != null) {
-            for (CheckIn checkIn : allEntrantsList) {
-                if (statusToFilterBy.equals(checkIn.getStatus())) {
-                    filteredEntrantsList.add(checkIn);
-                }
+        if (status != null) {
+            switch (status) {
+                case "waitlisted":
+                    currentEntrants.add("Walter White");
+                    currentEntrants.add("Jesse Pinkman");
+                    currentEntrants.add("Saul Goodman");
+                    break;
+                case "invited":
+                    currentEntrants.add("Daenerys Targaryen");
+                    currentEntrants.add("Jon Snow");
+                    currentEntrants.add("Tyrion Lannister");
+                    break;
+                case "attending":
+                    currentEntrants.add("Frodo Baggins");
+                    currentEntrants.add("Samwise Gamgee");
+                    currentEntrants.add("Gandalf the Grey");
+                    break;
+                case "cancelled":
+                    currentEntrants.add("Luke Skywalker");
+                    currentEntrants.add("Han Solo");
+                    currentEntrants.add("Leia Organa");
+                    break;
             }
         }
 
-        // Notify the adapter that the data has changed
-        if (entrantAdapter != null) {
-            entrantAdapter.notifyDataSetChanged();
-        }
-        Log.d(TAG, "Filtered and displayed " + filteredEntrantsList.size() + " users for status: " + statusToFilterBy);
+        // Create an ArrayAdapter to display the sample data
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                requireContext(),
+                android.R.layout.simple_list_item_1, // A default layout for a single TextView
+                currentEntrants
+        );
+
+        // Set the adapter on the ListView
+        entrantsListView.setAdapter(adapter);
+        // --- END OF CHANGE ---
     }
     // --- END OF NEW METHOD ---
 
     private String getStatusStringForTab(TabLayout.Tab tab) {
         if (tab == null || tab.getText() == null) return null;
         switch (tab.getText().toString()) {
-            case "On Waitlist": return "waitlisted";
-            case "Invited": return "invited";
-            case "Attending": return "attending";
-            case "Cancelled": return "cancelled";
-            default: return null;
+            case "On Waitlist":
+                return "waitlisted";
+            case "Invited":
+                return "invited";
+            case "Attending":
+                return "attending";
+            case "Cancelled":
+                return "cancelled";
+            default:
+                return null;
         }
     }
 
-    @Override
-    public void onEntrantClick(CheckIn checkIn) {
-        Marker marker = userMarkers.get(checkIn.getUserId());
-        if (googleMap != null && marker != null) {
-            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 15f));
-            marker.showInfoWindow();
-            Toast.makeText(getContext(), "Showing location for " + checkIn.getUserName(), Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(getContext(), "Location not available for this user.", Toast.LENGTH_SHORT).show();
-        }
-    }
+//    @Override
+//    public void onEntrantClick(CheckIn checkIn) {
+//        Marker marker = userMarkers.get(checkIn.getUserId());
+//        if (googleMap != null && marker != null) {
+//            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 15f));
+//            marker.showInfoWindow();
+//            Toast.makeText(getContext(), "Showing location for " + checkIn.getUserName(), Toast.LENGTH_SHORT).show();
+//        } else {
+//            Toast.makeText(getContext(), "Location not available for this user.", Toast.LENGTH_SHORT).show();
+//        }
+//    }
 
     private void setupBottomSheet(View view) {
         bottomSheet = view.findViewById(R.id.bottom_sheet);
