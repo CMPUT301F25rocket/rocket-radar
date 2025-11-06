@@ -1,6 +1,5 @@
 package com.rocket.radar.events;
 
-import android.graphics.Bitmap;
 import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -11,16 +10,12 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.rocket.radar.R;
 
-import org.checkerframework.common.returnsreceiver.qual.This;
-
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class EventRepository {
 
@@ -62,6 +57,40 @@ public class EventRepository {
 
         return eventsLiveData;
     }
+
+    public interface WaitlistSizeListener {
+        void onSizeReceived(int size);
+        void onError(Exception e);
+    }
+
+    /**
+     * Asynchronously fetches the size of the waitlist for a given event.
+     * @param event The event whose waitlist size is needed.
+     * @param listener The callback to be invoked with the result.
+     */
+    public void getWaitlistSize(Event event, WaitlistSizeListener listener) {
+        if (event == null || event.getEventTitle() == null || event.getEventTitle().isEmpty()) {
+            Log.e(TAG, "Event is null or has no Title.");
+            listener.onError(new IllegalArgumentException("Event is null or has no title"));
+            return;
+        }
+
+        // CORRECT PATH: events -> {event-id} -> waitlistedUsers
+        // IMPORTANT: I noticed you are using event.getEventTitle() as the document ID. This is risky if titles can change or are not unique.
+        // It's better to use event.getEventId(). For now, I'll stick to your current implementation.
+        CollectionReference waitlistRef = db.collection("events").document(event.getEventTitle())
+                .collection("waitlistedUsers");
+
+        waitlistRef.get().addOnSuccessListener(queryDocumentSnapshots -> {
+            // This code runs when the database call is successful.
+            listener.onSizeReceived(queryDocumentSnapshots.size());
+        }).addOnFailureListener(e -> {
+            // This code runs if the call fails.
+            Log.e(TAG, "Error getting waitlist size", e);
+            listener.onError(e);
+        });
+    }
+
 
     /**
      * This method adds a new event to Firestore.
