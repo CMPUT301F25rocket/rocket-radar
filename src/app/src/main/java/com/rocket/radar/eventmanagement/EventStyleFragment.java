@@ -1,7 +1,10 @@
 package com.rocket.radar.eventmanagement;
 
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +22,7 @@ import com.maxkeppeler.sheets.core.SheetStyle;
 import com.rocket.radar.databinding.ViewInputEventStyleBinding;
 import com.rocket.radar.events.Event;
 
+import java.io.FileNotFoundException;
 import java.util.Optional;
 
 import kotlin.Unit;
@@ -99,12 +103,22 @@ public class EventStyleFragment extends Fragment implements InputFragment {
 
     @Override
     public boolean valid(InputFragment inputFragment) {
-        return false;
+        Optional<Color> color = model.color.getValue();
+        Optional<Uri> uri = model.image.getValue();
+        return color.isPresent() && uri.isPresent();
     }
 
     @Override
-    public Event.Builder extract(Event.Builder builder) {
-        return null;
+    public Event.Builder extract(Event.Builder builder) throws Exception {
+        Uri uri = model.image.getValue().orElseThrow();
+        Bitmap bitmap;
+        try {
+            bitmap = MediaStore.Images.Media.getBitmap(requireActivity().getContentResolver(), uri);
+        } catch (FileNotFoundException e) {
+            throw new Exception("Provided image could not be read from storage");
+        }
+        return builder.bannerImage(bitmap)
+                .color(model.color.getValue().orElseThrow());
     }
 
     @Override

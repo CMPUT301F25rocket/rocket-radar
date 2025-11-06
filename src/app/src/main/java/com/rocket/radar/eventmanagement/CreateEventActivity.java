@@ -86,7 +86,14 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
         binding.createEventWizardNavRightButton.setOnClickListener(btn -> {
             if (model.getSection().getValue() == Section.lastSection) {
                 try {
-                    String uuid = model.createEvent(getContentResolver(), eventRepository);
+                    Event.Builder builder = new Event.Builder();
+                    builder = eventGeneralFragment.extract(builder);
+                    builder = eventDateTimeFragment.extract(builder);
+                    builder = eventDeadlinesFragment.extract(builder);
+                    builder = eventLotteryFragment.extract(builder);
+                    builder = eventStyleFragment.extract(builder);
+
+                    String uuid = eventRepository.createEvent(builder.build());
                     Intent intent = new Intent(CreateEventActivity.this, MainActivity.class);
                     intent.setAction(getString(R.string.intent_action_show_qr));
                     intent.putExtra("eventId", uuid);
