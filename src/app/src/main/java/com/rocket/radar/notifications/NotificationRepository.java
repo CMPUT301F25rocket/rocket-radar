@@ -107,64 +107,68 @@ public class NotificationRepository {
      * @param title      The title of the notification.
      * @param body       The body text of the notification.
      * @param eventId    The ID of the event to get the user group from.
-     * @param groupField The field in the event document that contains the list of user IDs
      *                   (e.g., "attendees", "onWaitlistEventIds").
      */
-    public void sendNotificationToGroup(String title, String body, String eventId, String groupField) {
-        if (eventId == null || eventId.isEmpty() || groupField == null || groupField.isEmpty()) {
-            Log.e(TAG, "Event ID or group field is missing. Cannot send notification.");
+    // C:/Users/bwood/Cmput301/rocket-radar/src/app/src/main/java/com/rocket/radar/notifications/NotificationRepository.java
+
+    public void sendNotificationToGroup(String title, String body, String eventId, String groupCollection) {
+        if (eventId == null || eventId.isEmpty() || groupCollection == null || groupCollection.isEmpty()) {
+            Log.e(TAG, "Event ID or group collection name is missing. Cannot send notification.");
             return;
         }
 
-        // 1. First, fetch the event document to find the list of users.
-        db.collection("events").document(eventId).get().addOnSuccessListener(eventDoc -> {
-            if (!eventDoc.exists()) {
-                Log.e(TAG, "Event with ID " + eventId + " not found.");
-                return;
-            }
+        // --- START OF REFACTOR ---
+        // 1. Fetch the user IDs from the specified sub-collection of the event.
+        // The path is: events/{eventId}/{groupCollection}
+        db.collection("events").document(eventId).collection(groupCollection).get()
+                .addOnSuccessListener(userCollectionSnapshot -> {
+                    if (userCollectionSnapshot.isEmpty()) {
+                        Log.w(TAG, "No users found in collection '" + groupCollection + "' for event " + eventId);
+                        return;
+                    }
 
-            // 2. Get the list of user IDs from the specified field.
-            List<String> userIds = (List<String>) eventDoc.get(groupField);
+                    // 2. Extract the user IDs. The document ID in the sub-collection *is* the user ID.
+                    List<String> userIds = new ArrayList<>();
+                    for (QueryDocumentSnapshot userDoc : userCollectionSnapshot) {
+                        userIds.add(userDoc.getId());
+                    }
 
-            if (userIds == null || userIds.isEmpty()) {
-                Log.w(TAG, "No users found in group '" + groupField + "' for event " + eventId);
-                return;
-            }
+                    Log.d(TAG, "Found " + userIds.size() + " users in collection '" + groupCollection + "'. Preparing notification.");
 
-            Log.d(TAG, "Found " + userIds.size() + " users in group '" + groupField + "'. Preparing notification.");
+                    // 3. Create the main notification content.
+                    Map<String, Object> newNotificationContent = new HashMap<>();
+                    newNotificationContent.put("eventTitle", title);
+                    newNotificationContent.put("notificationType", body);
+                    newNotificationContent.put("image", R.drawable.ic_radar); // Assuming this is a valid drawable
+                    newNotificationContent.put("timestamp", FieldValue.serverTimestamp());
 
-            // 3. Create the main notification content.
-            Map<String, Object> newNotificationContent = new HashMap<>();
-            newNotificationContent.put("eventTitle", title);
-            newNotificationContent.put("notificationType", body);
-            newNotificationContent.put("image", R.drawable.ic_radar);
-            newNotificationContent.put("timestamp", FieldValue.serverTimestamp());
+                    db.collection("notifications").add(newNotificationContent)
+                            .addOnSuccessListener(contentRef -> {
+                                Log.d(TAG, "Successfully created main notification with ID: " + contentRef.getId());
 
-            db.collection("notifications").add(newNotificationContent)
-                    .addOnSuccessListener(contentRef -> {
-                        Log.d(TAG, "Successfully created main notification with ID: " + contentRef.getId());
+                                // 4. Fan out the notification reference to all users in the group.
+                                WriteBatch batch = db.batch();
+                                for (String userId : userIds) {
+                                    if (userId != null && !userId.isEmpty()) {
+                                        DocumentReference userStubRef = db.collection("users").document(userId)
+                                                .collection("notifications").document();
+                                        Map<String, Object> userStub = new HashMap<>();
+                                        userStub.put("readStatus", false);
+                                        userStub.put("notificationRef", contentRef);
+                                        batch.set(userStubRef, userStub);
+                                    }
+                                }
 
-                        // 4. Fan out the notification reference to all users in the group.
-                        WriteBatch batch = db.batch();
-                        for (String userId : userIds) {
-                            if (userId != null && !userId.isEmpty()) {
-                                DocumentReference userStubRef = db.collection("users").document(userId)
-                                        .collection("notifications").document();
-                                Map<String, Object> userStub = new HashMap<>();
-                                userStub.put("readStatus", false);
-                                userStub.put("notificationRef", contentRef);
-                                batch.set(userStubRef, userStub);
-                            }
-                        }
+                                batch.commit()
+                                        .addOnSuccessListener(aVoid -> Log.d(TAG, "Successfully fanned out notification to group '" + groupCollection + "'."))
+                                        .addOnFailureListener(e -> Log.e(TAG, "Failed to commit batch for group notification.", e));
 
-                        batch.commit()
-                                .addOnSuccessListener(aVoid -> Log.d(TAG, "Successfully fanned out notification to group '" + groupField + "'."))
-                                .addOnFailureListener(e -> Log.e(TAG, "Failed to commit batch for group notification.", e));
+                            }).addOnFailureListener(e -> Log.e(TAG, "Failed to create main notification content.", e));
 
-                    }).addOnFailureListener(e -> Log.e(TAG, "Failed to create main notification content.", e));
-
-        }).addOnFailureListener(e -> Log.e(TAG, "Failed to fetch event document: " + eventId, e));
+                }).addOnFailureListener(e -> Log.e(TAG, "Failed to fetch users from collection '" + groupCollection + "' for event: " + eventId, e));
+        // --- END OF REFACTOR ---
     }
+
 
     /*
 

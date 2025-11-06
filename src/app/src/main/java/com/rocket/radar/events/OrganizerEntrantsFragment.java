@@ -596,7 +596,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                 Toast.makeText(getContext(), "Error: Event ID is missing.", Toast.LENGTH_SHORT).show();
                 return;
             }
-            String groupField = getGroupFieldForCurrentTab();
+            String groupField = getGroupForCurrentTab();
             if (groupField != null) {
                 notificationRepository.sendNotificationToGroup(title, body, event.getEventTitle(), groupField);
                 Toast.makeText(getContext(), "Notification sent to " + tabs.getTabAt(tabs.getSelectedTabPosition()).getText(), Toast.LENGTH_SHORT).show();
@@ -628,6 +628,21 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
             case "Selected": return "attendees";
             case "Invited": return "invited";
             case "Cancelled": return "cancelled";
+            default: return null;
+        }
+    }
+
+    private String getGroupForCurrentTab() {
+        if (tabs == null) return null;
+        int selectedTabPosition = tabs.getSelectedTabPosition();
+        if (selectedTabPosition == -1) return null;
+        TabLayout.Tab tab = tabs.getTabAt(selectedTabPosition);
+        if (tab == null || tab.getText() == null) return null;
+        switch (tab.getText().toString()) {
+            case "On Waitlist": return "waitlistedUsers";
+            case "Attending": return "attendingUsers";
+            case "Invited": return "invitedUsers";
+            case "Cancelled": return "cancelledUsers";
             default: return null;
         }
     }
