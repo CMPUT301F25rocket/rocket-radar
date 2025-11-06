@@ -112,7 +112,17 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                     currentEntrants
             );
             entrantsListView.setAdapter(entrantsAdapter);
-        } else {
+
+            // --- START OF FIX: Set the item click listener ---
+            entrantsListView.setOnItemClickListener((parent, view1, position, id) -> {
+                // Get the user ID (which is the string at the clicked position)
+                String userId = currentEntrants.get(position);
+
+                // Call your existing method to handle the logic
+                onEntrantListItemClick(userId);
+            });
+        }
+            else {
             Log.e(TAG, "ListView (entrants_list) not found in the layout!");
         }
 

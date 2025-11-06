@@ -237,7 +237,7 @@ public class EventRepository {
      * @param userId   The ID of the user whose location is to be fetched.
      * @param callback The callback to handle the result.
      */
-    public void getUserLocationFromWaitlist(String eventId, String userId, UserLocationCallback callback) {
+    public void getUserLocationFromWaitlist(String userId, String eventId, UserLocationCallback callback) {
         if (eventId == null || eventId.isEmpty() || userId == null || userId.isEmpty()) {
             callback.onError(new IllegalArgumentException("Event ID and User ID cannot be null or empty."));
             return;
