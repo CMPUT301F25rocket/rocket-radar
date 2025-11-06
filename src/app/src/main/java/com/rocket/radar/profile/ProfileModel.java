@@ -6,6 +6,7 @@ import com.google.firebase.Timestamp;
 import com.rocket.radar.events.Event;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents a user profile in the application.
@@ -24,10 +25,11 @@ public class ProfileModel {
     private Boolean notificationsEnabled, geolocationEnabled, isAdmin;
 
     private ArrayList<String> onWaitlistEventIds;
+    private ArrayList<String> onMyEventIds;
 
     public ProfileModel() {}
 
-    public ProfileModel(String uid, String name, String email, String phoneNumber, Timestamp lastLogin, Boolean notificationsEnabled, boolean geolocationEnabled, boolean isAdmin) {
+    public ProfileModel(String uid, String name, String email, String phoneNumber, Timestamp lastLogin, boolean notificationsEnabled, boolean geolocationEnabled, boolean isAdmin) {
         this.uid = uid;
         this.name = name;
         this.email = email;
@@ -53,7 +55,12 @@ public class ProfileModel {
     public Timestamp getLastLogin() { return lastLogin; }
     public void setLastLogin(Timestamp lastLogin) { this.lastLogin = lastLogin; }
 
+    // --- START OF FIX ---
     public Boolean isAdmin() {
+        // If the value from Firestore is null, default to a safe value (false).
+        if (isAdmin == null) {
+            return false;
+        }
         return isAdmin;
     }
 
@@ -62,6 +69,10 @@ public class ProfileModel {
     }
 
     public Boolean isGeolocationEnabled() {
+        // If the value from Firestore is null, default to a safe value (false).
+        if (geolocationEnabled == null) {
+            return false;
+        }
         return geolocationEnabled;
     }
 
@@ -70,8 +81,13 @@ public class ProfileModel {
     }
 
     public Boolean isNotificationsEnabled() {
+        // If the value from Firestore is null, default to a safe value (true is a good default).
+        if (notificationsEnabled == null) {
+            return true;
+        }
         return notificationsEnabled;
     }
+    // --- END OF FIX ---
 
     public void setNotificationsEnabled(Boolean notificationsEnabled) {
         this.notificationsEnabled = notificationsEnabled;
@@ -82,6 +98,16 @@ public class ProfileModel {
         return onWaitlistEventIds;
     }
 
+    public ArrayList<String> getOnMyEventIds() {
+        if (this.onMyEventIds == null) this.onMyEventIds = new ArrayList<>();
+        return onMyEventIds;
+    }
+
+    public void setOnMyEventIds(ArrayList<String> onMyEventIds) {
+        this.onMyEventIds = onMyEventIds;
+    }
+
+
     public void setOnWaitlistEventIds(ArrayList<String> onWaitlistEventIds) {
         this.onWaitlistEventIds = onWaitlistEventIds;
     }
@@ -91,10 +117,19 @@ public class ProfileModel {
         Log.d("Added to waitlist", "Event ID: " + eventId + "user: " + this.uid);
         this.onWaitlistEventIds.add(eventId);
     }
+    public void addOnMyEventId(String eventId) {
+        if (this.onMyEventIds == null) this.onMyEventIds = new ArrayList<>();
+        Log.d("Added to my Events", "Event ID: " + eventId + "user: " + this.uid);
+        this.onMyEventIds.add(eventId);
+    }
 
     public void removeOnWaitlistEventId(String eventId) {
         if (this.onWaitlistEventIds == null) return;
         this.onWaitlistEventIds.remove(eventId);
+    }
+    public void removeOnMyEventId(String eventId) {
+        if (this.onMyEventIds == null) return;
+        this.onMyEventIds.remove(eventId);
     }
 
     public void clearOnWaitlistEventIds() {
@@ -102,3 +137,4 @@ public class ProfileModel {
         this.onWaitlistEventIds.clear();
     }
 }
+

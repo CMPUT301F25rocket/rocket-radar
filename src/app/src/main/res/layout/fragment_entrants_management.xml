@@ -6,10 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".events.OrganizerEntrantsFragment">
 
-    <!-- =================================================================== -->
-    <!-- MAIN CONTENT (Map fills the entire screen)                          -->
-    <!-- =================================================================== -->
-
+    <!-- Map Fragment -->
     <fragment
         android:id="@+id/map_container"
         android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -17,10 +14,7 @@
         android:layout_height="match_parent"
         tools:context=".events.OrganizerEntrantsFragment" />
 
-    <!-- =================================================================== -->
-    <!-- TOP BAR (Back, Title, and Filters)                                  -->
-    <!-- =================================================================== -->
-
+    <!-- Top App Bar with Title and Tabs -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
@@ -51,148 +45,177 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:gravity="center_horizontal"
-                android:text="Entrants Map:"
+                android:text="Entrants Map"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
-                android:textColor="@android:color/black" />
+                android:textColor="@android:color/black"
+                android:paddingBottom="8dp"/>
 
-            <!-- FILTER TABS are now here in the top bar -->
             <com.google.android.material.tabs.TabLayout
                 android:id="@+id/entrants_filter_tabs"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
                 android:background="@android:color/transparent"
-                app:tabGravity="center"
+                app:tabGravity="fill"
                 app:tabMode="fixed">
 
                 <com.google.android.material.tabs.TabItem
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="On Waitlist" />
-
                 <com.google.android.material.tabs.TabItem
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Invited" />
-
                 <com.google.android.material.tabs.TabItem
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Attending" />
-
                 <com.google.android.material.tabs.TabItem
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Cancelled" />
             </com.google.android.material.tabs.TabLayout>
-
         </LinearLayout>
-
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- =================================================================== -->
-    <!-- SWIPE-UP BOTTOM SHEET for Entrants List                             -->
-    <!-- =================================================================== -->
-
+    <!-- START OF CHANGE: Use a specific, smaller dimension for peekHeight -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/bottom_sheet"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:behavior_hideable="false"
-        app:behavior_peekHeight="150dp"
         app:cardElevation="8dp"
-        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        app:behavior_peekHeight="150dp">
+        <!-- END OF CHANGE -->
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Handle for dragging the bottom sheet -->
             <com.google.android.material.bottomsheet.BottomSheetDragHandleView
                 android:id="@+id/drag_handle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-            <!-- List View Container -->
+            <!-- The Action Buttons now live at the top of the bottom sheet's content -->
+            <FrameLayout
+                android:id="@+id/bottom_action_bar_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp">
+
+                <!-- Actions for "On Waitlist" Tab -->
+                <LinearLayout
+                    android:id="@+id/waitlist_actions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+                    <Button
+                        android:id="@+id/waitlist_send_notification_button"
+                        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Send Notification" />
+                </LinearLayout>
+
+                <!-- Actions for "Invited" Tab -->
+                <LinearLayout
+                    android:id="@+id/invited_actions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+                    <Button
+                        android:id="@+id/invited_cancel_button"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="1"
+                        android:text="Cancel Invitation" />
+                    <Button
+                        android:id="@+id/invited_send_notification_button"
+                        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Send Notification" />
+                </LinearLayout>
+
+                <!-- Actions for "Attending" Tab -->
+                <LinearLayout
+                    android:id="@+id/attending_actions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+                    <Button
+                        android:id="@+id/export_csv_button"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="1"
+                        android:text="Export CSV" />
+                    <Button
+                        android:id="@+id/attending_send_notification_button"
+                        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Send Notification" />
+                </LinearLayout>
+
+                <!-- Actions for "Cancelled" Tab -->
+                <LinearLayout
+                    android:id="@+id/cancelled_actions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+                    <Button
+                        android:id="@+id/draw_replacements_button"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="1"
+                        android:text="Draw Replacements" />
+                    <Button
+                        android:id="@+id/cancelled_send_notification_button"
+                        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Send Notification" />
+                </LinearLayout>
+            </FrameLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?android:attr/listDivider"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"/>
+
+            <!-- The RecyclerView of entrants -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/entrants_recycler_view"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="300dp"
                 android:clipToPadding="false"
-                android:paddingBottom="96dp"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 tools:listitem="@layout/item_entrant" />
 
         </LinearLayout>
-
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- =================================================================== -->
-    <!-- CONDITIONAL BOTTOM ACTION BARS                                      -->
-    <!-- ALL are anchored to the bottom. Only ONE will be visible at a time. -->
-    <!-- =================================================================== -->
-
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:elevation="10dp"
-        android:padding="16dp">
-
-        <!-- Actions for "Attending" Tab -->
-        <LinearLayout
-            android:id="@+id/attending_actions"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:visibility="gone"
-            tools:visibility="visible">
-
-            <Button
-                android:id="@+id/export_csv_button"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                android:backgroundTint="@android:color/white"
-                android:text="Export CSV" />
-
-            <Button
-                android:id="@+id/send_notification_button"
-                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Send Notification" />
-        </LinearLayout>
-
-        <!-- Actions for "Cancelled" Tab -->
-        <LinearLayout
-            android:id="@+id/cancelled_actions"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:visibility="gone">
-
-            <Button
-                android:id="@+id/draw_replacements_button"
-                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Draw Replacements" />
-        </LinearLayout>
-
-        <!-- NOTE: Add more LinearLayouts here for other tabs if they have unique buttons -->
-
-    </FrameLayout>
-
-    <!-- =================================================================== -->
-    <!-- OVERLAYS / DIALOGS (Remain the same)                                -->
-    <!-- =================================================================== -->
-
+    <!-- Dialogs and Overlays (unchanged) -->
     <View
         android:id="@+id/dialog_scrim"
         android:layout_width="match_parent"
@@ -211,7 +234,7 @@
         android:visibility="gone"
         app:cardCornerRadius="16dp"
         app:cardElevation="16dp">
-        <!-- Content for the notification dialog remains unchanged -->
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -224,24 +247,22 @@
                 android:text="Send Notification"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6" />
 
-            <com.google.android.material.tabs.TabLayout
-                android:id="@+id/notification_filter_tabs"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp" />
-
             <EditText
+                android:id="@+id/notification_title_input"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:hint="Title" />
+                android:hint="Title"
+                android:inputType="textCapSentences" />
 
             <EditText
+                android:id="@+id/notification_body_input"
                 android:layout_width="match_parent"
                 android:layout_height="120dp"
                 android:layout_marginTop="8dp"
                 android:gravity="top"
-                android:hint="Message" />
+                android:hint="Message"
+                android:inputType="textMultiLine|textCapSentences" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -265,9 +286,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Send" />
-
             </LinearLayout>
-
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 

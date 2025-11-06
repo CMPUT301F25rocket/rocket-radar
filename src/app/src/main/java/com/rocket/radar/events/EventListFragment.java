@@ -155,7 +155,8 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
                     .filter(event -> finalUserWaitlistEventIds1.contains(event.getEventId()))
                     .collect(Collectors.toList());
         } else {
-            filteredList = new ArrayList<>(allEvents);
+            filteredList = new ArrayList<>();
+            //TODO: add other filter for attending
         }
 
         Log.d("EventListFragment", "Filtered list size: " + filteredList.size());
