@@ -122,7 +122,7 @@ public class NotificationFragment extends Fragment {
             adapter.setNotifications(newNotifications);
 
             // Update the visibility of the "empty" text view
-            updateEmptyViewVisibility();
+            checkEmpty();
         });
     }
 
