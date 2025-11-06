@@ -123,6 +123,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleUserSignIn(FirebaseUser user) {
+        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.nav_host_fragment);
+        NavController navController = navHostFragment.getNavController();
         if (user == null) {
             Log.w(TAG, "No user signed in, cannot proceed.");
             return;
@@ -131,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
 
         // **FIX**: Move the updateLastLogin call here. It now runs only once upon sign-in.
         Log.d(TAG, "User signed in with UID: " + uid + ". Updating last login time.");
-
+        navController.navigate(R.id.action_returning_user_event_list);
         profileViewModel.updateLastLogin(uid);
 
         // Explicitly tell the ViewModel to start listening for this user's profile.
@@ -145,9 +148,7 @@ public class MainActivity extends AppCompatActivity {
                     // The observer's only job now is to create a profile if one doesn't exist.
                     if (profile == null) {
                         // The snapshot listener returned null, meaning this is a first-time user.
-                        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
-                                .findFragmentById(R.id.nav_host_fragment);
-                        NavController navController = navHostFragment.getNavController();
+
                         navController.navigate(R.id.action_first_time_login_main);
                         Log.d(TAG, "First-time user detected. Creating default profile for UID: " + uid);
                         ProfileModel defaultProfile = new ProfileModel(uid, "Anonymous User", "", "", null, true, true, false);
@@ -160,6 +161,20 @@ public class MainActivity extends AppCompatActivity {
             });
             isObserverInitialized = true;
         }
+    }
+    public void onResume() {
+        super.onResume();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        setBottomNavigationVisibility(android.view.View.VISIBLE);
+        if (currentUser == null) {
+            Log.w(TAG, "onResume: No user detected, signing in anonymously again.");
+            signInAnonymously();
+        } else {
+            Log.d(TAG, "onResume: Existing user still valid: " + currentUser.getUid());
+            // Optionally re-sync profile to keep LiveData fresh
+            profileViewModel.setUserIdForProfileListener(currentUser.getUid());
+        }
+
     }
 
     public void setBottomNavigationVisibility(int visibility) {

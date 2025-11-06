@@ -3,11 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/eventListFragment">
+    app:startDestination="@id/radarDefaultViewFragment">
 
+    <action
+        android:id="@+id/action_returning_user_event_list"
+        app:destination="@id/eventListFragment"/>
     <action
         android:id="@+id/action_first_time_login_main"
         app:destination="@id/loginFragment"/>
+
+
+    <fragment
+        android:id="@+id/radarDefaultViewFragment"
+        android:name="com.rocket.radar.RadarDefaultViewFragment"
+        android:label="Radar Default View" />
     <fragment
         android:id="@+id/eventListFragment"
         android:name="com.rocket.radar.events.EventListFragment"
