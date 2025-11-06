@@ -25,6 +25,7 @@ public class AccountSettingsFragment extends Fragment {
     private ProfileViewModel profileViewModel;
 
     private String uid;
+
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -87,6 +88,13 @@ public class AccountSettingsFragment extends Fragment {
                 isValid = false;
             } else {
                 phoneNumberField.setError(null);
+            }
+
+            if (username.isEmpty()) {
+                usernameField.setError("Name cannot be empty!");
+                isValid = false;
+            } else {
+                usernameField.setError(null);
             }
 
             if (!isValid) {
