@@ -58,4 +58,8 @@ public class Time implements Comparable<Time> {
         }
         return 0;
     }
+
+    public boolean lessThan(Time o) {
+        return this.compareTo(o) < 0;
+    }
 }

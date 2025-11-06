@@ -14,6 +14,11 @@ import androidx.lifecycle.ViewModelProvider;
 import com.rocket.radar.databinding.ViewInputEventDeadlinesBinding;
 import com.rocket.radar.events.Event;
 
+import org.checkerframework.checker.units.qual.A;
+
+import java.util.Date;
+import java.util.Optional;
+
 /**
  * Fragment for the Deadlines section of the event creation wizard.
  * Handles input for registration periods, selection periods, and final decision date.
@@ -88,12 +93,26 @@ public class EventDeadlinesFragment extends Fragment implements InputFragment {
 
     @Override
     public boolean valid(InputFragment inputFragment) {
-        return false;
+        Optional<Date> regStart = model.registrationStartDate.getValue();
+        Optional<Date> regEnd = model.registrationEndDate.getValue();
+        Optional<Date> selStart = model.initialSelectionStartDate.getValue();
+        Optional<Date> selEnd = model.initialSelectionEndDate.getValue();
+        Optional<Date> finSelDate = model.finalAttendeeSelectionDate.getValue();
+        return regStart.isPresent() && regEnd.isPresent() && selStart.isPresent() && selEnd.isPresent() && finSelDate.isPresent()
+            && regStart.get().before(regEnd.get())
+            && regEnd.get().before(selStart.get())
+            && selStart.get().before(selEnd.get())
+            && selEnd.get().before(finSelDate.get());
     }
 
     @Override
     public Event.Builder extract(Event.Builder builder) {
-        return null;
+        return builder
+                .registrationStartDate(model.registrationStartDate.getValue().orElseThrow())
+                .registrationEndDate(model.registrationEndDate.getValue().orElseThrow())
+                .initialSelectionStartDate(model.initialSelectionStartDate.getValue().orElseThrow())
+                .initialSelectionEndDate(model.initialSelectionEndDate.getValue().orElseThrow())
+                .finalSelectionDate(model.finalAttendeeSelectionDate.getValue().orElseThrow());
     }
 
     @Override
