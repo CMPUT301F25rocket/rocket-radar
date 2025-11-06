@@ -24,17 +24,30 @@ import java.text.DateFormat;
 public class EventViewFragment extends Fragment {
 
     private static final String ARG_EVENT = "event";
+    // 1. ADD ARG_IS_ORGANIZER CONSTANT
+    private static final String ARG_IS_ORGANIZER = "is_organizer";
     private Event event;
     private ProfileViewModel profileViewModel;
+
+    // 2. ADD isOrganizer aS A MEMBER VARIABLE
+    private boolean isOrganizer;
 
     public EventViewFragment() {
         // Required empty public constructor
     }
 
+    // This newInstance is for regular users
     public static EventViewFragment newInstance(Event event) {
+        // Call the other newInstance, passing 'false' for the organizer flag
+        return newInstance(event, false);
+    }
+
+    // This newInstance is for both organizers and regular users
+    public static EventViewFragment newInstance(Event event, boolean isOrganizer) {
         EventViewFragment fragment = new EventViewFragment();
         Bundle args = new Bundle();
         args.putSerializable(ARG_EVENT, event);
+        args.putBoolean(ARG_IS_ORGANIZER, isOrganizer); // Add the flag to the bundle
         fragment.setArguments(args);
         return fragment;
     }
@@ -44,6 +57,8 @@ public class EventViewFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             event = (Event) getArguments().getSerializable(ARG_EVENT);
+            // 3. RETRIEVE the isOrganizer flag from the bundle
+            isOrganizer = getArguments().getBoolean(ARG_IS_ORGANIZER, false); // Default to false
         }
     }
 
@@ -62,15 +77,16 @@ public class EventViewFragment extends Fragment {
         // Find views
         Button backButton = view.findViewById(R.id.back_button);
         Button joinAndLeaveWaitlistButton = view.findViewById(R.id.join_and_leave_waitlist_button);
+        // 4. DEFINE manageEntrantsButton
+        Button manageEntrantsButton = view.findViewById(R.id.manage_entrants);
         TextView eventTitle = view.findViewById(R.id.event_title);
         TextView eventDate = view.findViewById(R.id.event_date);
         TextView eventDescription = view.findViewById(R.id.event_desc);
 
         // Populate static event data
         if (event != null) {
-            // Use correct getters
             eventTitle.setText(event.getEventTitle());
-            if (event.getEventTitle() != null) {
+            if (event.getDate() != null) { // Check event.getDate() for null
                 String FormattedDate = DateFormat.getDateInstance(DateFormat.FULL).format(event.getDate());
                 eventDate.setText(FormattedDate);
             }
@@ -81,14 +97,44 @@ public class EventViewFragment extends Fragment {
             return;
         }
 
+        // 5. THE LOGIC BLOCK CAN NOW USE THE DEFINED VARIABLES
+        if (isOrganizer) {
+            // Organizer View
+
+            // 1. Configure the "Manage Entrants" button
+            manageEntrantsButton.setVisibility(View.VISIBLE);
+            manageEntrantsButton.setOnClickListener(v -> {
+                OrganizerEntrantsFragment organizerEntrantsFragment = OrganizerEntrantsFragment.newInstance(event);
+                if (getActivity() != null) {
+                    getActivity().getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.nav_host_fragment, organizerEntrantsFragment)
+                            .addToBackStack(null)
+                            .commit();
+                }
+            });
+
+            // 2. Repurpose the other button as "Edit"
+            joinAndLeaveWaitlistButton.setVisibility(View.VISIBLE); // Make sure it is VISIBLE
+            joinAndLeaveWaitlistButton.setText("Edit");
+            // joinAndLeaveWaitlistButton.setOnClickListener(v -> handleEditEvent()); // Add your edit logic here
+
+        } else {
+            // Regular User View
+
+            // Hide the organizer button
+            manageEntrantsButton.setVisibility(View.GONE);
+
+            // Configure the "Join/Leave Waitlist" button
+            joinAndLeaveWaitlistButton.setVisibility(View.VISIBLE);
+            joinAndLeaveWaitlistButton.setOnClickListener(v -> handleJoinLeaveWaitlist());
+            profileViewModel.getProfileLiveData().observe(getViewLifecycleOwner(), profile -> {
+                updateWaitlistButton(joinAndLeaveWaitlistButton, profile);
+            });
+        }
+
         // Setup listeners
         backButton.setOnClickListener(v -> navigateBack());
-        joinAndLeaveWaitlistButton.setOnClickListener(v -> handleJoinLeaveWaitlist());
-
-        // Observe LiveData to update UI dynamically
-        profileViewModel.getProfileLiveData().observe(getViewLifecycleOwner(), profile -> {
-            updateWaitlistButton(joinAndLeaveWaitlistButton, profile);
-        });
+        // REMOVED redundant listeners from here as they are now correctly placed inside the if/else block
     }
 
     @Override
@@ -125,7 +171,6 @@ public class EventViewFragment extends Fragment {
         if (onWaitlist) {
             currentProfile.removeOnWaitlistEventId(event.getEventId());
             currentProfile.removeOnMyEventId(event.getEventId());
-            // pop back to previous fragment
             navigateBack();
             Toast.makeText(getContext(), "Removed from waitlist!", Toast.LENGTH_SHORT).show();
         } else {
@@ -134,6 +179,8 @@ public class EventViewFragment extends Fragment {
             navigateBack();
             Toast.makeText(getContext(), "Added to waitlist!", Toast.LENGTH_SHORT).show();
         }
+        // After changing the profile, we must save it back to the ViewModel to persist the change
+        profileViewModel.updateProfile(currentProfile);
     }
 
     private void updateWaitlistButton(Button button, ProfileModel profile) {
