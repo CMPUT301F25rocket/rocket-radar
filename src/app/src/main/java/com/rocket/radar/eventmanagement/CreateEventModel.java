@@ -11,15 +11,12 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
 
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.rocket.radar.events.Event;
 import com.rocket.radar.events.EventRepository;
 
-import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -148,16 +145,20 @@ public class CreateEventModel extends ViewModel {
         return section;
     }
 
-    public int getLeftButtonVisibility() {
-        if (section.getValue() != Section.GENERAL) {
-            return View.GONE;
-        } else {
-            return View.VISIBLE;
-        }
+    public LiveData<Integer> getLeftButtonVisibility() {
+        return Transformations.map(section, s -> {
+            if (s == Section.GENERAL) {
+                return View.GONE;
+            } else {
+                return View.VISIBLE;
+            }
+        });
     }
 
-    public int getRightButtonVisibility() {
-        return View.VISIBLE;
+    public LiveData<Integer> getRightButtonVisibility() {
+        return Transformations.map(section, s -> {
+            return View.VISIBLE;
+        });
     }
 
     public String getRightButtonText() {
