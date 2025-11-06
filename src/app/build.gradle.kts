@@ -45,6 +45,11 @@ android {
 }
 
 dependencies {
+    //Testing
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
+    debugImplementation("androidx.fragment:fragment-testing:1.6.2")
+
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
