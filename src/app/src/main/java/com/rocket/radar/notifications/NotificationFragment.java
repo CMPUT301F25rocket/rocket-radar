@@ -106,17 +106,23 @@ public class NotificationFragment extends Fragment {
         notificationRepository.getMyNotifications().observe(getViewLifecycleOwner(), newNotifications -> {
             Log.d("NotificationFragment", "Data updated. " + newNotifications.size() + " notifications received.");
 
+            // Sort the list: unread first, then by newest timestamp
             newNotifications.sort((n1, n2) -> {
                 int readCompare = Boolean.compare(n1.isReadStatus(), n2.isReadStatus());
-                if (readCompare != 0) { return readCompare; }
+                if (readCompare != 0) {
+                    return readCompare; // false (unread) comes before true (read)
+                }
                 if (n1.getTimestamp() != null && n2.getTimestamp() != null) {
-                    return n2.getTimestamp().compareTo(n1.getTimestamp());
+                    return n2.getTimestamp().compareTo(n1.getTimestamp()); // Newest first
                 }
                 return 0;
             });
 
-            // The registered observer will handle showing/hiding the empty view automatically.
+            // Update the adapter with the new, sorted list
             adapter.setNotifications(newNotifications);
+
+            // Update the visibility of the "empty" text view
+            updateEmptyViewVisibility();
         });
     }
 
