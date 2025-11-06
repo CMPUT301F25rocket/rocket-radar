@@ -1,3 +1,4 @@
+// C:/Users/bwood/Cmput301/rocket-radar/src/app/src/main/java/com/rocket/radar/events/EventViewFragment.java
 package com.rocket.radar.events;
 
 import android.os.Bundle;
@@ -14,6 +15,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.google.android.material.button.MaterialButton;
+import com.google.firebase.firestore.GeoPoint;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
 import com.rocket.radar.profile.ProfileModel;
@@ -194,29 +197,32 @@ public class EventViewFragment extends Fragment {
         boolean onWaitlist = isOnWaitlist(currentProfile);
 
         if (onWaitlist) {
+            // Logic for leaving a waitlist (remains unchanged)
             currentProfile.removeOnWaitlistEventId(event.getEventId());
             currentProfile.removeOnMyEventId(event.getEventId());
-
-            ArrayList<String> currentWaitlist = event.getEventWaitlistIds();
-            currentWaitlist.remove(currentProfile.getUid());
+            // This needs to be updated to use the correct subcollection name if you changed it
+            // For now assuming the logic in removeUserFromWaitlist is correct
             repo.removeUserFromWaitlist(event, currentProfile.getUid());
-
             navigateBack();
             Toast.makeText(getContext(), "Removed from waitlist!", Toast.LENGTH_SHORT).show();
         } else {
+            // Logic for joining a waitlist
             currentProfile.addOnWaitlistEventId(event.getEventId());
             currentProfile.addOnMyEventId(event.getEventId());
 
-            ArrayList<String> currentWaitlist = event.getEventWaitlistIds();
-            currentWaitlist.add(currentProfile.getUid());
-            repo.addUserToWaitlist(event, currentProfile.getUid());
+            // --- REFACTORED LOGIC ---
+            // 1. Get the location from the user's profile.
+            GeoPoint lastKnownLocation = currentProfile.getLastKnownLocation();
+
+            // 2. Pass the user ID and location to the repository method.
+            repo.addUserToWaitlist(event, currentProfile.getUid(), lastKnownLocation);
+            // --- END OF REFACTOR ---
 
             navigateBack();
             Toast.makeText(getContext(), "Added to waitlist!", Toast.LENGTH_SHORT).show();
         }
         // After changing the profile, we must save it back to the ViewModel to persist the change
         profileViewModel.updateProfile(currentProfile);
-
     }
 
     private void updateWaitlistButton(Button button, ProfileModel profile) {
