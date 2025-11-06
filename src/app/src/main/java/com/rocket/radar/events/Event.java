@@ -2,6 +2,7 @@ package com.rocket.radar.events;
 
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
 import java.time.format.TextStyle;
@@ -34,6 +35,11 @@ public class Event implements Serializable {
     private Date date;
     String tagline;
     String description;
+    ArrayList<String> eventWaitlistIds;
+    ArrayList<String> eventInvitedIds;
+    ArrayList<String> eventAttendingIds;
+    ArrayList<String> eventCancelledIds;
+
 
     private Blob bannerImageBlob;
 
@@ -181,6 +187,47 @@ public class Event implements Serializable {
         }
 
         return cropped;
+    }
+
+    public ArrayList<String> getEventCancelledIds() {
+        return eventCancelledIds;
+    }
+
+    public void setEventCancelledIds(ArrayList<String> eventCancelledIds) {
+        this.eventCancelledIds = eventCancelledIds;
+    }
+
+    public ArrayList<String> getEventAttendingIds() {
+        if (eventAttendingIds == null) {
+            eventAttendingIds = new ArrayList<>();
+        }
+        return eventAttendingIds;
+    }
+
+    public void setEventAttendingIds(ArrayList<String> eventAttendingIds) {
+        this.eventAttendingIds = eventAttendingIds;
+    }
+
+    public ArrayList<String> getEventInvitedIds() {
+        if (eventInvitedIds == null) {
+            eventInvitedIds = new ArrayList<>();
+        }
+        return eventInvitedIds;
+    }
+
+    public void setEventInvitedIds(ArrayList<String> eventInvitedIds) {
+        this.eventInvitedIds = eventInvitedIds;
+    }
+
+    public ArrayList<String> getEventWaitlistIds() {
+        if (eventWaitlistIds == null) {
+            eventWaitlistIds = new ArrayList<>();
+        }
+        return eventWaitlistIds;
+    }
+
+    public void setEventWaitlistIds(ArrayList<String> eventWaitlistIds) {
+        this.eventWaitlistIds = eventWaitlistIds;
     }
 
     public static class Builder {

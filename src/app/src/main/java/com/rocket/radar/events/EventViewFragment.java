@@ -1,6 +1,7 @@
 package com.rocket.radar.events;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,7 @@ import com.rocket.radar.profile.ProfileModel;
 import com.rocket.radar.profile.ProfileViewModel;
 
 import java.text.DateFormat;
+import java.util.ArrayList;
 
 public class EventViewFragment extends Fragment {
 
@@ -82,6 +84,7 @@ public class EventViewFragment extends Fragment {
         TextView eventTitle = view.findViewById(R.id.event_title);
         TextView eventDate = view.findViewById(R.id.event_date);
         TextView eventDescription = view.findViewById(R.id.event_desc);
+        TextView eventWaitlistSize = view.findViewById(R.id.waitlist_size);
 
         // Populate static event data
         if (event != null) {
@@ -91,6 +94,9 @@ public class EventViewFragment extends Fragment {
                 eventDate.setText(FormattedDate);
             }
             eventDescription.setText(event.getDescription());
+            int waitlistSize = event.getEventWaitlistIds().size();
+            Log.d("EventViewFragment", "Waitlist size: " + waitlistSize);
+            eventWaitlistSize.setText("People on waitlist: " + String.valueOf(waitlistSize));
         } else {
             Toast.makeText(getContext(), "Error: Event data missing.", Toast.LENGTH_SHORT).show();
             navigateBack();
@@ -181,6 +187,15 @@ public class EventViewFragment extends Fragment {
         }
         // After changing the profile, we must save it back to the ViewModel to persist the change
         profileViewModel.updateProfile(currentProfile);
+
+
+
+
+        ArrayList<String> currentWaitlist = event.getEventWaitlistIds();
+        currentWaitlist.add(currentProfile.getUid());
+        event.setEventWaitlistIds(currentWaitlist);
+
+
     }
 
     private void updateWaitlistButton(Button button, ProfileModel profile) {
