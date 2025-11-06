@@ -23,17 +23,31 @@ import com.rocket.radar.profile.ProfileViewModel;
 
 public class LoginStartScanningFragment extends Fragment {
     private Button button_continue;
+    private static final String TAG = "MainActivity";
+
     private String username;
     private String email;
     private String phoneNumber;
     private String deviceId;
+    private String uid;
     private ProfileViewModel profileViewModel;
     private FirebaseAuth mAuth;
+    // A flag to ensure we only set up the observer once.
+    private boolean isObserverInitialized = false;
 
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        ((MainActivity) getActivity()).setBottomNavigationVisibility(View.GONE);
+        ((MainActivity) requireActivity()).setBottomNavigationVisibility(View.GONE);
         View view = inflater.inflate(R.layout.login_start_scanning, container, false);
 
+        profileViewModel = new ViewModelProvider(requireActivity()).get(ProfileViewModel.class);
+        mAuth = FirebaseAuth.getInstance();
+
+        setupUI(view);
+
+        return view;
+    }
+
+    private void setupUI(View view) {
         button_continue = view.findViewById(R.id.button_continue);
         TextInputLayout layout_username = view.findViewById(R.id.usernameLayout);
         TextInputLayout layout_email = view.findViewById(R.id.emailLayout);
@@ -41,7 +55,6 @@ public class LoginStartScanningFragment extends Fragment {
         TextInputEditText input_username = view.findViewById(R.id.usernameInput);
         TextInputEditText input_email = view.findViewById(R.id.emailInput);
         TextInputEditText input_phoneNumber = view.findViewById(R.id.phoneNumberInput);
-
 
         button_continue.setOnClickListener(v -> {
             username = input_username.getText().toString();
@@ -54,22 +67,75 @@ public class LoginStartScanningFragment extends Fragment {
             }
 
             deviceId = android.provider.Settings.Secure.getString(
-                    getActivity().getContentResolver(),
+                    requireContext().getContentResolver(),
                     android.provider.Settings.Secure.ANDROID_ID
             );
 
-            mAuth = FirebaseAuth.getInstance();
             FirebaseUser user = mAuth.getCurrentUser();
-            String uid = user.getUid();
-            profileViewModel = new ViewModelProvider(requireActivity()).get(ProfileViewModel.class);
-            ProfileModel defaultProfile = new ProfileModel(uid, username, email, phoneNumber, null, true, true, false);
-            profileViewModel.updateProfile(defaultProfile);
-
+            if (user != null && user.getUid() != null) {
+                String uid = user.getUid();
+                ProfileModel defaultProfile = new ProfileModel(uid, username, email, phoneNumber, null, true, true, false);
+                profileViewModel.updateProfile(defaultProfile);
+            } else {
+                // fallback: force Firebase to reload or sign in again
+                mAuth.signInAnonymously().addOnSuccessListener(result -> {
+                    String uid = result.getUser().getUid();
+                    ProfileModel defaultProfile = new ProfileModel(uid, username, email, phoneNumber, null, true, true, false);
+                    profileViewModel.updateProfile(defaultProfile);
+                });
+            }
 
             NavHostFragment.findNavController(this).navigate(R.id.action_login_start_scanning_to_event_list);
         });
+    }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        ((MainActivity) requireActivity()).setBottomNavigationVisibility(View.GONE);
 
-        return view;
+        // Ensure Firebase user exists and update profile if needed
+        updateOrCreateUser();
+    }
+
+    private void updateOrCreateUser() {
+        deviceId = android.provider.Settings.Secure.getString(
+                requireContext().getContentResolver(),
+                android.provider.Settings.Secure.ANDROID_ID
+        );
+
+        FirebaseUser user = mAuth.getCurrentUser();
+
+        // CASE 1: user is null → sign in again
+        if (user == null) {
+            mAuth.signInAnonymously().addOnSuccessListener(result -> {
+                FirebaseUser newUser = result.getUser();
+                if (newUser != null) {
+                    saveProfile(newUser.getUid());
+                }
+            });
+            return;
+        }
+
+        // CASE 2: user exists but stale → force reload
+        user.reload().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                FirebaseUser refreshedUser = mAuth.getCurrentUser();
+                if (refreshedUser != null && refreshedUser.getUid() != null) {
+                    saveProfile(refreshedUser.getUid());
+                }
+            } else {
+                // Reload failed, re-sign in just in case
+                mAuth.signInAnonymously().addOnSuccessListener(result -> {
+                    FirebaseUser newUser = result.getUser();
+                    if (newUser != null) saveProfile(newUser.getUid());
+                });
+            }
+        });
+    }
+
+    private void saveProfile(String uid) {
+        ProfileModel defaultProfile = new ProfileModel(uid, username, email, phoneNumber, null, true, true, false);
+        profileViewModel.updateProfile(defaultProfile);
     }
 }
