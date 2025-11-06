@@ -27,7 +27,7 @@
             -->
             <!-- <category android:name="android.intent.category.DEFAULT" /> -->
             <intent-filter android:label="@string/filter_view_qr">
-                <action android:name="com.rocket.radar.events.VIEW_EVENT" />
+                <action android:name="@strings/intent_action_view_event" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="android-app" />
             </intent-filter>

@@ -1,6 +1,9 @@
 package com.rocket.radar.eventmanagement;
+import android.content.ContentResolver;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.view.View;
 
 import androidx.lifecycle.LiveData;
@@ -12,6 +15,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.rocket.radar.events.Event;
 import com.rocket.radar.events.EventRepository;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -47,7 +52,15 @@ public class CreateEventModel extends ViewModel {
     }
 
     public MutableLiveData<Optional<Time>> eventStartTime;
+
+    public LiveData<String> eventStartTimeDisplay() {
+        return Transformations.map(eventStartTime, time -> time.map(Time::toString).orElse(""));
+    }
+
     public MutableLiveData<Optional<Time>> eventEndTime;
+    public LiveData<String> eventEndTimeDisplay() {
+        return Transformations.map(eventEndTime, time -> time.map(Time::toString).orElse(""));
+    }
 
     // Deadline section field values
     public MutableLiveData<Optional<Date>> registrationStartDate;
@@ -103,7 +116,7 @@ public class CreateEventModel extends ViewModel {
     }
 
     // Style section field values
-    private Bitmap image;
+    private MutableLiveData<Optional<Uri>> image;
     public MutableLiveData<Optional<Color>> color;
 
     public CreateEventModel() {
@@ -126,6 +139,8 @@ public class CreateEventModel extends ViewModel {
         eventCapacity = new MutableLiveData<>(Optional.empty());
         lotteryDate = new MutableLiveData<>(Optional.empty());
         lotteryTime = new MutableLiveData<>(Optional.empty());
+        // Actually be default this should be some random cover image.
+        image = new MutableLiveData<>(Optional.empty());
         color = new MutableLiveData<>(Optional.empty());
     }
 
@@ -169,10 +184,21 @@ public class CreateEventModel extends ViewModel {
     }
 
     /**
-     * Serialize all relevant event data into a hashmap.
-     * @param EventRepository A firestore database.
+     * This is a wrapper for to build an event using the data in this model and create that event
+     * using a provided {@code EventRepository}.
+     * @param eventRepository A firestore database.
+     * @return UUID of the create event.
      */
-    public void createEvent(EventRepository eventRepository) throws NoSuchElementException {
+    public String createEvent(ContentResolver contentResolver, EventRepository eventRepository) throws Exception {
+        Uri bannerImageUri = image.getValue().orElseThrow();
+
+        Bitmap bitmap;
+        try {
+            bitmap = MediaStore.Images.Media.getBitmap(contentResolver, bannerImageUri);
+        } catch (FileNotFoundException e) {
+            throw new Exception("Provided image could not be read from storage");
+        }
+
         Event event = new Event.Builder()
                 .title(title.getValue())
                 .description(description.getValue())
@@ -189,8 +215,10 @@ public class CreateEventModel extends ViewModel {
                 .eventCapacity(eventCapacity.getValue().orElseThrow())
                 .lotteryDate(lotteryDate.getValue().orElseThrow())
                 .lotteryTime(lotteryTime.getValue().orElseThrow())
+                .bannerImage(bitmap)
+                .color(color.getValue().orElseThrow())
                 .build();
 
-        eventRepository.createEvent(event);
+        return eventRepository.createEvent(event);
     }
 }

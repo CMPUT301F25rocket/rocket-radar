@@ -8,6 +8,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.rocket.radar.R;
 
+import org.checkerframework.common.returnsreceiver.qual.This;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -54,12 +56,16 @@ public class EventRepository {
         return eventsLiveData;
     }
 
-    // This method adds a new event to Firestore.
-    public void createEvent(Event event) {
+    /**
+     * This method adds a new event to Firestore.
+     * @return The UUID of the created event.
+     */
+    public String createEvent(Event event) {
         // Use the event's title as the document ID for simplicity, or use .add() for auto-ID
         eventRef.document(event.getEventTitle()).set(event)
                 .addOnSuccessListener(aVoid -> Log.d(TAG, "Event successfully written: " + event.getEventTitle()))
                 .addOnFailureListener(e -> Log.e(TAG, "Error writing event", e));
+        return event.getEventId();
     }
 
     // Helper to add all the dummy data to Firestore

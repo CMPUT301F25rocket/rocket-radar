@@ -2,9 +2,11 @@ package com.rocket.radar.qr;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -25,9 +27,12 @@ import java.io.IOException;
 public class QRDialog extends DialogFragment {
     public static final String TAG = QRDialog.class.getSimpleName();
     private final Bitmap bitmap;
+    private final BitmapDrawable drawable;
 
-    public QRDialog(String eventId) {
+    public QRDialog(Context context, String eventId) {
         bitmap = QRGenerator.generate(eventId);
+        drawable = new BitmapDrawable(context.getResources(), bitmap);
+        drawable.getPaint().setFilterBitmap(false);
     }
 
     @NonNull
@@ -36,7 +41,7 @@ public class QRDialog extends DialogFragment {
         Activity activity = requireActivity();
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(activity);
         DialogQrcodeBinding binding = DialogQrcodeBinding.inflate(activity.getLayoutInflater());
-        binding.qrCodeImageView.setImageBitmap(bitmap);
+        binding.qrCodeImageView.setImageDrawable(drawable);
 
         return builder.setView(binding.getRoot())
                 .setNegativeButton("Cancel", this::buttonClick)

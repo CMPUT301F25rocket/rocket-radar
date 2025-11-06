@@ -1,5 +1,7 @@
 package com.rocket.radar.eventmanagement;
 
+import androidx.annotation.NonNull;
+
 import java.util.Date;
 
 public class Time {
@@ -33,5 +35,11 @@ public class Time {
      */
     public void setMinute(int minute) {
         this.minute = minute % 60;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return Integer.toString(hour) + ":" + Integer.toString(minute);
     }
 }

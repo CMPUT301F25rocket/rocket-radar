@@ -5,9 +5,14 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.MutableLiveData;
@@ -64,17 +69,20 @@ public class CreateEventActivity extends AppCompatActivity {
         binding.createEventWizardNavRightButton.setOnClickListener(btn -> {
             if (model.getSection().getValue() == Section.lastSection) {
                 try {
-                    model.createEvent(eventRepository);
-                } catch (NoSuchElementException e) {
+                    String uuid = model.createEvent(getContentResolver(), eventRepository);
+                    Intent intent = new Intent(CreateEventActivity.this, MainActivity.class);
+                    intent.setAction(getString(R.string.intent_action_show_qr));
+                    intent.putExtra("eventId", uuid);
+                    startActivity(intent);
+                } catch (Exception e) {
                     MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(CreateEventActivity.this);
                     builder.setTitle("Something went wrong")
+                            .setMessage(e.toString())
                             .setNeutralButton("Ok", (dialogInterface, which) -> {
                                 dialogInterface.dismiss();
                             });
                     return;
                 }
-                Intent intent = new Intent(CreateEventActivity.this, MainActivity.class);
-                startActivity(intent);
             } else {
                 model.nextSection();
             }
@@ -262,10 +270,27 @@ public class CreateEventActivity extends AppCompatActivity {
                 sheet.onPositive(selected -> {
                     Color color = Color.valueOf(selected);
                     model.color.setValue(Optional.of(color));
+                    pickColor.setBackgroundColor(color.toArgb());
                     return Unit.INSTANCE;
                 });
                 return Unit.INSTANCE;
             });
+        });
+
+        ImageView bannerImage = binding.getRoot().findViewById(R.id.inputEventStylePickImage);
+        // https://developer.android.com/training/data-storage/shared/photo-picker#java
+        ActivityResultLauncher<PickVisualMediaRequest> pickMedia =
+            registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
+            if (uri != null) {
+                bannerImage.setImageURI(uri);
+            }
+        });
+        bannerImage.setOnClickListener(view -> {
+            pickMedia.launch(new PickVisualMediaRequest.Builder()
+                    .setMediaType(ActivityResultContracts
+                    .PickVisualMedia.ImageOnly.INSTANCE)
+                    .build()
+            );
         });
     }
 
