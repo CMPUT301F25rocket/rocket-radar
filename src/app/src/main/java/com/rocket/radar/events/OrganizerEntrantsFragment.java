@@ -6,15 +6,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
 import android.widget.Toast;
+import android.widget.ListView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+
+
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -56,12 +59,12 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
     private View dialogScrim;
     private EditText notificationTitleInput, notificationBodyInput;
     private TabLayout tabs;
-    private RecyclerView entrantsRecyclerView;
+
     private EntrantAdapter entrantAdapter;
 
     // --- START OF CHANGE: Separate lists for all entrants and filtered entrants ---
-    private List<CheckIn> allEntrantsList = new ArrayList<>();
-    private List<CheckIn> filteredEntrantsList = new ArrayList<>();
+    private ArrayList<String> allEntrantsList = new ArrayList<>();
+    private ArrayList<String> filteredEntrantsList = new ArrayList<>();
     // --- END OF CHANGE ---
 
     private final Map<String, Marker> userMarkers = new HashMap<>();
@@ -100,10 +103,11 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         setupBottomSheet(view);
         setupTabs(view);
         setupActionBars();
-        setupRecyclerView(); // Use the new filtered list
         setupButtons(view);
         setupDialog(view);
     }
+
+
 
     @Override
     public void onResume() {
@@ -166,62 +170,36 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
             return;
         }
 
-        String currentFilter = tab.getText().toString();
-        String statusToFilterBy;
-
-        switch (currentFilter) {
-            case "On Waitlist":
-                statusToFilterBy = "waitlist";
-                break;
-            case "Attending":
-                statusToFilterBy = "attending";
-                break;
-            case "Invited":
-                statusToFilterBy = "invited";
-                break;
-            case "Cancelled":
-                statusToFilterBy = "cancelled";
-                break;
-            default:
-                statusToFilterBy = ""; // Show none if unknown
-                break;
-        }
-
-        // Filter the main list into the displayed list
-        String finalStatusToFilterBy = statusToFilterBy;
+        String statusToFilterBy = getStatusStringForTab(tab);
         filteredEntrantsList.clear();
-        filteredEntrantsList.addAll(
-                allEntrantsList.stream()
-                        .filter(c -> finalStatusToFilterBy.equals(c.getStatus()))
-                        .collect(Collectors.toList())
-        );
 
-        // Update the RecyclerView adapter
-        if (entrantAdapter != null) {
-            entrantAdapter.notifyDataSetChanged();
-        }
-
-        // Clear the map and show only pins for the filtered users
-        if (googleMap != null) {
-            googleMap.clear();
-            userMarkers.clear();
-            for (CheckIn checkIn : filteredEntrantsList) {
-                GeoPoint geoPoint = checkIn.getSignupLocation();
-                if (geoPoint != null) {
-                    LatLng position = new LatLng(geoPoint.getLatitude(), geoPoint.getLongitude());
-                    Marker marker = googleMap.addMarker(new MarkerOptions()
-                            .position(position)
-                            .title(checkIn.getUserName())
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-                    if (marker != null) {
-                        userMarkers.put(checkIn.getUserId(), marker);
-                    }
+        // Filter the allEntrantsList into the filteredEntrantsList
+        if (statusToFilterBy != null) {
+            for (CheckIn checkIn : allEntrantsList) {
+                if (statusToFilterBy.equals(checkIn.getStatus())) {
+                    filteredEntrantsList.add(checkIn);
                 }
             }
+        }
+
+        // Notify the adapter that the data has changed
+        if (entrantAdapter != null) {
+            entrantAdapter.notifyDataSetChanged();
         }
         Log.d(TAG, "Filtered and displayed " + filteredEntrantsList.size() + " users for status: " + statusToFilterBy);
     }
     // --- END OF NEW METHOD ---
+
+    private String getStatusStringForTab(TabLayout.Tab tab) {
+        if (tab == null || tab.getText() == null) return null;
+        switch (tab.getText().toString()) {
+            case "On Waitlist": return "waitlisted";
+            case "Invited": return "invited";
+            case "Attending": return "attending";
+            case "Cancelled": return "cancelled";
+            default: return null;
+        }
+    }
 
     @Override
     public void onEntrantClick(CheckIn checkIn) {
@@ -245,19 +223,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         }
     }
 
-    private void setupRecyclerView() {
-        if (bottomSheet == null) return;
-        entrantsRecyclerView = bottomSheet.findViewById(R.id.entrants_recycler_view);
-        if (entrantsRecyclerView != null) {
-            entrantsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-            // --- START OF CHANGE: Adapter now uses the filtered list ---
-            entrantAdapter = new EntrantAdapter(filteredEntrantsList, this);
-            // --- END OF CHANGE ---
-            entrantsRecyclerView.setAdapter(entrantAdapter);
-        } else {
-            Log.e(TAG, "CRITICAL: entrants_recycler_view could not be found within the bottom sheet.");
-        }
-    }
+
 
     private void setupActionBars() {
         if (bottomSheet == null) return;
