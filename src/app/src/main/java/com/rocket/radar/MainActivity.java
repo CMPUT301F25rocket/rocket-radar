@@ -151,8 +151,7 @@ public class MainActivity extends AppCompatActivity {
 
                         navController.navigate(R.id.action_first_time_login_main);
                         Log.d(TAG, "First-time user detected. Creating default profile for UID: " + uid);
-                        ProfileModel defaultProfile = new ProfileModel(uid, "Anonymous User", "", "", null, true, true, false);
-                        profileViewModel.updateProfile(defaultProfile);
+
                     } else {
                         // The profile exists. We don't need to do anything here anymore.
                         Log.d(TAG, "Profile data received for user: " + profile.getUid());
@@ -162,20 +161,7 @@ public class MainActivity extends AppCompatActivity {
             isObserverInitialized = true;
         }
     }
-    public void onResume() {
-        super.onResume();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        setBottomNavigationVisibility(android.view.View.VISIBLE);
-        if (currentUser == null) {
-            Log.w(TAG, "onResume: No user detected, signing in anonymously again.");
-            signInAnonymously();
-        } else {
-            Log.d(TAG, "onResume: Existing user still valid: " + currentUser.getUid());
-            // Optionally re-sync profile to keep LiveData fresh
-            profileViewModel.setUserIdForProfileListener(currentUser.getUid());
-        }
 
-    }
 
     public void setBottomNavigationVisibility(int visibility) {
         if (navBarBinding != null && navBarBinding.bottomNavigationView != null) {

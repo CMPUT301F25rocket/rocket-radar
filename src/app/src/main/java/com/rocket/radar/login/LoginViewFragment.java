@@ -11,12 +11,13 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
 
 
 public class LoginViewFragment extends Fragment {
-
+    FirebaseAuth mAuth;
     private Button button_start_scanning;
     private Button button_criteria;
 
