@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCallback, EntrantAdapter.OnEntrantClickListener {
+public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCallback {
 
     private static final String ARG_EVENT = "event";
     private static final String TAG = "OrganizerEntrants";
@@ -67,7 +67,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
     private EditText notificationTitleInput, notificationBodyInput;
     private TabLayout tabs;
 
-    private EntrantAdapter entrantAdapter;
+    //private EntrantAdapter entrantAdapter;
 
     private ArrayList<String> allEntrantsList = new ArrayList<>();
     private ArrayList<String> filteredEntrantsList = new ArrayList<>();
@@ -149,39 +149,39 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         googleMap = map;
         LatLng edmonton = new LatLng(53.5461, -113.4938);
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(edmonton, 10f));
-        fetchAndDisplayCheckInLocations(); // This will now fetch ALL users
+        // fetchAndDisplayCheckInLocations(); // This will now fetch ALL users
     }
 
-    private void fetchAndDisplayCheckInLocations() {
-        if (event == null || event.getEventTitle() == null) {
-            Log.e(TAG, "Event is null, cannot fetch check-ins.");
-            return;
-        }
-
-        FirebaseFirestore.getInstance()
-                .collection("events").document(event.getEventTitle())
-                .collection("checkins")
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        allEntrantsList.clear();
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            CheckIn checkIn = document.toObject(CheckIn.class);
-                            // Store every fetched entrant
-                            allEntrantsList.add(checkIn);
-                        }
-                        Log.d(TAG, "Fetched " + allEntrantsList.size() + " total entrants.");
-
-                        // After fetching, apply the initial filter based on the current tab
-                        if (tabs != null) {
-                            filterAndDisplayEntrants(tabs.getTabAt(tabs.getSelectedTabPosition()));
-                        }
-
-                    } else {
-                        Log.w(TAG, "Error getting check-in documents.", task.getException());
-                    }
-                });
-    }
+//    private void fetchAndDisplayCheckInLocations() {
+//        if (event == null || event.getEventTitle() == null) {
+//            Log.e(TAG, "Event is null, cannot fetch check-ins.");
+//            return;
+//        }
+//
+//        FirebaseFirestore.getInstance()
+//                .collection("events").document(event.getEventTitle())
+//                .collection("checkins")
+//                .get()
+//                .addOnCompleteListener(task -> {
+//                    if (task.isSuccessful()) {
+//                        allEntrantsList.clear();
+//                        for (QueryDocumentSnapshot document : task.getResult()) {
+//                            CheckIn checkIn = document.toObject(CheckIn.class);
+//                            // Store every fetched entrant
+//                            allEntrantsList.add(checkIn);
+//                        }
+//                        Log.d(TAG, "Fetched " + allEntrantsList.size() + " total entrants.");
+//
+//                        // After fetching, apply the initial filter based on the current tab
+//                        if (tabs != null) {
+//                            filterAndDisplayEntrants(tabs.getTabAt(tabs.getSelectedTabPosition()));
+//                        }
+//
+//                    } else {
+//                        Log.w(TAG, "Error getting check-in documents.", task.getException());
+//                    }
+//                });
+//    }
 
 
     private void filterAndDisplayEntrants(TabLayout.Tab tab) {
@@ -269,17 +269,31 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         }
     }
 
-    @Override
-    public void onEntrantClick(CheckIn checkIn) {
-        Marker marker = userMarkers.get(checkIn.getUserId());
-        if (googleMap != null && marker != null) {
-            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 15f));
-            marker.showInfoWindow();
-            Toast.makeText(getContext(), "Showing location for " + checkIn.getUserName(), Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(getContext(), "Location not available for this user.", Toast.LENGTH_SHORT).show();
-        }
+
+
+    private void onEntrantListItemClick(String userId) {
+
+        eventRepository.getUserLocationFromWaitlist(userId, event.getEventTitle(), new EventRepository.UserLocationCallback() {
+
+            @Override
+            public void onLocationFetched(GeoPoint location) {
+                if (googleMap != null && location != null) {
+                    LatLng userLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15f));
+                    Toast.makeText(getContext(), "Showing location for " + userId, Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), "Location not available for this user.", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Log.e(TAG, "Error fetching user location for " + userId, e);
+                Toast.makeText(getContext(), "Could not retrieve location.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
+
 
     private void setupBottomSheet(View view) {
         bottomSheet = view.findViewById(R.id.bottom_sheet);
