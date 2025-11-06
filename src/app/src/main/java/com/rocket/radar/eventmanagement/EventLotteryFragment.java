@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.rocket.radar.databinding.ViewInputEventLotteryBinding;
+import com.rocket.radar.events.Event;
 
 import java.util.Optional;
 
@@ -21,7 +22,7 @@ import java.util.Optional;
  * Fragment for the Lottery section of the event creation wizard.
  * Handles input for waitlist capacity, event capacity, location requirement, and lottery date/time.
  */
-public class EventLotteryFragment extends Fragment {
+public class EventLotteryFragment extends Fragment implements InputFragment {
     private static final String TAG = EventLotteryFragment.class.getSimpleName();
     private ViewInputEventLotteryBinding binding;
     private CreateEventModel model;
@@ -116,6 +117,17 @@ public class EventLotteryFragment extends Fragment {
         binding.lotterySectionTimeInput.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) bottomSheetProvider.openTimeBottomSheet(model.lotteryTime, v);
         });
+    }
+
+    @Override
+    public boolean valid(InputFragment inputFragment) {
+        return false;
+    }
+
+
+    @Override
+    public Event.Builder extract(Event.Builder builder) {
+        return null;
     }
 
     @Override

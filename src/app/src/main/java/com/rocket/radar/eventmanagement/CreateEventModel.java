@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import android.view.View;
 
+import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
@@ -166,7 +167,9 @@ public class CreateEventModel extends ViewModel {
         else return "Next";
     }
 
-    public void nextSection() {
+    public void nextSection(InputFragment fragment) {
+        if (!fragment.valid(fragment)) return;
+
         Section current = section.getValue();
         if (current == Section.lastSection) {
             return;

@@ -17,6 +17,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.maxkeppeler.sheets.color.ColorSheet;
 import com.maxkeppeler.sheets.core.SheetStyle;
 import com.rocket.radar.databinding.ViewInputEventStyleBinding;
+import com.rocket.radar.events.Event;
 
 import java.util.Optional;
 
@@ -26,7 +27,7 @@ import kotlin.Unit;
  * Fragment for the Style section of the event creation wizard.
  * Handles input for event banner image and color theme.
  */
-public class EventStyleFragment extends Fragment {
+public class EventStyleFragment extends Fragment implements InputFragment {
     private static final String TAG = EventStyleFragment.class.getSimpleName();
     private ViewInputEventStyleBinding binding;
     private CreateEventModel model;
@@ -94,6 +95,16 @@ public class EventStyleFragment extends Fragment {
                     .build()
             );
         });
+    }
+
+    @Override
+    public boolean valid(InputFragment inputFragment) {
+        return false;
+    }
+
+    @Override
+    public Event.Builder extract(Event.Builder builder) {
+        return null;
     }
 
     @Override

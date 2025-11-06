@@ -12,12 +12,13 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.rocket.radar.databinding.ViewInputEventDatetimeBinding;
+import com.rocket.radar.events.Event;
 
 /**
  * Fragment for the Date & Time section of the event creation wizard.
  * Handles input for event date, start time, and end time.
  */
-public class EventDateTimeFragment extends Fragment {
+public class EventDateTimeFragment extends Fragment implements InputFragment {
     private static final String TAG = EventDateTimeFragment.class.getSimpleName();
     private ViewInputEventDatetimeBinding binding;
     private CreateEventModel model;
@@ -73,6 +74,17 @@ public class EventDateTimeFragment extends Fragment {
         binding.inputEventDatetimeEndTextInput.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) bottomSheetProvider.openTimeBottomSheet(model.eventEndTime, v);
         });
+    }
+
+
+    @Override
+    public boolean valid(InputFragment inputFragment) {
+        return false;
+    }
+
+    @Override
+    public Event.Builder extract(Event.Builder builder) {
+        return null;
     }
 
     @Override

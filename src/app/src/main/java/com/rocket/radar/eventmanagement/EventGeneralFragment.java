@@ -11,12 +11,13 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.rocket.radar.databinding.ViewInputEventGeneralBinding;
+import com.rocket.radar.events.Event;
 
 /**
  * Fragment for the General section of the event creation wizard.
  * Handles input for event title and description.
  */
-public class EventGeneralFragment extends Fragment {
+public class EventGeneralFragment extends Fragment implements InputFragment {
     private ViewInputEventGeneralBinding binding;
     private CreateEventModel model;
 
@@ -37,6 +38,22 @@ public class EventGeneralFragment extends Fragment {
         // Bind the model to the view
         binding.setCreateEvent(model);
         binding.setLifecycleOwner(getViewLifecycleOwner());
+    }
+
+    @Override
+    public boolean valid(InputFragment inputFragment) {
+        String title = this.model.title.getValue();
+        String descr = this.model.description.getValue();
+
+        return (title != null && !title.isBlank())
+                && (descr != null && !descr.isBlank());
+    }
+
+
+    @Override
+    public Event.Builder extract(Event.Builder builder) {
+        return builder.title(this.model.title.getValue())
+                .description(this.model.description.getValue());
     }
 
     @Override

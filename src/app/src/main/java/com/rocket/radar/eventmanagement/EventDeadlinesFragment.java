@@ -12,12 +12,13 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.rocket.radar.databinding.ViewInputEventDeadlinesBinding;
+import com.rocket.radar.events.Event;
 
 /**
  * Fragment for the Deadlines section of the event creation wizard.
  * Handles input for registration periods, selection periods, and final decision date.
  */
-public class EventDeadlinesFragment extends Fragment {
+public class EventDeadlinesFragment extends Fragment implements InputFragment {
     private static final String TAG = EventDeadlinesFragment.class.getSimpleName();
     private ViewInputEventDeadlinesBinding binding;
     private CreateEventModel model;
@@ -83,6 +84,16 @@ public class EventDeadlinesFragment extends Fragment {
         binding.eventDeadlineFinalDecisionDate.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) bottomSheetProvider.openCalendarBottomSheet(model.finalAttendeeSelectionDate, v);
         });
+    }
+
+    @Override
+    public boolean valid(InputFragment inputFragment) {
+        return false;
+    }
+
+    @Override
+    public Event.Builder extract(Event.Builder builder) {
+        return null;
     }
 
     @Override

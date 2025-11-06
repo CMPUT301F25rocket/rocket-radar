@@ -54,6 +54,14 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
     CreateEventModel model;
     EventRepository eventRepository;
 
+    private EventGeneralFragment eventGeneralFragment;
+    private EventDateTimeFragment eventDateTimeFragment;
+    private EventDeadlinesFragment eventDeadlinesFragment;
+    private EventLotteryFragment eventLotteryFragment;
+    private EventStyleFragment eventStyleFragment;
+
+    private Fragment fragment;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +71,13 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
         // WARN: Make sure when you create variables you call setMyVarName(...) on the binding.
         binding = ActivityCreateEventBinding.inflate(getLayoutInflater());
         model = new CreateEventModel();
+
+        // NOTE: may be better to lazy load these but I don't want to.
+        eventGeneralFragment = new EventGeneralFragment();
+        eventDateTimeFragment = new EventDateTimeFragment();
+        eventDeadlinesFragment = new EventDeadlinesFragment();
+        eventLotteryFragment = new EventLotteryFragment();
+        eventStyleFragment = new EventStyleFragment();
 
         // Main navigation buttons
         binding.createEventWizardNavLeftButton.setOnClickListener(btn -> {
@@ -88,12 +103,17 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
                             .show();
                 }
             } else {
-                model.nextSection();
+                if (fragment instanceof InputFragment) {
+                    model.nextSection((InputFragment) fragment);
+                } else {
+                    Log.e(TAG, "Fragment " + fragment.getTag() + " is not an input fragment");
+                }
             }
         });
 
         setContentView(binding.getRoot());
         EdgeToEdge.enable(this);
+
 
         // Bind the model to the views.
         binding.setCreateEvent(model);
@@ -111,23 +131,22 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
      * @param section The section to navigate to
      */
     private void navigateToSection(Section section) {
-        Fragment fragment;
 
         switch (section) {
             case GENERAL:
-                fragment = new EventGeneralFragment();
+                fragment = eventGeneralFragment;
                 break;
             case DATETIME:
-                fragment = new EventDateTimeFragment();
+                fragment = eventDateTimeFragment;
                 break;
             case DEADLINES:
-                fragment = new EventDeadlinesFragment();
+                fragment = eventDeadlinesFragment;
                 break;
             case LOTTERY:
-                fragment = new EventLotteryFragment();
+                fragment = eventLotteryFragment;
                 break;
             case STYLE:
-                fragment = new EventStyleFragment();
+                fragment = eventStyleFragment;
                 break;
             default:
                 Log.e(TAG, "Unknown section: " + section);
@@ -139,6 +158,11 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
                 .commit();
     }
 
+    /**
+     * This is a helper function that opens a date picker on the activity.
+     * @param sink The MutableLiveData to update with the selected date
+     * @param view The view that triggered the picker (for focus management)
+     */
     @Override
     public void openCalendarBottomSheet(MutableLiveData<Optional<Date>> sink, View view) {
         CalendarSheet calendarSheet = new CalendarSheet();
@@ -169,6 +193,11 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
         });
     }
 
+    /**
+     * This is a helper function that displays a time picker on the activity.
+     * @param sink The MutableLiveData to update with the selected time
+     * @param view The view that triggered the picker (for focus management)
+     */
     @Override
     public void openTimeBottomSheet(MutableLiveData<Optional<Time>> sink, View view) {
         ClockSheet clockSheet = new ClockSheet();
