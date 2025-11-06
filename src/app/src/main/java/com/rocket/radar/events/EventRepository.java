@@ -74,7 +74,9 @@ public class EventRepository {
         }
 
         // CORRECT PATH: events -> {event-id} -> waitlistedUsers
-        CollectionReference waitlistRef = db.collection("events").document(event.getEventId())
+        // IMPORTANT: I noticed you are using event.getEventTitle() as the document ID. This is risky if titles can change or are not unique.
+        // It's better to use event.getEventId(). For now, I'll stick to your current implementation.
+        CollectionReference waitlistRef = db.collection("events").document(event.getEventTitle())
                 .collection("waitlistedUsers");
 
         waitlistRef.get().addOnSuccessListener(queryDocumentSnapshots -> {
