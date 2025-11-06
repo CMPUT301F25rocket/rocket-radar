@@ -12,4 +12,5 @@
     <string name="filter_view_qr">View QR</string>
     <string name="my_google_api_key">AIzaSyDGG-HGaYV19KxN23NtH6ccAOP0aNOejY0</string>
     <string name="criteria_and_guidelines">By downloading this app you agree to the following criteria:\n\n1. You are at least 18 years old.\n2. You will not use the app for any illegal activities.\n3. You will respect the privacy of others while using the app.\n4. You understand that the app is provided as-is without any warranties.\n5. You agree to comply with all applicable laws and regulations while using the app.</string>
+    <string name="criteria_and_guidelines_title"><u>Criteria and Guidelines</u></string>
 </resources>

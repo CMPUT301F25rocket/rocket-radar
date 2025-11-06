@@ -9,21 +9,16 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer; // Import Observer
-import androidx.lifecycle.ViewModelProvider;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.rocket.radar.databinding.NavBarBinding;
 import com.rocket.radar.events.EventRepository;
@@ -119,6 +114,7 @@ public class MainActivity extends AppCompatActivity {
 
         // **FIX**: Move the updateLastLogin call here. It now runs only once upon sign-in.
         Log.d(TAG, "User signed in with UID: " + uid + ". Updating last login time.");
+
         profileViewModel.updateLastLogin(uid);
 
         // Explicitly tell the ViewModel to start listening for this user's profile.
@@ -132,6 +128,10 @@ public class MainActivity extends AppCompatActivity {
                     // The observer's only job now is to create a profile if one doesn't exist.
                     if (profile == null) {
                         // The snapshot listener returned null, meaning this is a first-time user.
+                        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
+                                .findFragmentById(R.id.nav_host_fragment);
+                        NavController navController = navHostFragment.getNavController();
+                        navController.navigate(R.id.action_first_time_login_main);
                         Log.d(TAG, "First-time user detected. Creating default profile for UID: " + uid);
                         ProfileModel defaultProfile = new ProfileModel(uid, "Anonymous User", "", "", null, true, true, false);
                         profileViewModel.updateProfile(defaultProfile);

@@ -1,4 +1,6 @@
 package com.rocket.radar.login;
 
-public class LoginModel {
+import androidx.lifecycle.ViewModel;
+
+public class LoginModel extends ViewModel {
 }

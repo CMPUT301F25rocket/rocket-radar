@@ -5,7 +5,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -27,13 +26,10 @@ public class LoginViewFragment extends Fragment {
         button_start_scanning = view.findViewById(R.id.button_start_scanning);
         button_criteria = view.findViewById(R.id.button_criteria);
         button_start_scanning.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "You clicked", Toast.LENGTH_SHORT).show();
-            NavHostFragment.findNavController(this).navigate(R.id.action_login_main_to_login_criteria);
+            NavHostFragment.findNavController(this).navigate(R.id.action_login_main_to_login_start_scanning);
 
         });
         button_criteria.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "You clicked", Toast.LENGTH_SHORT).show();
-
             NavHostFragment.findNavController(this).navigate(R.id.action_login_main_to_login_criteria);
 
         });
