@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.SimpleAdapter;
 import android.widget.Toast;
 import android.widget.ListView;
 
@@ -39,6 +40,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+
+import kotlinx.serialization.descriptors.PrimitiveKind;
 
 public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCallback {
 
@@ -48,9 +52,10 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
     private GoogleMap googleMap;
     private BottomSheetBehavior<MaterialCardView> bottomSheetBehavior;
 
+    private static final String TUPLE_NAME_KEY = "name";
     private ListView entrantsListView;
-    private ArrayAdapter<String> entrantsAdapter;
-    private ArrayList<String> currentEntrants;
+    private SimpleAdapter entrantsAdapter;
+    private ArrayList<Map<String, String>> currentEntrants; // Each map is a tuple: {"name": name, "id": id}
 
     private Event event;
     private EventRepository eventRepository;
@@ -93,6 +98,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         notificationRepository = new NotificationRepository();
         profileRepository = new ProfileRepository();
         eventRepository = new EventRepository();
+
         currentEntrants = new ArrayList<>();
     }
 
@@ -109,17 +115,19 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
 
         entrantsListView = view.findViewById(R.id.entrants_list);
         if (entrantsListView != null) {
-            entrantsAdapter = new ArrayAdapter<>(
+            entrantsAdapter = new SimpleAdapter(
                     requireContext(),
+                    currentEntrants,
                     android.R.layout.simple_list_item_1,
-                    currentEntrants
+                    new String[]{TUPLE_NAME_KEY},
+                    new int[]{android.R.id.text1}
             );
             entrantsListView.setAdapter(entrantsAdapter);
 
             // --- START OF FIX: Set the item click listener ---
             entrantsListView.setOnItemClickListener((parent, view1, position, id) -> {
-                // Get the user ID (which is the string at the clicked position)
-                String userId = currentEntrants.get(position);
+                // Get the user ID from the tuple at the clicked position
+                String userId = currentEntrants.get(position).get("id");
 
                 // Call your existing method to handle the logic
                 onEntrantListItemClick(userId);
@@ -241,7 +249,12 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                     }
 
                     // Start the asynchronous call to get data from Firestore
-                    eventRepository.getWaitlistEntrants(event.getEventTitle(), new EventRepository.WaitlistEntrantsCallback() {
+                    eventRepository.getWaitlistSize(event, new EventRepository.WaitlistSizeListener() {
+                        @Override
+                        public void onSizeReceived(int size) {
+                            
+                        }
+
                         @Override
                         public void onWaitlistEntrantsFetched(List<String> userIds) {
                             // This code runs when the data is successfully fetched.
@@ -251,7 +264,15 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                                 return;
                             }
 
-                            ArrayList<String> userNames = new ArrayList<>();
+                            // Create placeholder tuples with just the ID
+                            for (String userId : userIds) {
+                                Map<String, String> entrantTuple = new HashMap<>();
+                                entrantTuple.put("id", userId);
+                                entrantTuple.put(TUPLE_NAME_KEY, "Loading..."); // Placeholder name
+                                currentEntrants.add(entrantTuple);
+                            }
+                            entrantsAdapter.notifyDataSetChanged(); // Show loading state
+
                             // Use an array to make the counter 'final' for use in the inner class
                             final int[] profilesToFetch = {userIds.size()};
 
@@ -259,12 +280,12 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                                 profileRepository.readProfile(userId, new ProfileRepository.ReadCallback() {
                                     @Override
                                     public void onProfileLoaded(ProfileModel profile) {
-                                        userNames.add(profile.getName());
                                         Log.d(TAG, "Fetched user name: " + profile.getName());
+                                        // Find the tuple with this ID and update its name
+                                        updateEntrantName(userId, profile.getName());
                                         profilesToFetch[0]--; // Decrement the counter
                                         // If this was the last profile to fetch, update the UI
                                         if (profilesToFetch[0] == 0) {
-                                            currentEntrants.addAll(userNames);
                                             entrantsAdapter.notifyDataSetChanged();
                                         }
                                     }
@@ -273,6 +294,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                                     public void onError(Exception e) {
                                         Log.e(TAG, "Error fetching user profile", e);
                                         profilesToFetch[0]--; // Also decrement on error to avoid getting stuck
+                                        updateEntrantName(userId, "Error Loading Name");
                                     }
                                 });
                             }
@@ -306,23 +328,31 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                                 return;
                             }
 
-                            ArrayList<String> userNames = new ArrayList<>();
+                            // Create placeholder tuples
+                            for (String userId : userIds) {
+                                Map<String, String> entrantTuple = new HashMap<>();
+                                entrantTuple.put("id", userId);
+                                entrantTuple.put(TUPLE_NAME_KEY, "Loading...");
+                                currentEntrants.add(entrantTuple);
+                            }
+                            entrantsAdapter.notifyDataSetChanged();
+
                             final int[] profilesToFetch = {userIds.size()};
 
                             for (String userId : userIds) {
                                 profileRepository.readProfile(userId, new ProfileRepository.ReadCallback() {
                                     @Override
                                     public void onProfileLoaded(ProfileModel profile) {
-                                        userNames.add(profile.getName());
+                                        updateEntrantName(userId, profile.getName());
                                         profilesToFetch[0]--;
                                         if (profilesToFetch[0] == 0) {
-                                            currentEntrants.addAll(userNames);
                                             entrantsAdapter.notifyDataSetChanged();
                                         }
                                     }
 
                                     @Override
                                     public void onError(Exception e) {
+                                        updateEntrantName(userId, "Error Loading Name");
                                         Log.e(TAG, "Error fetching user profile for invited", e);
                                         profilesToFetch[0]--;
                                     }
@@ -355,22 +385,29 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                                 return;
                             }
 
-                            ArrayList<String> userNames = new ArrayList<>();
+                            for (String userId : userIds) {
+                                Map<String, String> entrantTuple = new HashMap<>();
+                                entrantTuple.put("id", userId);
+                                entrantTuple.put(TUPLE_NAME_KEY, "Loading...");
+                                currentEntrants.add(entrantTuple);
+                            }
+                            entrantsAdapter.notifyDataSetChanged();
+
                             final int[] profilesToFetch = { userIds.size() };
 
                             for (String userId : userIds) {
                                 profileRepository.readProfile(userId, new ProfileRepository.ReadCallback() {
                                     @Override
                                     public void onProfileLoaded(ProfileModel profile) {
-                                        userNames.add(profile.getName());
+                                        updateEntrantName(userId, profile.getName());
                                         if (--profilesToFetch[0] == 0) {
-                                            currentEntrants.addAll(userNames);
                                             entrantsAdapter.notifyDataSetChanged();
                                         }
                                     }
 
                                     @Override
                                     public void onError(Exception e) {
+                                        updateEntrantName(userId, "Error Loading Name");
                                         Log.e(TAG, "Error fetching user profile for selected", e);
                                         profilesToFetch[0]--;
                                     }
@@ -402,23 +439,30 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                                 return;
                             }
 
-                            ArrayList<String> userNames = new ArrayList<>();
+                            for (String userId : userIds) {
+                                Map<String, String> entrantTuple = new HashMap<>();
+                                entrantTuple.put("id", userId);
+                                entrantTuple.put(TUPLE_NAME_KEY, "Loading...");
+                                currentEntrants.add(entrantTuple);
+                            }
+                            entrantsAdapter.notifyDataSetChanged();
+
                             final int[] profilesToFetch = {userIds.size()};
 
                             for (String userId : userIds) {
                                 profileRepository.readProfile(userId, new ProfileRepository.ReadCallback() {
                                     @Override
                                     public void onProfileLoaded(ProfileModel profile) {
-                                        userNames.add(profile.getName());
+                                        updateEntrantName(userId, profile.getName());
                                         profilesToFetch[0]--;
                                         if (profilesToFetch[0] == 0) {
-                                            currentEntrants.addAll(userNames);
                                             entrantsAdapter.notifyDataSetChanged();
                                         }
                                     }
 
                                     @Override
                                     public void onError(Exception e) {
+                                        updateEntrantName(userId, "Error Loading Name");
                                         Log.e(TAG, "Error fetching user profile for cancelled", e);
                                         profilesToFetch[0]--;
                                     }
@@ -445,6 +489,15 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         }
     }
 
+    private void updateEntrantName(String userId, String name) {
+        for (Map<String, String> entrant : currentEntrants) {
+            if (Objects.equals(entrant.get("id"), userId)) {
+                entrant.put(TUPLE_NAME_KEY, name);
+                return;
+            }
+        }
+    }
+
     private String getStatusStringForTab(TabLayout.Tab tab) {
         if (tab == null || tab.getText() == null) return null;
         switch (tab.getText().toString()) {
@@ -464,6 +517,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
 
 
     private void onEntrantListItemClick(String userId) {
+
 
         eventRepository.getUserLocationFromWaitlist(userId, event.getEventTitle(), new EventRepository.UserLocationCallback() {
 
@@ -565,7 +619,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
             case "Invited":
                 invitedActions.setVisibility(View.VISIBLE);
                 break;
-            case "Selected":
+            case "Attending":
                 selectedActions.setVisibility(View.VISIBLE);
                 break;
             case "Cancelled":
