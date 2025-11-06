@@ -27,6 +27,9 @@ public class ProfileViewModel extends ViewModel {
         return this.profileLiveData;
     }
 
+    private final MutableLiveData<Boolean> deleteSuccess = new MutableLiveData<>();
+    public LiveData<Boolean> getDeleteSuccess() { return deleteSuccess; }
+
     public ProfileViewModel() {
         // The listener is no longer set in the constructor.
         // It will be set explicitly when a user is signed in.
@@ -69,6 +72,29 @@ public class ProfileViewModel extends ViewModel {
             }
         });
     }
+    public void deleteProfile(ProfileModel profile) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            Log.e(TAG, "No authenticated user to delete.");
+            deleteSuccess.postValue(false);
+            return;
+        }
+
+        profileRepository.deleteAccount(user, profile, new ProfileRepository.WriteCallback() {
+            @Override
+            public void onSuccess() {
+                Log.d(TAG, "Profile deleted successfully.");
+                deleteSuccess.postValue(true);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Log.e(TAG, "Error deleting profile", e);
+                deleteSuccess.postValue(false);
+            }
+        });
+    }
+
 
 
     public void updateProfile(ProfileModel profile) {
