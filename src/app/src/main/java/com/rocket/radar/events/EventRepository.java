@@ -106,30 +106,30 @@ public class EventRepository {
         }
     }
 
-    public void addUserToWaitlist(Event event, String userId, GeoPoint location){
+    public void addUserToWaitlist(Event event, String userId, GeoPoint location) {
         if (event == null || event.getEventId() == null) {
             Log.e(TAG, "Event is null or has no ID.");
             return;
-        }
-        else {
+        } else {
             // --- START OF FIX ---
             // 1. Get the correct path: events -> {event-id} -> waitlistedUsers -> {user-id}
             DocumentReference waitlistRef = db.collection("events").document(event.getEventId())
                     .collection("waitlistedUsers").document(userId);
 
-        Map<String, Object> checkinData = new HashMap<>();
-        checkinData.put("userId", userId);
-        checkinData.put("signupTimestamp", FieldValue.serverTimestamp());
-        // Only add the location if it's not null
-        if (location != null) {
-            checkinData.put("signupLocation", location);
-        } else {
-            Log.w(TAG, "User location is null. Not adding to check-in document.");
-        }
+            Map<String, Object> checkinData = new HashMap<>();
+            checkinData.put("userId", userId);
+            checkinData.put("signupTimestamp", FieldValue.serverTimestamp());
+            // Only add the location if it's not null
+            if (location != null) {
+                checkinData.put("signupLocation", location);
+            } else {
+                Log.w(TAG, "User location is null. Not adding to check-in document.");
+            }
 
-        checkinRef.set(checkinData)
-                .addOnSuccessListener(aVoid -> Log.d(TAG, "User " + userId + " check-in for event " + event.getEventId() + " created."))
-                .addOnFailureListener(e -> Log.e(TAG, "Error creating check-in for user " + userId, e));
+            waitlistRef.set(checkinData)
+                    .addOnSuccessListener(aVoid -> Log.d(TAG, "User " + userId + " check-in for event " + event.getEventId() + " created."))
+                    .addOnFailureListener(e -> Log.e(TAG, "Error creating check-in for user " + userId, e));
+        }
     }
 
     public void removeUserFromWaitlist(Event event, String userId) {
