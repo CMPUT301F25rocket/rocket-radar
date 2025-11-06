@@ -56,6 +56,8 @@ public class EventRepository {
 
     public interface WaitlistSizeListener {
         void onSizeReceived(int size);
+
+        void onWaitlistEntrantsFetched(List<String> userIds);
         void onError(Exception e);
     }
 
@@ -78,6 +80,9 @@ public class EventRepository {
         waitlistRef.get().addOnSuccessListener(queryDocumentSnapshots -> {
             // This code runs when the database call is successful.
             listener.onSizeReceived(queryDocumentSnapshots.size());
+            List<String> userIds = new ArrayList<>();
+            queryDocumentSnapshots.forEach(doc -> userIds.add(doc.getId()));
+            listener.onWaitlistEntrantsFetched(userIds);
         }).addOnFailureListener(e -> {
             // This code runs if the call fails.
             Log.e(TAG, "Error getting waitlist size", e);
@@ -106,31 +111,37 @@ public class EventRepository {
         }
     }
 
-    public void addUserToWaitlist(Event event, String userId, GeoPoint location) {
+    public void addUserToWaitlist(Event event, String userId, GeoPoint location){
         if (event == null || event.getEventId() == null) {
             Log.e(TAG, "Event is null or has no ID.");
             return;
-        } else {
+        }
+        else {
             // --- START OF FIX ---
             // 1. Get the correct path: events -> {event-id} -> waitlistedUsers -> {user-id}
-            DocumentReference waitlistRef = db.collection("events").document(event.getEventId())
+            DocumentReference waitlistRef = db.collection("events").document(event.getEventTitle())
                     .collection("waitlistedUsers").document(userId);
 
-            Map<String, Object> checkinData = new HashMap<>();
-            checkinData.put("userId", userId);
-            checkinData.put("signupTimestamp", FieldValue.serverTimestamp());
-            // Only add the location if it's not null
+            // 2. Create a map to hold some data, like a timestamp.
+            // Firestore documents cannot be completely empty.
+
+            Map<String, Object> waitlistData = new HashMap<>();
+            waitlistData.put("timestamp", FieldValue.serverTimestamp());
             if (location != null) {
-                checkinData.put("signupLocation", location);
+                waitlistData.put("signupLocation", location);
             } else {
                 Log.w(TAG, "User location is null. Not adding to check-in document.");
             }
 
-            waitlistRef.set(checkinData)
-                    .addOnSuccessListener(aVoid -> Log.d(TAG, "User " + userId + " check-in for event " + event.getEventId() + " created."))
-                    .addOnFailureListener(e -> Log.e(TAG, "Error creating check-in for user " + userId, e));
+            // 3. Set the data. If the document already exists, this overwrites it but
+            // that's fine. If it doesn't exist, it is created.
+            waitlistRef.set(waitlistData)
+                    .addOnSuccessListener(aVoid -> Log.d(TAG, "User " + userId + " successfully added to waitlist for event " + event.getEventId()))
+                    .addOnFailureListener(e -> Log.e(TAG, "Error adding user to waitlist", e));
+            // --- END OF FIX ---
         }
     }
+
 
     public void removeUserFromWaitlist(Event event, String userId) {
         if (event == null || event.getEventId() == null) {
@@ -141,7 +152,7 @@ public class EventRepository {
             Log.e(TAG, "User ID is null or empty. Cannot remove user from waitlist.");
             return;
         }
-        DocumentReference userDocumentInWaitlist = db.collection("events").document(event.getEventId())
+        DocumentReference userDocumentInWaitlist = db.collection("events").document(event.getEventTitle())
                 .collection("waitlistedUsers").document(userId);
 
         // 2. Call .delete() on that specific document reference.
@@ -200,24 +211,24 @@ public class EventRepository {
      * @param eventId The ID of the event to fetch the waitlist for.
      * @param callback The callback to handle the success or failure of the operation.
      */
-    public void getWaitlistEntrants(String eventId, WaitlistEntrantsCallback callback) {
-        if (eventId == null || eventId.isEmpty()) {
-            callback.onError(new IllegalArgumentException("Event ID cannot be null or empty."));
-            return;
-        }
-
-        // The path is events -> {eventId} -> waitlistedUsers
-        db.collection("events").document(eventId).collection("waitlistedUsers")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<String> userIds = new ArrayList<>();
-                    // The document ID of each document in the 'waitlistedUsers' subcollection is the user's ID.
-
-                    queryDocumentSnapshots.forEach(doc -> userIds.add(doc.getId()));
-                    callback.onWaitlistEntrantsFetched(userIds);
-                })
-                .addOnFailureListener(callback::onError);
-    }
+//    public void getWaitlistEntrants(Event event, WaitlistEntrantsCallback callback) {
+//        if (event.getEventTitle() == null) {
+//            Log.e(TAG, "Event is null or has no title.");
+//            return;
+//        }
+//
+//        // The path is events -> {eventId} -> waitlistedUsers
+//        db.collection("events").document(event.getEventTitle()).collection("waitlistedUsers")
+//                .get()
+//                .addOnSuccessListener(queryDocumentSnapshots -> {
+//                    List<String> userIds = new ArrayList<>();
+//                    // The document ID of each document in the 'waitlistedUsers' subcollection is the user's ID.
+//
+//                    queryDocumentSnapshots.forEach(doc -> userIds.add(doc.getId()));
+//                    callback.onWaitlistEntrantsFetched(userIds);
+//                })
+//                .addOnFailureListener(callback::onError);
+//    }
 
     // --- START OF NEW METHODS ---
 

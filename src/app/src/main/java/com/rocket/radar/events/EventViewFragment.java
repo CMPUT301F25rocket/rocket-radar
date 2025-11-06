@@ -24,6 +24,7 @@ import com.rocket.radar.profile.ProfileViewModel;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.List;
 
 public class EventViewFragment extends Fragment {
 
@@ -108,6 +109,11 @@ public class EventViewFragment extends Fragment {
                         Log.d("EventViewFragment", "Waitlist size received: " + size);
                         eventWaitlistSize.setText("People on waitlist: " + size);
                     }
+                }
+
+                @Override
+                public void onWaitlistEntrantsFetched(List<String> userIds) {
+
                 }
 
                 @Override
