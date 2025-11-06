@@ -114,7 +114,7 @@ public class AccountSettingsFragment extends Fragment {
                 if (success != null && success) {
                     Toast.makeText(getContext(), "Account deleted", Toast.LENGTH_SHORT).show();
                     NavHostFragment.findNavController(this)
-                            .navigate(R.id.action_profile_to_accountSettings);
+                            .navigate(R.id.action_account_settings_to_login);
                 } else if (success != null) {
                     Toast.makeText(getContext(), "Failed to delete account", Toast.LENGTH_SHORT).show();
                 }
