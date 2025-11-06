@@ -9,7 +9,7 @@
         android:id="@+id/usernameLayout"
         android:layout_width="312dp"
         android:layout_height="125dp"
-        android:hint="Username (Mandatory)"
+        android:hint="Name (Mandatory)"
         android:padding="24dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

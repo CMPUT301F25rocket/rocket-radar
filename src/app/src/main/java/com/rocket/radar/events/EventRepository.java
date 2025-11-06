@@ -72,9 +72,7 @@ public class EventRepository {
         }
 
         // CORRECT PATH: events -> {event-id} -> waitlistedUsers
-        // IMPORTANT: I noticed you are using event.getEventTitle() as the document ID. This is risky if titles can change or are not unique.
-        // It's better to use event.getEventId(). For now, I'll stick to your current implementation.
-        CollectionReference waitlistRef = db.collection("events").document(event.getEventTitle())
+        CollectionReference waitlistRef = db.collection("events").document(event.getEventId())
                 .collection("waitlistedUsers");
 
         waitlistRef.get().addOnSuccessListener(queryDocumentSnapshots -> {
@@ -113,10 +111,11 @@ public class EventRepository {
             Log.e(TAG, "Event is null or has no ID.");
             return;
         }
-
-        // Use a more descriptive name for the sub-collection, like "checkins".
-        DocumentReference checkinRef = db.collection("events").document(event.getEventTitle())
-                .collection("waitlistedUsers").document(userId);
+        else {
+            // --- START OF FIX ---
+            // 1. Get the correct path: events -> {event-id} -> waitlistedUsers -> {user-id}
+            DocumentReference waitlistRef = db.collection("events").document(event.getEventId())
+                    .collection("waitlistedUsers").document(userId);
 
         Map<String, Object> checkinData = new HashMap<>();
         checkinData.put("userId", userId);
@@ -142,7 +141,7 @@ public class EventRepository {
             Log.e(TAG, "User ID is null or empty. Cannot remove user from waitlist.");
             return;
         }
-        DocumentReference userDocumentInWaitlist = db.collection("events").document(event.getEventTitle())
+        DocumentReference userDocumentInWaitlist = db.collection("events").document(event.getEventId())
                 .collection("waitlistedUsers").document(userId);
 
         // 2. Call .delete() on that specific document reference.

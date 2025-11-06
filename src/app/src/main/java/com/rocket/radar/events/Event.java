@@ -3,7 +3,6 @@ package com.rocket.radar.events;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Date;
 import java.time.format.TextStyle;
 import java.util.Locale;
@@ -12,6 +11,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 
 import java.util.Optional;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import com.google.firebase.firestore.Blob;
@@ -30,23 +31,40 @@ import java.io.Serializable;
  * passed in Bundles.
  */
 public class Event implements Serializable {
+    // Primary event details
     private String eventId; // ADD THIS FIELD
     String eventTitle;
-    private Date date;
     String tagline;
     String description;
-    ArrayList<String> eventWaitlistIds;
-    ArrayList<String> eventInvitedIds;
-    ArrayList<String> eventAttendingIds;
-    ArrayList<String> eventCancelledIds;
+    SortedSet<String> categories;
+    private Date eventStartDate;
+    private Optional<Date> eventEndDate;
+    private Time eventStartTime;
+    private Time eventEndTime;
+    private Date registrationStartDate;
+    private Date registrationEndDate;
+    private Date selectionStartDate;
+    private Date selectionEndDate;
+    private Date finalSelectionDate;
+    private Optional<Integer> waitlistCapacity;
+    private boolean requireLocation;
+    private int eventCapacity;
+    private Date lotteryDate;
 
+    private Time lotteryTime;
 
     private Blob bannerImageBlob;
 
     // WARN: DO NOT REMOVE TRANSIENT. WE WILL CONSUME OUR FIRESTORE USAGE FAST (maybe).
     // We don't want this one serialized.
     private transient Bitmap bannerImage;
+    private Color color;
 
+    // Join Management
+    ArrayList<String> eventWaitlistIds;
+    ArrayList<String> eventInvitedIds;
+    ArrayList<String> eventAttendingIds;
+    ArrayList<String> eventCancelledIds;
 
     int image;
 
@@ -58,7 +76,7 @@ public class Event implements Serializable {
     public Event(String eventTitle, Date date, String tagline, String description, int image) {
         this.eventId = UUID.randomUUID().toString(); // Generate a unique ID
         this.eventTitle = eventTitle;
-        this.date = date; // Assuming date is in "YYYY-MM-DD" format
+        this.eventStartDate = date; // Assuming date is in "YYYY-MM-DD" format
         this.tagline = tagline;
         this.image = image;
         this.description = description;
@@ -75,11 +93,11 @@ public class Event implements Serializable {
      * Gets the date of the event.
      * @return The event date as a String.
      */
-    public Date getDate() { return date != null ? date: null;}
+    public Date getEventStartDate() { return eventStartDate != null ? eventStartDate : null;}
     public String getFormattedDate() {
         // returns the date in format DD\nMMM where MMM three letter capital abbreviation for the month
-        if (date == null) return "";
-        LocalDate localDate = date.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+        if (eventStartDate == null) return "";
+        LocalDate localDate = eventStartDate.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
         String day = localDate.getDayOfMonth() + "";
         // capital letters for 3 letter month abbrev
         String month = localDate.getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH).toUpperCase();
@@ -98,6 +116,139 @@ public class Event implements Serializable {
      * @param eventId The unique identifier string.
      */
     public void setEventId(String eventId) { this.eventId = eventId; }
+
+
+    public Color getColor() {
+        return color;
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
+    }
+
+    public Time getLotteryTime() {
+        return lotteryTime;
+    }
+
+    public void setLotteryTime(Time lotteryTime) {
+        this.lotteryTime = lotteryTime;
+    }
+
+    public Date getLotteryDate() {
+        return lotteryDate;
+    }
+
+    public void setLotteryDate(Date lotteryDate) {
+        this.lotteryDate = lotteryDate;
+    }
+
+    public int getEventCapacity() {
+        return eventCapacity;
+    }
+
+    public void setEventCapacity(int eventCapacity) {
+        this.eventCapacity = eventCapacity;
+    }
+
+    public boolean isRequireLocation() {
+        return requireLocation;
+    }
+
+    public void setRequireLocation(boolean requireLocation) {
+        this.requireLocation = requireLocation;
+    }
+
+    public Integer getWaitlistCapacity() {
+        return waitlistCapacity.orElse(null);
+    }
+
+    public void setWaitlistCapacity(Integer waitlistCapacity) {
+        this.waitlistCapacity = Optional.ofNullable(waitlistCapacity);
+    }
+
+    public Date getFinalSelectionDate() {
+        return finalSelectionDate;
+    }
+
+    public void setFinalSelectionDate(Date finalSelectionDate) {
+        this.finalSelectionDate = finalSelectionDate;
+    }
+
+    public Date getSelectionEndDate() {
+        return selectionEndDate;
+    }
+
+    public void setSelectionEndDate(Date selectionEndDate) {
+        this.selectionEndDate = selectionEndDate;
+    }
+
+    public Date getSelectionStartDate() {
+        return selectionStartDate;
+    }
+
+    public void setSelectionStartDate(Date selectionStartDate) {
+        this.selectionStartDate = selectionStartDate;
+    }
+
+    public Date getRegistrationEndDate() {
+        return registrationEndDate;
+    }
+
+    public void setRegistrationEndDate(Date registrationEndDate) {
+        this.registrationEndDate = registrationEndDate;
+    }
+
+    public Date getRegistrationStartDate() {
+        return registrationStartDate;
+    }
+
+    public void setRegistrationStartDate(Date registrationStartDate) {
+        this.registrationStartDate = registrationStartDate;
+    }
+
+    public Time getEventEndTime() {
+        return eventEndTime;
+    }
+
+    public void setEventEndTime(Time eventEndTime) {
+        this.eventEndTime = eventEndTime;
+    }
+
+    public Time getEventStartTime() {
+        return eventStartTime;
+    }
+
+    public void setEventStartTime(Time eventStartTime) {
+        this.eventStartTime = eventStartTime;
+    }
+
+    public Date getEventEndDate() {
+        return eventEndDate.orElse(null);
+    }
+
+    public void setEventEndDate(Date eventEndDate) {
+        this.eventEndDate = Optional.ofNullable(eventEndDate);
+    }
+
+    public void setEventStartDate(Date eventStartDate) {
+        this.eventStartDate = eventStartDate;
+    }
+
+    public SortedSet<String> getCategories() {
+        return categories;
+    }
+
+    public void setCategories(SortedSet<String> categories) {
+        this.categories = categories;
+    }
+
+    public void setTagline(String tagline) {
+        this.tagline = tagline;
+    }
+
+    public void setEventTitle(String eventTitle) {
+        this.eventTitle = eventTitle;
+    }
 
     /**
      * Gets the local drawable resource ID for the event's image.
@@ -131,7 +282,6 @@ public class Event implements Serializable {
     }
 
     public Blob getBannerImageBlob() { return this.bannerImageBlob; }
-
     public void setBannerImageBlob(Blob data) { this.bannerImageBlob = data; }
 
     private static Bitmap resizeBanner(Bitmap image)
@@ -233,9 +383,23 @@ public class Event implements Serializable {
     public static class Builder {
         private Event event;
 
+        /**
+         * Create a {@code Event.Builder} to modify an existing event.
+         * @param event The event to modify.
+         */
+        public Builder(Event event) {
+            this.event = event;
+        }
+
+        /**
+         * Create a new event using the builder.
+         */
         public Builder() {
             event = new Event();
             event.eventId = UUID.randomUUID().toString(); // Generate a unique ID
+            event.categories = new TreeSet<>();
+            event.waitlistCapacity = Optional.empty();
+            event.eventEndDate = Optional.empty();
         }
 
         public Builder title(String title) {
@@ -244,12 +408,12 @@ public class Event implements Serializable {
         }
 
         public Builder eventStartDate(Date date) {
-            // TODO
+            event.eventStartDate = date;
             return this;
         }
 
-        public Builder eventEndDate() {
-            // TODO
+        public Builder eventEndDate(Date date) {
+            event.eventEndDate = Optional.of(date);
             return this;
         }
 
@@ -258,6 +422,25 @@ public class Event implements Serializable {
             return this;
         }
 
+        /**
+         * Adds the categories in the array to this event.
+         * @param categories
+         * @return
+         */
+        public Builder categories(ArrayList<String> categories) {
+            event.categories.addAll(categories);
+            return this;
+        }
+
+        /**
+         * Add a single category to this event.
+         * @param category
+         * @return
+         */
+        public Builder category(String category) {
+            event.categories.add(category);
+            return this;
+        }
 
         public Builder description(String description) {
             new Event();
@@ -266,62 +449,62 @@ public class Event implements Serializable {
         }
 
         public Builder eventStartTime(Time time) {
-            // TODO
+            event.eventStartTime = time;
             return this;
         }
 
         public Builder eventEndTime(Time time) {
-            // TODO
+            event.eventEndTime = time;
             return this;
         }
 
         public Builder registrationStartDate(Date date) {
-            // TODO
+            event.registrationStartDate = date;
             return this;
         }
 
         public Builder registrationEndDate(Date date) {
-            // TODO
+            event.registrationEndDate = date;
             return this;
         }
 
         public Builder initialSelectionStartDate(Date date) {
-            // TODO
+            event.selectionStartDate = date;
             return this;
         }
 
         public Builder initialSelectionEndDate(Date date) {
-            // TODO
+            event.selectionEndDate = date;
             return this;
         }
 
         public Builder finalSelectionDate(Date date) {
-            // TODO
+            event.finalSelectionDate = date;
             return this;
         }
 
         public Builder waitlistCapacity(Optional<Integer> capacity) {
-            // TODO
+            event.waitlistCapacity = capacity;
             return this;
         }
 
         public Builder requireLocation(Boolean value) {
-            // TODO
+            event.requireLocation = value;
             return this;
         }
 
         public Builder eventCapacity(Integer capacity) {
-            // TODO
+            event.eventCapacity = capacity;
             return this;
         }
 
         public Builder lotteryDate(Date date) {
-            // TODO
+            event.lotteryDate = date;
             return this;
         }
 
         public Builder lotteryTime(Time time) {
-            // TODO
+            event.lotteryTime = time;
             return this;
         }
 
@@ -335,7 +518,7 @@ public class Event implements Serializable {
         }
 
         public Builder color(Color color) {
-            // TODO
+            event.color = color;
             return this;
         }
 

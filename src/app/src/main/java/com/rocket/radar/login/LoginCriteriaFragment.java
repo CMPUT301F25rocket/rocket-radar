@@ -14,6 +14,9 @@ import androidx.navigation.fragment.NavHostFragment;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
 
+/*
+Basic fragment for showing login criteria information.
+ */
 public class LoginCriteriaFragment extends Fragment {
     private ImageButton button_back;
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
