@@ -178,25 +178,26 @@ public class EventViewFragment extends Fragment {
         if (onWaitlist) {
             currentProfile.removeOnWaitlistEventId(event.getEventId());
             currentProfile.removeOnMyEventId(event.getEventId());
+
+            ArrayList<String> currentWaitlist = event.getEventWaitlistIds();
+            currentWaitlist.remove(currentProfile.getUid());
+            repo.removeUserFromWaitlist(event, currentProfile.getUid());
+
             navigateBack();
             Toast.makeText(getContext(), "Removed from waitlist!", Toast.LENGTH_SHORT).show();
         } else {
             currentProfile.addOnWaitlistEventId(event.getEventId());
             currentProfile.addOnMyEventId(event.getEventId());
+
+            ArrayList<String> currentWaitlist = event.getEventWaitlistIds();
+            currentWaitlist.add(currentProfile.getUid());
+            repo.addUserToWaitlist(event, currentProfile.getUid());
+
             navigateBack();
             Toast.makeText(getContext(), "Added to waitlist!", Toast.LENGTH_SHORT).show();
         }
         // After changing the profile, we must save it back to the ViewModel to persist the change
         profileViewModel.updateProfile(currentProfile);
-
-
-
-
-        ArrayList<String> currentWaitlist = event.getEventWaitlistIds();
-        currentWaitlist.add(currentProfile.getUid());
-        event.setEventWaitlistIds(currentWaitlist);
-        repo.addUserToWaitlist(event, currentProfile.getUid());
-
 
     }
 

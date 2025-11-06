@@ -108,6 +108,24 @@ public class EventRepository {
         }
     }
 
+    public void removeUserFromWaitlist(Event event, String userId) {
+        if (event == null || event.getEventId() == null) {
+            Log.e(TAG, "Event is null or has no ID. Cannot remove user from waitlist.");
+            return;
+        }
+        if (userId == null || userId.isEmpty()) {
+            Log.e(TAG, "User ID is null or empty. Cannot remove user from waitlist.");
+            return;
+        }
+        DocumentReference userDocumentInWaitlist = db.collection("events").document(event.getEventTitle())
+                .collection("waitlistedUsers").document(userId);
+
+        // 2. Call .delete() on that specific document reference.
+        userDocumentInWaitlist.delete()
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "User " + userId + " successfully removed from waitlist for event " + event.getEventId()))
+                .addOnFailureListener(e -> Log.e(TAG, "Error removing user " + userId + " from waitlist", e));
+    }
+
     // This method just prepares the local list of dummy data.
     private List<Event> loadDummyData() {
         List<Event> eventList = new java.util.ArrayList<>();
