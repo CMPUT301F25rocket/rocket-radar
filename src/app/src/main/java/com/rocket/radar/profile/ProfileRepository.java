@@ -2,12 +2,10 @@ package com.rocket.radar.profile;
 
 import android.util.Log;
 
-import com.google.firebase.Firebase;
-import com.google.firebase.Timestamp;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.SetOptions;
 
 import java.util.HashMap;
@@ -20,8 +18,8 @@ public class ProfileRepository {
     private final FirebaseFirestore db;
 
     // dependency injection
-    public ProfileRepository(FirebaseFirestore db) {
-        this.db = db;
+    public ProfileRepository() {
+        this.db = FirebaseFirestore.getInstance();
     }
 
     public interface ReadCallback {
@@ -117,5 +115,16 @@ public class ProfileRepository {
         db.collection("users")
                 .document(uid)
                 .update("lastLogin", FieldValue.serverTimestamp());
+    }
+
+    public void updateUserProfileLocation(String uid, GeoPoint location) {
+        if (uid == null || uid.isEmpty()) {
+            Log.e("ProfileViewModel", "Cannot update location, UID is null or empty.");
+            return;
+        }
+        db.collection("users").document(uid)
+                .update("lastKnownLocation", location)
+                .addOnSuccessListener(aVoid -> Log.d("ProfileViewModel", "User location successfully updated for UID: " + uid))
+                .addOnFailureListener(e -> Log.e("ProfileViewModel", "Error updating user location for UID: " + uid, e));
     }
 }

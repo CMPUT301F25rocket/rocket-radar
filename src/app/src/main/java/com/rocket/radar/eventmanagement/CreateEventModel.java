@@ -1,9 +1,6 @@
 package com.rocket.radar.eventmanagement;
-import android.content.ContentResolver;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
-import android.provider.MediaStore;
 import android.view.View;
 
 import androidx.lifecycle.LiveData;
@@ -11,16 +8,8 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
 
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.rocket.radar.events.Event;
-import com.rocket.radar.events.EventRepository;
-
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 public class CreateEventModel extends ViewModel {
@@ -148,16 +137,20 @@ public class CreateEventModel extends ViewModel {
         return section;
     }
 
-    public int getLeftButtonVisibility() {
-        if (section.getValue() != Section.GENERAL) {
-            return View.GONE;
-        } else {
-            return View.VISIBLE;
-        }
+    public LiveData<Integer> getLeftButtonVisibility() {
+        return Transformations.map(section, s -> {
+            if (s == Section.GENERAL) {
+                return View.GONE;
+            } else {
+                return View.VISIBLE;
+            }
+        });
     }
 
-    public int getRightButtonVisibility() {
-        return View.VISIBLE;
+    public LiveData<Integer> getRightButtonVisibility() {
+        return Transformations.map(section, s -> {
+            return View.VISIBLE;
+        });
     }
 
     public String getRightButtonText() {
@@ -165,7 +158,9 @@ public class CreateEventModel extends ViewModel {
         else return "Next";
     }
 
-    public void nextSection() {
+    public void nextSection(InputFragment fragment) {
+        if (!fragment.valid(fragment)) return;
+
         Section current = section.getValue();
         if (current == Section.lastSection) {
             return;
@@ -181,60 +176,5 @@ public class CreateEventModel extends ViewModel {
         } else {
             section.setValue(Section.values()[current.ordinal() - 1]);
         }
-    }
-
-    /**
-     * This is a wrapper for to build an event using the data in this model and create that event
-     * using a provided {@code EventRepository}.
-     * @param eventRepository A firestore database.
-     * @return UUID of the create event.
-     */
-    public String createEvent(ContentResolver contentResolver, EventRepository eventRepository) throws Exception {
-        Uri bannerImageUri = image.getValue().orElseThrow(
-            () -> new NoSuchElementException("The banner image is missing")
-        );
-
-        Bitmap bitmap;
-        try {
-            bitmap = MediaStore.Images.Media.getBitmap(contentResolver, bannerImageUri);
-        } catch (FileNotFoundException e) {
-            throw new Exception("Provided image could not be read from storage");
-        }
-
-
-        // NOTE: Had ChatGPT fill in the NoSuchElementExceptions. Was too lazy.
-        Event event = new Event.Builder()
-            .title(title.getValue())
-            .description(description.getValue())
-            .eventStartDate(eventDate.getValue()
-                    .orElseThrow(() -> new NoSuchElementException("The event start date is missing.")))
-            .eventStartTime(eventStartTime.getValue()
-                    .orElseThrow(() -> new NoSuchElementException("The event start time is missing.")))
-            .eventEndTime(eventEndTime.getValue()
-                    .orElseThrow(() -> new NoSuchElementException("The event end time is missing.")))
-            .registrationStartDate(registrationStartDate.getValue()
-                    .orElseThrow(() -> new NoSuchElementException("The registration start date is missing.")))
-            .registrationEndDate(registrationEndDate.getValue()
-                    .orElseThrow(() -> new NoSuchElementException("The registration end date is missing.")))
-            .initialSelectionStartDate(initialSelectionStartDate.getValue()
-                    .orElseThrow(() -> new NoSuchElementException("The initial selection start date is missing.")))
-            .initialSelectionEndDate(initialSelectionEndDate.getValue()
-                    .orElseThrow(() -> new NoSuchElementException("The initial selection end date is missing.")))
-            .finalSelectionDate(finalAttendeeSelectionDate.getValue()
-                    .orElseThrow(() -> new NoSuchElementException("The final selection date is missing.")))
-            .waitlistCapacity(waitlistCapacity.getValue())
-            .requireLocation(hasLocationRequirement.getValue())
-            .eventCapacity(eventCapacity.getValue()
-                    .orElseThrow(() -> new NoSuchElementException("The event capacity is missing.")))
-            .lotteryDate(lotteryDate.getValue()
-                    .orElseThrow(() -> new NoSuchElementException("The lottery date is missing.")))
-            .lotteryTime(lotteryTime.getValue()
-                    .orElseThrow(() -> new NoSuchElementException("The lottery time is missing.")))
-            .bannerImage(bitmap)
-            .color(color.getValue()
-                    .orElseThrow(() -> new NoSuchElementException("The event color is missing.")))
-            .build();
-
-        return eventRepository.createEvent(event);
     }
 }

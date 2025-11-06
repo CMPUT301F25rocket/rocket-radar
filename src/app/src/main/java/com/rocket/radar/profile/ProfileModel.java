@@ -3,6 +3,7 @@ package com.rocket.radar.profile;
 import android.util.Log;
 
 import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.GeoPoint;
 import com.rocket.radar.events.Event;
 
 import java.util.ArrayList;
@@ -26,6 +27,18 @@ public class ProfileModel {
 
     private ArrayList<String> onWaitlistEventIds;
     private ArrayList<String> onMyEventIds;
+
+    public GeoPoint getLastKnownLocation() {
+        return lastKnownLocation;
+    }
+
+    public void setLastKnownLocation(GeoPoint lastKnownLocation) {
+        this.lastKnownLocation = lastKnownLocation;
+    }
+
+    private GeoPoint lastKnownLocation;
+
+
 
     public ProfileModel() {}
 
@@ -136,5 +149,7 @@ public class ProfileModel {
         if (this.onWaitlistEventIds == null) return;
         this.onWaitlistEventIds.clear();
     }
+
+
 }
 
