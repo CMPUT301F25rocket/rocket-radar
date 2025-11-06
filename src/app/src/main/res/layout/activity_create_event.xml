@@ -32,40 +32,14 @@
             app:layout_constraintEnd_toEndOf="parent"
             />
 
-        <FrameLayout
+        <androidx.fragment.app.FragmentContainerView
             android:id="@+id/createEventWizardSectionInputHolder"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_marginTop="30dp"
             app:layout_constraintTop_toBottomOf="@id/createEventWizardSectionHeader"
             app:layout_constraintBottom_toTopOf="@id/createEventWizardNavigationPanel"
-            >
-            <include
-                layout="@layout/view_input_event_general"
-                android:id="@+id/createEventGeneralSection"
-                android:visibility="@{createEvent.section == Section.GENERAL ? View.VISIBLE : View.GONE}"
-                />
-            <include
-                layout="@layout/view_input_event_datetime"
-                android:id="@+id/createEventDatetimeSection"
-                android:visibility="@{createEvent.section == Section.DATETIME ? View.VISIBLE : View.GONE}"
-                />
-            <include
-                layout="@layout/view_input_event_deadlines"
-                android:id="@+id/createEventDeadlineSection"
-                android:visibility="@{createEvent.section == Section.DEADLINES ? View.VISIBLE : View.GONE}"
-                />
-            <include
-                layout="@layout/view_input_event_lottery"
-                android:id="@+id/createEventLotterySection"
-                android:visibility="@{createEvent.section == Section.LOTTERY ? View.VISIBLE : View.GONE}"
-                />
-            <include
-                layout="@layout/view_input_event_style"
-                android:id="@+id/createEventStyleSection"
-                android:visibility="@{createEvent.section == Section.STYLE ? View.VISIBLE : View.GONE}"
-                />
-        </FrameLayout>
+            />
 
         <LinearLayout
             android:id="@+id/createEventWizardNavigationPanel"

@@ -15,6 +15,7 @@ import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 import androidx.lifecycle.MutableLiveData;
 
 import com.google.android.material.button.MaterialButton;
@@ -47,7 +48,7 @@ import kotlin.Unit;
  * - https://stackoverflow.com/questions/55682256/android-set-bottom-sheet-state-in-xml
  * - https://medium.com/@mananwason/bottoms-sheets-in-android-280c03280072
  */
-public class CreateEventActivity extends AppCompatActivity {
+public class CreateEventActivity extends AppCompatActivity implements BottomSheetProvider {
     public static final String TAG = CreateEventActivity.class.getSimpleName();
     ActivityCreateEventBinding binding;
     CreateEventModel model;
@@ -95,28 +96,51 @@ public class CreateEventActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
 
         // Bind the model to the views.
-        // FIXME: These should have been fragments, the model should have been stored in a provider
-        // on the activity and then these lines could have been split between each fragment.
         binding.setCreateEvent(model);
         binding.setLifecycleOwner(this);
 
-        binding.createEventGeneralSection.setCreateEvent(model);
-        binding.createEventGeneralSection.setLifecycleOwner(this);
-
-        binding.createEventDatetimeSection.setCreateEvent(model);
-        binding.createEventDatetimeSection.setLifecycleOwner(this);
-
-        binding.createEventDeadlineSection.setCreateEvent(model);
-        binding.createEventDeadlineSection.setLifecycleOwner(this);
-
-        binding.createEventLotterySection.setCreateEvent(model);
-        binding.createEventLotterySection.setLifecycleOwner(this);
-
-        binding.createEventStyleSection.setCreateEvent(model);
-        binding.createEventStyleSection.setLifecycleOwner(this);
+        // Observe section changes and swap fragments accordingly
+        model.getSection().observe(this, section -> {
+            navigateToSection(section);
+        });
     }
 
-    private void openCalendarBottomSheet(MutableLiveData<Optional<Date>> sink, View view) {
+    /**
+     * Navigates to the appropriate fragment based on the current section.
+     *
+     * @param section The section to navigate to
+     */
+    private void navigateToSection(Section section) {
+        Fragment fragment;
+
+        switch (section) {
+            case GENERAL:
+                fragment = new EventGeneralFragment();
+                break;
+            case DATETIME:
+                fragment = new EventDateTimeFragment();
+                break;
+            case DEADLINES:
+                fragment = new EventDeadlinesFragment();
+                break;
+            case LOTTERY:
+                fragment = new EventLotteryFragment();
+                break;
+            case STYLE:
+                fragment = new EventStyleFragment();
+                break;
+            default:
+                Log.e(TAG, "Unknown section: " + section);
+                return;
+        }
+
+        getSupportFragmentManager().beginTransaction()
+                .replace(binding.createEventWizardSectionInputHolder.getId(), fragment)
+                .commit();
+    }
+
+    @Override
+    public void openCalendarBottomSheet(MutableLiveData<Optional<Date>> sink, View view) {
         CalendarSheet calendarSheet = new CalendarSheet();
         calendarSheet.show(CreateEventActivity.this, null, sheet -> {
             sheet.style(SheetStyle.BOTTOM_SHEET);
@@ -145,7 +169,8 @@ public class CreateEventActivity extends AppCompatActivity {
         });
     }
 
-    private void openTimeBottomSheet(MutableLiveData<Optional<Time>> sink, View view) {
+    @Override
+    public void openTimeBottomSheet(MutableLiveData<Optional<Time>> sink, View view) {
         ClockSheet clockSheet = new ClockSheet();
         clockSheet.show(CreateEventActivity.this, null, sheet -> {
             sheet.style(SheetStyle.BOTTOM_SHEET);
@@ -171,132 +196,6 @@ public class CreateEventActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        // Unfortunately it seems viewbinding fails for included views.
-        // Now we need to bind the inputs that function by sheet.
-
-        // Datetime section bindings.
-        TextInputEditText pickEventDate = binding.getRoot().findViewById(R.id.inputEventDatetimeDaterangeTextInput);
-        pickEventDate.setOnFocusChangeListener((view, hasFocus)-> {
-            if (hasFocus) openCalendarBottomSheet(model.eventDate, view);
-        });
-
-        TextInputEditText pickEventStart = binding.getRoot().findViewById(R.id.inputEventDatetimeStartTextInput);
-        pickEventStart.setOnFocusChangeListener((view, hasFocus)-> {
-            if (hasFocus) openTimeBottomSheet(model.eventStartTime, view);
-        });
-
-        TextInputEditText pickEventEnd = binding.getRoot().findViewById(R.id.inputEventDatetimeEndTextInput);
-        pickEventEnd.setOnFocusChangeListener((view, hasFocus)-> {
-            if (hasFocus) openTimeBottomSheet(model.eventEndTime, view);
-        });
-
-        // Deadline section bindings
-        TextInputEditText registrationStartEditText = binding.getRoot().findViewById(R.id.eventDeadlineRegistrationStartDate);
-        registrationStartEditText.setOnFocusChangeListener((view, hasFocus) -> {
-            if (hasFocus) openCalendarBottomSheet(model.registrationStartDate, view);
-        });
-
-
-        TextInputEditText registrationEndEditText = binding.getRoot().findViewById(R.id.eventDeadlineRegistrationEndDate);
-        registrationEndEditText.setOnFocusChangeListener((view, hasFocus) -> {
-            if (hasFocus) openCalendarBottomSheet(model.registrationEndDate, view);
-        });
-
-
-        TextInputEditText selectionStartEditText = binding.getRoot().findViewById(R.id.eventDeadlineSelectionStartDate);
-        selectionStartEditText.setOnFocusChangeListener((view, hasFocus) -> {
-            if (hasFocus) openCalendarBottomSheet(model.initialSelectionStartDate, view);
-        });
-
-
-        TextInputEditText selectionEndEditText = binding.getRoot().findViewById(R.id.eventDeadlineSelectionEndDate);
-        selectionEndEditText.setOnFocusChangeListener((view, hasFocus) -> {
-            if (hasFocus) openCalendarBottomSheet(model.initialSelectionEndDate, view);
-        });
-
-
-        TextInputEditText finalDecisionEditText = binding.getRoot().findViewById(R.id.eventDeadlineFinalDecisionDate);
-        finalDecisionEditText.setOnFocusChangeListener((view, hasFocus) -> {
-            if (hasFocus) openCalendarBottomSheet(model.finalAttendeeSelectionDate, view);
-        });
-
-        // Lottery section bindings
-        TextInputEditText lotteryWaitlistCapacityEditText = binding.getRoot().findViewById(R.id.lotterySectionWaitlistCapacityInput);
-        lotteryWaitlistCapacityEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void afterTextChanged(Editable s) {
-                model.waitlistCapacity.setValue(Optional.of(Integer.parseInt(s.toString())));
-            }
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) { }
-        });
-
-        TextInputEditText lotteryEventCapacityEditText = binding.getRoot().findViewById(R.id.lotterySectionEventCapacityInput);
-        lotteryEventCapacityEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void afterTextChanged(Editable s) {
-                model.eventCapacity.setValue(Optional.of(Integer.parseInt(s.toString())));
-            }
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) { }
-        });
-
-        TextInputEditText lotteryDateEditText = binding.getRoot().findViewById(R.id.lotterySectionDateInput);
-        lotteryDateEditText.setOnFocusChangeListener((view, hasFocus) -> {
-            if (hasFocus) openCalendarBottomSheet(model.lotteryDate, view);
-        });
-
-        TextInputEditText lotteryTimeEditText = binding.getRoot().findViewById(R.id.lotterySectionTimeInput);
-        lotteryTimeEditText.setOnFocusChangeListener((view, hasFocus) -> {
-            if (hasFocus) openTimeBottomSheet(model.lotteryTime, view);
-        });
-
-        // Style section bindings.
-        MaterialButton pickColor = binding.getRoot().findViewById(R.id.inputEventStylePickColorButton);
-        pickColor.setOnClickListener(btn -> {
-            ColorSheet colorSheet = new ColorSheet();
-            colorSheet.show(CreateEventActivity.this, null, sheet -> {
-                sheet.style(SheetStyle.BOTTOM_SHEET);
-                sheet.disableAlpha();
-                sheet.onPositive(selected -> {
-                    Color color = Color.valueOf(selected);
-                    model.color.setValue(Optional.of(color));
-                    pickColor.setBackgroundColor(color.toArgb());
-                    return Unit.INSTANCE;
-                });
-                return Unit.INSTANCE;
-            });
-        });
-
-        ImageView bannerImage = binding.getRoot().findViewById(R.id.inputEventStylePickImage);
-        // https://developer.android.com/training/data-storage/shared/photo-picker#java
-        ActivityResultLauncher<PickVisualMediaRequest> pickMedia =
-            registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
-            if (uri != null) {
-                bannerImage.setImageURI(uri);
-                model.image.setValue(Optional.of(uri));
-            }
-        });
-        bannerImage.setOnClickListener(view -> {
-            pickMedia.launch(new PickVisualMediaRequest.Builder()
-                    .setMediaType(ActivityResultContracts
-                    .PickVisualMedia.ImageOnly.INSTANCE)
-                    .build()
-            );
-        });
-    }
 
     @Override
     public void onDestroy() {
