@@ -14,6 +14,10 @@ import androidx.lifecycle.ViewModelProvider;
 import com.rocket.radar.databinding.ViewInputEventDatetimeBinding;
 import com.rocket.radar.events.Event;
 
+import java.util.Date;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+
 /**
  * Fragment for the Date & Time section of the event creation wizard.
  * Handles input for event date, start time, and end time.
@@ -79,12 +83,29 @@ public class EventDateTimeFragment extends Fragment implements InputFragment {
 
     @Override
     public boolean valid(InputFragment inputFragment) {
-        return false;
+        Optional<Date> date = model.eventDate.getValue();
+        Optional<Time> startTime = model.eventStartTime.getValue();
+        Optional<Time> endTime = model.eventEndTime.getValue();
+
+        return date.isPresent() && startTime.isPresent() && endTime.isPresent()
+                && startTime.get().compareTo(endTime.get()) < 0;
+
     }
 
     @Override
     public Event.Builder extract(Event.Builder builder) {
-        return null;
+        Date date = model.eventDate.getValue()
+                .orElseThrow(() -> new NoSuchElementException("The event start date is missing."));
+
+        Time startTime = model.eventStartTime.getValue()
+                .orElseThrow(() -> new NoSuchElementException("The event start time is missing."));
+
+        Time endTime = model.eventEndTime.getValue()
+                .orElseThrow(() -> new NoSuchElementException("The event end time is missing."));
+
+        return builder.eventStartDate(date)
+                .eventStartTime(startTime)
+                .eventEndTime(endTime);
     }
 
     @Override

@@ -4,7 +4,7 @@ import androidx.annotation.NonNull;
 
 import java.util.Date;
 
-public class Time {
+public class Time implements Comparable<Time> {
     private int hour;
     private int minute;
 
@@ -40,6 +40,22 @@ public class Time {
     @NonNull
     @Override
     public String toString() {
-        return Integer.toString(hour) + ":" + Integer.toString(minute);
+        return Integer.toString(hour) + ":" + String.format("%02d", minute);
+    }
+
+
+    @Override
+    public int compareTo(Time o) {
+        if (hour < o.hour) {
+            return -1;
+        } else if (hour > o.hour) {
+            return 1;
+        }
+        if (minute < o.minute) {
+            return -1;
+        } else if (minute > o.minute) {
+            return 1;
+        }
+        return 0;
     }
 }
