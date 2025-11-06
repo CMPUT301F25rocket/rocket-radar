@@ -175,4 +175,48 @@ public class EventRepository {
 
         return eventList;
     }
+
+    // --- START OF FIX: ADD THE MISSING INTERFACE AND METHOD ---
+
+    /**
+     * Callback interface for fetching waitlist entrants.
+     */
+    public interface WaitlistEntrantsCallback {
+        /**
+         * Called when the list of user names (entrants) is successfully fetched.
+         * @param userNames A list of user IDs from the waitlist.
+         */
+        void onWaitlistEntrantsFetched(List<String> userNames);
+
+        /**
+         * Called when an error occurs while fetching the waitlist.
+         * @param e The exception that occurred.
+         */
+        void onError(Exception e);
+    }
+
+    /**
+     * Asynchronously fetches the list of user IDs from the waitlist of a specific event.
+     *
+     * @param eventId The ID of the event to fetch the waitlist for.
+     * @param callback The callback to handle the success or failure of the operation.
+     */
+    public void getWaitlistEntrants(String eventId, WaitlistEntrantsCallback callback) {
+        if (eventId == null || eventId.isEmpty()) {
+            callback.onError(new IllegalArgumentException("Event ID cannot be null or empty."));
+            return;
+        }
+
+        // The path is events -> {eventId} -> waitlistedUsers
+        db.collection("events").document(eventId).collection("waitlistedUsers")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<String> userIds = new ArrayList<>();
+                    // The document ID of each document in the 'waitlistedUsers' subcollection is the user's ID.
+                    queryDocumentSnapshots.forEach(doc -> userIds.add(doc.getId()));
+                    callback.onWaitlistEntrantsFetched(userIds);
+                })
+                .addOnFailureListener(callback::onError);
+    }
+    // --- END OF FIX ---
 }
