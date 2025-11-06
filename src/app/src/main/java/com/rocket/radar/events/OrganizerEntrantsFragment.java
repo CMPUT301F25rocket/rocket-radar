@@ -565,7 +565,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
             case "Invited":
                 invitedActions.setVisibility(View.VISIBLE);
                 break;
-            case "Selected":
+            case "Attending":
                 selectedActions.setVisibility(View.VISIBLE);
                 break;
             case "Cancelled":
