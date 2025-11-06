@@ -35,6 +35,7 @@ import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.rocket.radar.MainActivity; // Import MainActivity
 import com.rocket.radar.R;
+import com.rocket.radar.events.EventRepository;
 import com.rocket.radar.notifications.NotificationRepository;
 
 import java.util.ArrayList;
@@ -50,7 +51,13 @@ public class OrganizerEntrantsFragment extends Fragment /*implements OnMapReadyC
 
     private GoogleMap googleMap;
     private BottomSheetBehavior<MaterialCardView> bottomSheetBehavior;
+    // --- START OF FIX: Define ListView, Adapter, and Data Source as member variables ---
+    private ListView entrantsListView;
+    private ArrayAdapter<String> entrantsAdapter;
+    private ArrayList<String> currentEntrants;
+    // --- END OF FIX ---
     private Event event;
+    private EventRepository eventRepository;
     private NotificationRepository notificationRepository;
 
     // UI elements
@@ -85,6 +92,8 @@ public class OrganizerEntrantsFragment extends Fragment /*implements OnMapReadyC
             event = (Event) getArguments().getSerializable(ARG_EVENT);
         }
         notificationRepository = new NotificationRepository();
+        eventRepository = new EventRepository();
+        currentEntrants = new ArrayList<>();
     }
 
     @Nullable
@@ -96,6 +105,21 @@ public class OrganizerEntrantsFragment extends Fragment /*implements OnMapReadyC
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // --- START OF FIX: Setup the ListView and its adapter here, only once ---
+        entrantsListView = view.findViewById(R.id.entrants_list);
+        if (entrantsListView != null) {
+            entrantsAdapter = new ArrayAdapter<>(
+                    requireContext(),
+                    android.R.layout.simple_list_item_1,
+                    currentEntrants // The adapter now holds a reference to our member list
+            );
+            entrantsListView.setAdapter(entrantsAdapter);
+        } else {
+            Log.e(TAG, "ListView (entrants_list) not found in the layout!");
+        }
+        // --- END OF FIX ---
+
         //SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map_container);
 //        if (mapFragment != null) {
 //            mapFragment.getMapAsync(this);
@@ -133,13 +157,13 @@ public class OrganizerEntrantsFragment extends Fragment /*implements OnMapReadyC
 //    }
 
 //    private void fetchAndDisplayCheckInLocations() {
-//        if (event == null || event.getEventId() == null) {
+//        if (event == null || event.getEventTitle() == null) {
 //            Log.e(TAG, "Event is null, cannot fetch check-ins.");
 //            return;
 //        }
 //
 //        FirebaseFirestore.getInstance()
-//                .collection("events").document(event.getEventId())
+//                .collection("events").document(event.getEventTitle())
 //                .collection("checkins")
 //                .get()
 //                .addOnCompleteListener(task -> {
@@ -163,57 +187,76 @@ public class OrganizerEntrantsFragment extends Fragment /*implements OnMapReadyC
 //                });
 //    }
 
-    // --- START OF NEW METHOD: Filters and updates the UI ---
+    // In OrganizerEntrantsFragment.java
+
     private void filterAndDisplayEntrants(TabLayout.Tab tab) {
-        // --- START OF CHANGE: Add sample data and populate ListView ---
+        // 1. Clear the member list. The adapter is already connected to this list.
+        currentEntrants.clear();
 
-        ListView entrantsListView = getView().findViewById(R.id.entrants_list);
-        if (entrantsListView == null) {
-            Log.e(TAG, "ListView not found!");
-            return;
-        }
-
-        // --- START OF CHANGE: Create sample data based on tab ---
-        ArrayList<String> currentEntrants = new ArrayList<>();
         String status = getStatusStringForTab(tab);
 
         if (status != null) {
             switch (status) {
                 case "waitlisted":
-                    currentEntrants.add("Walter White");
-                    currentEntrants.add("Jesse Pinkman");
-                    currentEntrants.add("Saul Goodman");
+                    // Check for valid event data before making a network call
+                    if (event == null || event.getEventTitle() == null) {
+                        Log.e(TAG, "Event or Event ID is null. Cannot fetch waitlist.");
+                        Toast.makeText(getContext(), "Event data is missing.", Toast.LENGTH_SHORT).show();
+                        entrantsAdapter.notifyDataSetChanged(); // Ensure the list is shown as empty
+                        return; // Stop execution
+                    }
+
+                    // Start the asynchronous call to get data from Firestore
+                    eventRepository.getWaitlistEntrants(event.getEventTitle(), new EventRepository.WaitlistEntrantsCallback() {
+                        @Override
+                        public void onWaitlistEntrantsFetched(List<String> userNames) {
+                            // This code runs when the data is successfully fetched.
+                            Log.d(TAG, "Fetched " + userNames.size() + " waitlisted entrants.");
+                            currentEntrants.addAll(userNames); // Add the new data to the MEMBER list
+                            entrantsAdapter.notifyDataSetChanged(); // Tell the adapter to refresh the ListView. THIS WILL NOW WORK.
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            Log.e(TAG, "Error fetching waitlist entrants", e);
+                            Toast.makeText(getContext(), "Failed to load waitlist.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    // Do not notify the adapter here. It will be notified inside the callback.
                     break;
+
                 case "invited":
+                    // For static data, just add it to the member list and notify the adapter.
                     currentEntrants.add("Daenerys Targaryen");
                     currentEntrants.add("Jon Snow");
                     currentEntrants.add("Tyrion Lannister");
+                    entrantsAdapter.notifyDataSetChanged(); // Refresh the list
                     break;
+
                 case "attending":
                     currentEntrants.add("Frodo Baggins");
                     currentEntrants.add("Samwise Gamgee");
                     currentEntrants.add("Gandalf the Grey");
+                    entrantsAdapter.notifyDataSetChanged(); // Refresh the list
                     break;
+
                 case "cancelled":
                     currentEntrants.add("Luke Skywalker");
                     currentEntrants.add("Han Solo");
                     currentEntrants.add("Leia Organa");
+                    entrantsAdapter.notifyDataSetChanged(); // Refresh the list
+                    break;
+
+                default:
+                    // If no case matches, ensure the list is empty
+                    entrantsAdapter.notifyDataSetChanged();
                     break;
             }
+        } else {
+            // If status is null, ensure the list is empty
+            entrantsAdapter.notifyDataSetChanged();
         }
-
-        // Create an ArrayAdapter to display the sample data
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                requireContext(),
-                android.R.layout.simple_list_item_1, // A default layout for a single TextView
-                currentEntrants
-        );
-
-        // Set the adapter on the ListView
-        entrantsListView.setAdapter(adapter);
-        // --- END OF CHANGE ---
     }
-    // --- END OF NEW METHOD ---
 
     private String getStatusStringForTab(TabLayout.Tab tab) {
         if (tab == null || tab.getText() == null) return null;
@@ -343,13 +386,13 @@ public class OrganizerEntrantsFragment extends Fragment /*implements OnMapReadyC
                 Toast.makeText(getContext(), "Title and message cannot be empty.", Toast.LENGTH_SHORT).show();
                 return;
             }
-            if (event == null || event.getEventId() == null) {
+            if (event == null || event.getEventTitle() == null) {
                 Toast.makeText(getContext(), "Error: Event ID is missing.", Toast.LENGTH_SHORT).show();
                 return;
             }
             String groupField = getGroupFieldForCurrentTab();
             if (groupField != null) {
-                notificationRepository.sendNotificationToGroup(title, body, event.getEventId(), groupField);
+                notificationRepository.sendNotificationToGroup(title, body, event.getEventTitle(), groupField);
                 Toast.makeText(getContext(), "Notification sent to " + tabs.getTabAt(tabs.getSelectedTabPosition()).getText(), Toast.LENGTH_SHORT).show();
                 showSendNotificationDialog(false);
             } else {
