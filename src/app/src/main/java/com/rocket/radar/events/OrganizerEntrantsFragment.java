@@ -33,7 +33,7 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.rocket.radar.MainActivity; // Import MainActivity
+import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
 import com.rocket.radar.events.EventRepository;
 import com.rocket.radar.notifications.NotificationRepository;
@@ -44,18 +44,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class OrganizerEntrantsFragment extends Fragment /*implements OnMapReadyCallback, EntrantAdapter.OnEntrantClickListener*/ {
+public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCallback, EntrantAdapter.OnEntrantClickListener {
 
     private static final String ARG_EVENT = "event";
     private static final String TAG = "OrganizerEntrants";
 
     private GoogleMap googleMap;
     private BottomSheetBehavior<MaterialCardView> bottomSheetBehavior;
-    // --- START OF FIX: Define ListView, Adapter, and Data Source as member variables ---
+
     private ListView entrantsListView;
     private ArrayAdapter<String> entrantsAdapter;
     private ArrayList<String> currentEntrants;
-    // --- END OF FIX ---
+
     private Event event;
     private EventRepository eventRepository;
     private NotificationRepository notificationRepository;
@@ -69,10 +69,8 @@ public class OrganizerEntrantsFragment extends Fragment /*implements OnMapReadyC
 
     private EntrantAdapter entrantAdapter;
 
-    // --- START OF CHANGE: Separate lists for all entrants and filtered entrants ---
     private ArrayList<String> allEntrantsList = new ArrayList<>();
     private ArrayList<String> filteredEntrantsList = new ArrayList<>();
-    // --- END OF CHANGE ---
 
     private final Map<String, Marker> userMarkers = new HashMap<>();
     private MaterialCardView bottomSheet;
@@ -106,24 +104,22 @@ public class OrganizerEntrantsFragment extends Fragment /*implements OnMapReadyC
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // --- START OF FIX: Setup the ListView and its adapter here, only once ---
         entrantsListView = view.findViewById(R.id.entrants_list);
         if (entrantsListView != null) {
             entrantsAdapter = new ArrayAdapter<>(
                     requireContext(),
                     android.R.layout.simple_list_item_1,
-                    currentEntrants // The adapter now holds a reference to our member list
+                    currentEntrants
             );
             entrantsListView.setAdapter(entrantsAdapter);
         } else {
             Log.e(TAG, "ListView (entrants_list) not found in the layout!");
         }
-        // --- END OF FIX ---
 
-        //SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map_container);
-//        if (mapFragment != null) {
-//            mapFragment.getMapAsync(this);
-//        }
+        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map_container);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+        }
         setupBottomSheet(view);
         setupTabs(view);
         setupActionBars();
@@ -148,46 +144,45 @@ public class OrganizerEntrantsFragment extends Fragment /*implements OnMapReadyC
         }
     }
 
-//    @Override
-//    public void onMapReady(@NonNull GoogleMap map) {
-//        googleMap = map;
-//        LatLng edmonton = new LatLng(53.5461, -113.4938);
-//        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(edmonton, 10f));
-//        fetchAndDisplayCheckInLocations(); // This will now fetch ALL users
-//    }
+    @Override
+    public void onMapReady(@NonNull GoogleMap map) {
+        googleMap = map;
+        LatLng edmonton = new LatLng(53.5461, -113.4938);
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(edmonton, 10f));
+        fetchAndDisplayCheckInLocations(); // This will now fetch ALL users
+    }
 
-//    private void fetchAndDisplayCheckInLocations() {
-//        if (event == null || event.getEventTitle() == null) {
-//            Log.e(TAG, "Event is null, cannot fetch check-ins.");
-//            return;
-//        }
-//
-//        FirebaseFirestore.getInstance()
-//                .collection("events").document(event.getEventTitle())
-//                .collection("checkins")
-//                .get()
-//                .addOnCompleteListener(task -> {
-//                    if (task.isSuccessful()) {
-//                        allEntrantsList.clear();
-//                        for (QueryDocumentSnapshot document : task.getResult()) {
-//                            CheckIn checkIn = document.toObject(CheckIn.class);
-//                            // Store every fetched entrant
-//                            allEntrantsList.add(checkIn);
-//                        }
-//                        Log.d(TAG, "Fetched " + allEntrantsList.size() + " total entrants.");
-//
-//                        // After fetching, apply the initial filter based on the current tab
-//                        if (tabs != null) {
-//                            filterAndDisplayEntrants(tabs.getTabAt(tabs.getSelectedTabPosition()));
-//                        }
-//
-//                    } else {
-//                        Log.w(TAG, "Error getting check-in documents.", task.getException());
-//                    }
-//                });
-//    }
+    private void fetchAndDisplayCheckInLocations() {
+        if (event == null || event.getEventTitle() == null) {
+            Log.e(TAG, "Event is null, cannot fetch check-ins.");
+            return;
+        }
 
-    // In OrganizerEntrantsFragment.java
+        FirebaseFirestore.getInstance()
+                .collection("events").document(event.getEventTitle())
+                .collection("checkins")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        allEntrantsList.clear();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            CheckIn checkIn = document.toObject(CheckIn.class);
+                            // Store every fetched entrant
+                            allEntrantsList.add(checkIn);
+                        }
+                        Log.d(TAG, "Fetched " + allEntrantsList.size() + " total entrants.");
+
+                        // After fetching, apply the initial filter based on the current tab
+                        if (tabs != null) {
+                            filterAndDisplayEntrants(tabs.getTabAt(tabs.getSelectedTabPosition()));
+                        }
+
+                    } else {
+                        Log.w(TAG, "Error getting check-in documents.", task.getException());
+                    }
+                });
+    }
+
 
     private void filterAndDisplayEntrants(TabLayout.Tab tab) {
         // 1. Clear the member list. The adapter is already connected to this list.
@@ -274,17 +269,17 @@ public class OrganizerEntrantsFragment extends Fragment /*implements OnMapReadyC
         }
     }
 
-//    @Override
-//    public void onEntrantClick(CheckIn checkIn) {
-//        Marker marker = userMarkers.get(checkIn.getUserId());
-//        if (googleMap != null && marker != null) {
-//            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 15f));
-//            marker.showInfoWindow();
-//            Toast.makeText(getContext(), "Showing location for " + checkIn.getUserName(), Toast.LENGTH_SHORT).show();
-//        } else {
-//            Toast.makeText(getContext(), "Location not available for this user.", Toast.LENGTH_SHORT).show();
-//        }
-//    }
+    @Override
+    public void onEntrantClick(CheckIn checkIn) {
+        Marker marker = userMarkers.get(checkIn.getUserId());
+        if (googleMap != null && marker != null) {
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 15f));
+            marker.showInfoWindow();
+            Toast.makeText(getContext(), "Showing location for " + checkIn.getUserName(), Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getContext(), "Location not available for this user.", Toast.LENGTH_SHORT).show();
+        }
+    }
 
     private void setupBottomSheet(View view) {
         bottomSheet = view.findViewById(R.id.bottom_sheet);
