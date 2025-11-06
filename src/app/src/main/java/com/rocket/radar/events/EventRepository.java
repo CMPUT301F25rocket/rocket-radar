@@ -223,6 +223,42 @@ public class EventRepository {
     // --- START OF NEW METHODS ---
 
     /**
+     * Callback interface for fetching a user's location from the waitlist.
+     */
+    public interface UserLocationCallback {
+        void onLocationFetched(GeoPoint location);
+        void onError(Exception e);
+    }
+
+    /**
+     * Fetches the GeoPoint for a specific user from an event's waitlist.
+     *
+     * @param eventId  The ID of the event.
+     * @param userId   The ID of the user whose location is to be fetched.
+     * @param callback The callback to handle the result.
+     */
+    public void getUserLocationFromWaitlist(String eventId, String userId, UserLocationCallback callback) {
+        if (eventId == null || eventId.isEmpty() || userId == null || userId.isEmpty()) {
+            callback.onError(new IllegalArgumentException("Event ID and User ID cannot be null or empty."));
+            return;
+        }
+
+        // The path is events -> {eventId} -> waitlistedUsers -> {userId}
+        db.collection("events").document(eventId).collection("waitlistedUsers").document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        GeoPoint location = documentSnapshot.getGeoPoint("signupLocation");
+                        callback.onLocationFetched(location); // Can be null if field doesn't exist
+                    } else {
+                        callback.onError(new Exception("User " + userId + " not found in waitlist for event " + eventId));
+                    }
+                })
+                .addOnFailureListener(callback::onError);
+    }
+
+
+    /**
      * Callback interface for fetching waitlist locations.
      */
     public interface WaitlistLocationsCallback {
