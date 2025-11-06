@@ -5,6 +5,8 @@ import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.rocket.radar.R;
@@ -76,6 +78,20 @@ public class EventRepository {
         List<Event> dummyEvents = loadDummyData();
         for (Event event : dummyEvents) {
             createEvent(event);
+        }
+    }
+
+    public void addUserToWaitlist(Event event, String userId){
+        if (event == null || event.getEventId() == null) {
+            Log.e(TAG, "Event is null or has no ID.");
+            return;
+        }
+        else {
+            DocumentReference userStubRef = db.collection("events").document(userId)
+                    .collection("waitlist").document();
+
+            userStubRef.set(userId);
+
         }
     }
 

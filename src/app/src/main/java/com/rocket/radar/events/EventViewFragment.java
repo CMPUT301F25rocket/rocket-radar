@@ -166,6 +166,7 @@ public class EventViewFragment extends Fragment {
     }
 
     private void handleJoinLeaveWaitlist() {
+        EventRepository repo = new EventRepository();
         ProfileModel currentProfile = profileViewModel.getProfileLiveData().getValue();
         if (currentProfile == null || event == null) {
             Toast.makeText(getContext(), "Error: Profile or event data not available.", Toast.LENGTH_SHORT).show();
@@ -194,6 +195,7 @@ public class EventViewFragment extends Fragment {
         ArrayList<String> currentWaitlist = event.getEventWaitlistIds();
         currentWaitlist.add(currentProfile.getUid());
         event.setEventWaitlistIds(currentWaitlist);
+        repo.addUserToWaitlist(event, currentProfile.getUid());
 
 
     }
