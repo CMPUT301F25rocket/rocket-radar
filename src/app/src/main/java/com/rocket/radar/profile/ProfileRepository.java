@@ -2,7 +2,10 @@ package com.rocket.radar.profile;
 
 import android.util.Log;
 
+import com.google.firebase.Firebase;
 import com.google.firebase.Timestamp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
@@ -56,6 +59,32 @@ public class ProfileRepository {
                 .set(userMap, SetOptions.merge()) // omitted fields remain untouched
                 .addOnSuccessListener(aVoid -> {callback.onSuccess();;})
                 .addOnFailureListener(callback::onError);
+    }
+
+    public void deleteAccount(FirebaseUser user, ProfileModel profile, WriteCallback callback) {
+        if (user == null) {
+            callback.onError(new Exception("No authenticated user."));
+            return;
+        }
+        // delete user firestore
+        db.collection("users")
+                .document(profile.getUid())
+                .delete()
+                .addOnSuccessListener(aVoid -> { // delete auth for user
+                    user.delete()
+                            .addOnSuccessListener(unused -> {
+                                Log.d(TAG, "User account deleted successfully.");
+                                callback.onSuccess();
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Failed to delete Firebase Auth user", e);
+                                callback.onError(e);
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to delete Firestore document", e);
+                    callback.onError(e);
+                });
     }
 
     /**

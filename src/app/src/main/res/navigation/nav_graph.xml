@@ -51,7 +51,11 @@
     <fragment
         android:id="@+id/accountSettingsFragment"
         android:name="com.rocket.radar.profile.AccountSettingsFragment"
-        android:label="Account Settings" />
+        android:label="Account Settings">
+        <action
+            android:id="@+id/action_account_settings_to_login"
+            app:destination="@id/loginStartScanningFragment"/>
+    </fragment>
 
     <fragment
         android:id="@+id/profileFragment"

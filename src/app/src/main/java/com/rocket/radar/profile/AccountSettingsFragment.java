@@ -19,7 +19,7 @@ import com.rocket.radar.R;
 // cite: toast code for save button based on https://developer.android.com/guide/topics/ui/notifiers/toasts
 public class AccountSettingsFragment extends Fragment {
 
-    private MaterialButton backButton, saveButton;
+    private MaterialButton backButton, saveButton, deleteButton;
     private TextInputEditText usernameField, emailField, phoneNumberField;
     private MaterialSwitch notificationsEnabled, geolocationEnabled;
     private ProfileViewModel profileViewModel;
@@ -31,6 +31,7 @@ public class AccountSettingsFragment extends Fragment {
         View view =  inflater.inflate(R.layout.fragment_account_settings, container, false);
         backButton = view.findViewById(R.id.back_button);
         saveButton = view.findViewById(R.id.save_button);
+        deleteButton = view.findViewById(R.id.delete_button);
         usernameField = view.findViewById(R.id.usernameField);
         emailField = view.findViewById(R.id.emailField);
         phoneNumberField = view.findViewById(R.id.phoneField);
@@ -51,6 +52,15 @@ public class AccountSettingsFragment extends Fragment {
 
         profileViewModel = new ViewModelProvider(requireActivity()).get(ProfileViewModel.class);
         profileViewModel.getProfileLiveData().observe(getViewLifecycleOwner(), profile -> {
+            if (profile == null) {
+                usernameField.setText("");
+                emailField.setText("");
+                phoneNumberField.setText("");
+                notificationsEnabled.setChecked(false);
+                geolocationEnabled.setChecked(false);
+                uid = null;
+                return;
+            }
             usernameField.setText(profile.getName());
             emailField.setText(profile.getEmail());
             phoneNumberField.setText(profile.getPhoneNumber());
@@ -96,6 +106,21 @@ public class AccountSettingsFragment extends Fragment {
             Toast saveToast = Toast.makeText(this.getContext(), "Account settings saved!", Toast.LENGTH_SHORT);
             saveToast.show();
         });
+        deleteButton.setOnClickListener( v -> {
+            ProfileModel profile = profileViewModel.getProfileLiveData().getValue();
+            profileViewModel.deleteProfile(profile);
+
+            profileViewModel.getDeleteSuccess().observe(getViewLifecycleOwner(), success -> {
+                if (success != null && success) {
+                    Toast.makeText(getContext(), "Account deleted", Toast.LENGTH_SHORT).show();
+                    NavHostFragment.findNavController(this)
+                            .navigate(R.id.action_profile_to_accountSettings);
+                } else if (success != null) {
+                    Toast.makeText(getContext(), "Failed to delete account", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+
         return view;
     }
 }
