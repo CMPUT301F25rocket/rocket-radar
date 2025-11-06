@@ -131,6 +131,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
+        fetchAndDisplayWaitlistLocations();
         setupBottomSheet(view);
         setupTabs(view);
         setupActionBars();
