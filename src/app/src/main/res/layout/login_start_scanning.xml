@@ -77,6 +77,7 @@
         android:id="@+id/button_continue"
         android:layout_width="268dp"
         android:layout_height="50dp"
+        android:layout_marginBottom="100dp"
         android:backgroundTint="#000000"
         android:text="Continue"
         android:textColor="#FFFFFF"
