@@ -103,7 +103,22 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         profileViewModel.getProfileLiveData().observe(getViewLifecycleOwner(), profile -> {
             currentUserProfile = profile;
             filterAndDisplayEvents();
+            updateNotificationButtonUI(profile);
         });
+    }
+
+    private void updateNotificationButtonUI(ProfileModel profile) {
+        Boolean isEnabled = profile.isNotificationsEnabled();
+
+        if (Boolean.TRUE.equals(isEnabled)) {
+            notificationButton.setAlpha(1.0f);
+            notificationBadge.setAlpha(1.0f);
+            notificationButton.setEnabled(true);
+        } else {
+            notificationButton.setAlpha(0.5f);
+            notificationBadge.setAlpha(0.0f);
+            notificationButton.setEnabled(false);
+        }
     }
 
 
