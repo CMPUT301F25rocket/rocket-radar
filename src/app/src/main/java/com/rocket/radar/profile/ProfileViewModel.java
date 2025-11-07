@@ -12,6 +12,15 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 
 //cite: general design was based on https://developer.android.com/topic/architecture, to separate the ui layer in the architecture from the data (repository), accessed: October 28, 2025
+
+/**
+ * ViewModel class responsible for managing and exposing user profile data.
+ * between the UI (Fragments) and the data layer (ProfileRepository and Firestore)
+ * ViewModel was used because it allows profile data to survive config changes
+ * (like rotating the screen) and keeps UI logic separate from data handling.
+ * LiveData was used inside the class because it provides observable data
+ * that automatically updates the UI when profile data changes.
+ */
 public class ProfileViewModel extends ViewModel {
 
     private final static String TAG = "ProfileViewModel";
@@ -28,8 +37,17 @@ public class ProfileViewModel extends ViewModel {
     }
 
     private final MutableLiveData<Boolean> deleteSuccess = new MutableLiveData<>();
+
+    /**
+     * Returns the delete success.
+     * Used in AccountSettingsFragment to know when to navigate back to login.
+     * @return deleteSuccess, which is a LiveData Boolean
+     */
     public LiveData<Boolean> getDeleteSuccess() { return deleteSuccess; }
 
+    /**
+     * Empty constructor for a ProfileViewModel
+     */
     public ProfileViewModel() {
         // The listener is no longer set in the constructor.
         // It will be set explicitly when a user is signed in.
@@ -72,6 +90,12 @@ public class ProfileViewModel extends ViewModel {
             }
         });
     }
+
+    /**
+     * Wrapper for the repository implementation of deleteAccount.
+     * This is nice since we can define callbacks for log messages when we call deleteProfile.
+     * @param profile ProfileModel for the user to delete
+     */
     public void deleteProfile(ProfileModel profile) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
@@ -81,12 +105,22 @@ public class ProfileViewModel extends ViewModel {
         }
 
         profileRepository.deleteAccount(user, profile, new ProfileRepository.WriteCallback() {
+
+            /**
+             * Triggers when a deleteAccount is successful.
+             * Changes deleteSuccess to true and logs a message.
+             */
             @Override
             public void onSuccess() {
                 Log.d(TAG, "Profile deleted successfully.");
                 deleteSuccess.postValue(true);
             }
 
+            /**
+             * Triggers when a deleteAccount fails.
+             * Logs when deleteAccount fails.
+             * @param e the exception that occurred.
+             */
             @Override
             public void onError(Exception e) {
                 Log.e(TAG, "Error deleting profile", e);
@@ -95,16 +129,27 @@ public class ProfileViewModel extends ViewModel {
         });
     }
 
-
-
+    /**
+     * Wrapper for the repository implementation of writeProfile.
+     * @param profile the ProfileModel profile to update
+     */
     public void updateProfile(ProfileModel profile) {
         profileRepository.writeProfile(profile, new ProfileRepository.WriteCallback() {
+
+            /**
+             * Triggers when writeProfile is successful.
+             * Logs a message.
+             */
             @Override
             public void onSuccess() {
                 Log.d(TAG, "Profile updated successfully: " + profile.getUid());
                 // LiveData will be updated by the snapshot listener
             }
 
+            /**
+             * Triggers when a writeProfile is unsuccessful.
+             * @param e the exception that occurred.
+             */
             @Override
             public void onError(Exception e) {
                 Log.e(TAG, "Error updating profile " + profile.getUid(), e);
@@ -115,8 +160,17 @@ public class ProfileViewModel extends ViewModel {
     // This method is no longer the primary way to get profile data,
     // as the ViewModel now automatically listens for updates.
     // It can be kept for one-off fetches if needed elsewhere.
+
+    /**
+     * Wrapper for the repository implementation of readProfile.
+     * @param uid the user id of the user to get.
+     */
     public void getProfile(String uid) {
         profileRepository.readProfile(uid, new ProfileRepository.ReadCallback() {
+            /**
+             * Triggers when a readProfile is successful.
+             * @param profile the loaded ProfileModel object
+             */
             @Override
             public void onProfileLoaded(ProfileModel profile) {
                 if (profile == null) {
@@ -127,6 +181,10 @@ public class ProfileViewModel extends ViewModel {
                 profileLiveData.postValue(profile);
             }
 
+            /**
+             * Triggers when a readProfile fails.
+             * @param e the exception that occurred.
+             */
             @Override
             public void onError(Exception e) {
                 Log.e(TAG, "Error getting profile " + uid, e);
@@ -134,6 +192,10 @@ public class ProfileViewModel extends ViewModel {
         });
     }
 
+    /**
+     * Wrapper for the repository implementation of updateLastLogin
+     * @param uid the user id of the user to update the login for
+     */
     public void updateLastLogin(String uid) {
         if (uid == null) {
             Log.e(TAG, "Cannot update last login for null UID.");
