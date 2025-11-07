@@ -175,12 +175,12 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
     }
 
     private void fetchAndDisplayWaitlistLocations() {
-        if (event == null || event.getEventTitle() == null) {
+        if (event == null || event.getEventId() == null) {
             Log.e(TAG, "Event is null, cannot fetch user locations.");
             return;
 
         }
-        eventRepository.getWaitlistLocations(event.getEventTitle(), new EventRepository.WaitlistLocationsCallback() {
+        eventRepository.getWaitlistLocations(event.getEventId(), new EventRepository.WaitlistLocationsCallback() {
             @Override
             public void onWaitlistLocationsFetched(List<GeoPoint> locations) {
                 if (googleMap == null) return;
@@ -209,7 +209,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
             switch (status) {
                 case "waitlisted":
                     // Check for valid event data before making a network call
-                    if (event == null || event.getEventTitle() == null) {
+                    if (event == null || event.getEventId() == null) {
                         Log.e(TAG, "Event or Event ID is null. Cannot fetch waitlist.");
                         Toast.makeText(getContext(), "Event data is missing.", Toast.LENGTH_SHORT).show();
                         entrantsAdapter.notifyDataSetChanged(); // Ensure the list is shown as empty
@@ -280,14 +280,14 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
 
                 case "invited":
                     // Check for valid event data before making a network call
-                    if (event == null || event.getEventTitle() == null) {
+                    if (event == null || event.getEventId() == null) {
                         Log.e(TAG, "Event or Event ID is null. Cannot fetch invited entrants.");
                         Toast.makeText(getContext(), "Event data is missing.", Toast.LENGTH_SHORT).show();
                         entrantsAdapter.notifyDataSetChanged(); // Ensure the list is shown as empty
                         return; // Stop execution
                     }
 
-                    eventRepository.getInvitedEntrants(event.getEventTitle(), new EventRepository.InvitedEntrantsCallback() {
+                    eventRepository.getInvitedEntrants(event.getEventId(), new EventRepository.InvitedEntrantsCallback() {
                         @Override
                         public void onInvitedEntrantsFetched(List<String> userIds) {
                             Log.d(TAG, "Fetched " + userIds.size() + " invited entrants.");
@@ -337,14 +337,14 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                     break;
 
                 case "selected":
-                    if (event == null || event.getEventTitle() == null) {
+                    if (event == null || event.getEventId() == null) {
                         Log.e(TAG, "Event or Event ID is null. Cannot fetch selected entrants.");
                         Toast.makeText(getContext(), "Event data is missing.", Toast.LENGTH_SHORT).show();
                         entrantsAdapter.notifyDataSetChanged();
                         return;
                     }
 
-                    eventRepository.getSelectedEntrants(event.getEventTitle(), new EventRepository.SelectedEntrantsCallback() {
+                    eventRepository.getSelectedEntrants(event.getEventId(), new EventRepository.SelectedEntrantsCallback() {
                         @Override
                         public void onSelectedEntrantsFetched(List<String> userIds) {
                             Log.d(TAG, "Fetched " + userIds.size() + " selected entrants.");
@@ -391,14 +391,14 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                     break;
 
                 case "cancelled":
-                    if (event == null || event.getEventTitle() == null) {
+                    if (event == null || event.getEventId() == null) {
                         Log.e(TAG, "Event or Event ID is null. Cannot fetch cancelled entrants.");
                         Toast.makeText(getContext(), "Event data is missing.", Toast.LENGTH_SHORT).show();
                         entrantsAdapter.notifyDataSetChanged();
                         return;
                     }
 
-                    eventRepository.getCancelledEntrants(event.getEventTitle(), new EventRepository.CancelledEntrantsCallback() {
+                    eventRepository.getCancelledEntrants(event.getEventId(), new EventRepository.CancelledEntrantsCallback() {
                         @Override
                         public void onCancelledEntrantsFetched(List<String> userIds) {
                             Log.d(TAG, "Fetched " + userIds.size() + " cancelled entrants.");
@@ -614,7 +614,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                 Toast.makeText(getContext(), "Title and message cannot be empty.", Toast.LENGTH_SHORT).show();
                 return;
             }
-            if (event == null || event.getEventTitle() == null) {
+            if (event == null || event.getEventId() == null) {
                 Toast.makeText(getContext(), "Error: Event ID is missing.", Toast.LENGTH_SHORT).show();
                 return;
             }
