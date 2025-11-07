@@ -35,6 +35,8 @@ import com.rocket.radar.profile.ProfileRepository;
 import com.rocket.radar.profile.ProfileViewModel;
 import com.rocket.radar.qr.QRDialog;
 
+import java.util.List;
+
 /**
  Main activity that handles user authentication, navigation, and location services.
  */
@@ -133,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = getIntent();
         String action = intent.getAction();
         if (action == null) return;
+        // TODO: This is begging to be refactored.
         if (action.equals("android.intent.action.VIEW")) {
             Uri uri = intent.getData();
             String id = uri.getQueryParameter("eventId");
@@ -155,7 +158,20 @@ public class MainActivity extends AppCompatActivity {
                             dialog.setPositiveButton("Ok", null);
                             dialog.show();
                         }
-                        EventViewFragment eventViewFragment = EventViewFragment.newInstance(event);
+
+                        // Figure out if we are the organizer for this event
+                        boolean isOrganizer = false;
+                        ProfileModel profileModel = profileViewModel.getProfileLiveData().getValue();
+                        if (profileModel != null) {
+                            for (var myEventId : profileModel.getOnMyEventIds()) {
+                                if (myEventId.equals(id)) {
+                                    isOrganizer = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        EventViewFragment eventViewFragment = EventViewFragment.newInstance(event, isOrganizer);
                         getSupportFragmentManager().beginTransaction()
                                 .replace(R.id.nav_host_fragment, eventViewFragment)
                                 .addToBackStack(EventViewFragment.TAG)
