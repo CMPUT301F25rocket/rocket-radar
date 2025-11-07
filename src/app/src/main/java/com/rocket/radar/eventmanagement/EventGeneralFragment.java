@@ -70,7 +70,6 @@ public class EventGeneralFragment extends Fragment implements InputFragment {
                 && (tagline != null && !tagline.isBlank());
     }
 
-
     @Override
     public Event.Builder extract(Event.Builder builder) {
         for (var idx : categories) {

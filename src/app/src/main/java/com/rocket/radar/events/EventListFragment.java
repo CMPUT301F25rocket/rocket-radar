@@ -23,6 +23,9 @@ import com.rocket.radar.notifications.NotificationFragment;
 import com.rocket.radar.notifications.NotificationRepository; // Import NotificationRepository
 import com.rocket.radar.profile.ProfileModel;
 import com.rocket.radar.profile.ProfileViewModel;
+
+import org.checkerframework.checker.units.qual.A;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -71,26 +74,16 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         selectedFilters = new ArrayList<>();
         filterModel = new ViewModelProvider(requireActivity()).get(FilterModel.class);
 
-
-        // initialize chips
+        Log.e("EventListFragment", "Lenght: " + filterModel.getFilters().getValue());
 
         for (var category : Event.allEventCategories) {
-            CategoryChipBinding chip = CategoryChipBinding.inflate(inflater, chipGroup, false);
-            chip.getRoot().setText(category);
-            chipGroup.addView(chip.getRoot());
+            CategoryChipBinding binding = CategoryChipBinding.inflate(inflater, chipGroup, false);
+            binding.getRoot().setText(category);
+            chipGroup.addView(binding.getRoot());
         }
 
-        chipGroup.setOnCheckedStateChangeListener((group, checkedIds) ->  {
-            categories = checkedIds;
-            // save the categories that are selected
-            // refilter all the events
-        });
-
-        // set the visisbility for the chihp group to GONE
+        // initialize chips
         chipGroup.setVisibility(View.GONE);
-
-
-
 
         return view;
     }
@@ -211,14 +204,9 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         if (allEvents == null || currentUserProfile == null) {
             return;
         }
-
-        selectedFilters.addAll(Event.allEventCategories);
         // all selected by default so that all show, but visibility will still be set to gone for now
         // if an event has the chip name in its categories field, show that event
         // for testing purposes, we will hardcode the selectedFilters to have "Business" and "Food"
-
-
-
 
         int checkedId = toggleGroup.getCheckedButtonId();
 
@@ -229,28 +217,38 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
 
         if (checkedId == R.id.discover_filter_button) {
             ArrayList<String> finalUserWaitlistEventIds = userWaitlistEventIds;
-            selectedFilters.clear();
-            // change the indicies to reflect the chip names
 
-            // selectedFilters.add("Food");
             // display events who have the selectedFIlters as items in their categories attribute
             for (Event event : allEvents) {
                 Log.d("EventListFragment", "Event: " + event.toString());
                 Log.d("EventListFragment", "categories of event: " + event.getCategories().toString());
             }
+            selectedFilters = filterModel.getFilters().getValue();
             if (selectedFilters.size() > 0) {
-                ArrayList<String> finalSelectedFilters = selectedFilters;
-                filteredList = allEvents.stream()
-                        .filter(event -> event.getCategories().containsAll(finalSelectedFilters))
-                        .filter(event -> !finalUserWaitlistEventIds.contains(event.getEventId()))
-                        .collect(Collectors.toList());
+                // Set selected chips
+                for (var selected : selectedFilters) {
+                    for (int i = 0; i < chipGroup.getChildCount(); ++i) {
+                        View view = chipGroup.getChildAt(i);
+                        if (view instanceof Chip) {
+                            Chip chip = (Chip) view;
+                            if (chip.getText().toString().equals(selected)) {
+                                chip.setChecked(true);
+                            }
+                        }
+                    }
+                }
 
                 // also set the chips visibility
                 chipGroup.setVisibility(View.VISIBLE);
 
                 // finally, display the filtered eventrs
+                ArrayList<String> finalSelectedFilters = selectedFilters;
+                filteredList = allEvents.stream()
+                        .filter(event -> event.getCategories().containsAll(finalSelectedFilters))
+                        .filter(event -> !finalUserWaitlistEventIds.contains(event.getEventId()))
+                        .collect(Collectors.toList());
             } else {
-                chipGroup.setVisibility(View.VISIBLE);
+                chipGroup.setVisibility(View.GONE);
                 filteredList = allEvents;
             }
         } else if (checkedId == R.id.waitlist_filter_button) {
@@ -295,5 +293,7 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).setBottomNavigationVisibility(View.VISIBLE);
         }
+
+        filterAndDisplayEvents();
     }
 }

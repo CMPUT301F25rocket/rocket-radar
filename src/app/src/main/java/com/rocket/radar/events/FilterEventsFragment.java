@@ -47,10 +47,23 @@ public class FilterEventsFragment extends Fragment {
         confirmButton = view.findViewById(R.id.confirm_button);
         chipGroup = view.findViewById(R.id.interests_chip_group);
         filterModel = new ViewModelProvider(requireActivity()).get(FilterModel.class);
+
+        for (var category : filterModel.getFilters().getValue()) {
+            for (int i = 0; i < chipGroup.getChildCount(); ++i) {
+                View maybeChip = chipGroup.getChildAt(i);
+                if (maybeChip instanceof Chip) {
+                    Chip chip = (Chip)maybeChip;
+                    if (chip.getText().toString().equals(category)) {
+                        chip.setChecked(true);
+                    }
+                }
+            }
+        }
+
         chipGroup.setOnCheckedStateChangeListener((group, checkedIds) ->  {
             ArrayList<String> checkedCategories = new ArrayList<>();
-            for (var chipidx : checkedIds) {
-                String category = ((Chip)chipGroup.getChildAt(chipidx)).getText().toString();
+            for (var chipid : checkedIds) {
+                String category = ((Chip)chipGroup.findViewById(chipid)).getText().toString();
                 checkedCategories.add(category);
             }
             // save the categories that are selected
