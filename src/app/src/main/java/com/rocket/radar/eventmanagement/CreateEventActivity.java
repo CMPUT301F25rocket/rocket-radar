@@ -81,8 +81,15 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
 
         // Main navigation buttons
         binding.createEventWizardNavLeftButton.setOnClickListener(btn -> {
-            model.prevSection();
+            if (model.getSection().getValue() == Section.firstSection) {
+                Intent intent = new Intent();
+                setResult(RESULT_CANCELED, intent);
+                CreateEventActivity.this.finish();
+            } else {
+                model.prevSection();
+            }
         });
+
         binding.createEventWizardNavRightButton.setOnClickListener(btn -> {
             if (model.getSection().getValue() == Section.lastSection) {
                 try {
@@ -97,7 +104,12 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
                     Intent intent = new Intent(CreateEventActivity.this, MainActivity.class);
                     intent.setAction(getString(R.string.intent_action_show_qr));
                     intent.putExtra("eventId", uuid);
+                    // TODO: Ideally we want end this activity but it breaks the intents so
+                    // this is for later. Even though this is kindof broken as it is.
+                    // setResult(RESULT_OK, intent);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                     startActivity(intent);
+                    CreateEventActivity.this.finish();
                 } catch (Exception e) {
                     Log.e(TAG, "Create event failure: ", e);
                     MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(CreateEventActivity.this);

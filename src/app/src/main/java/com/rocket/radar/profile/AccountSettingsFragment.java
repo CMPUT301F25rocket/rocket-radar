@@ -114,6 +114,9 @@ public class AccountSettingsFragment extends Fragment {
             }
             Toast saveToast = Toast.makeText(this.getContext(), "Account settings saved!", Toast.LENGTH_SHORT);
             saveToast.show();
+
+            NavHostFragment.findNavController(this)
+                    .navigate(R.id.action_account_settings_to_profile);
         });
         deleteButton.setOnClickListener( v -> {
             new MaterialAlertDialogBuilder(requireContext())

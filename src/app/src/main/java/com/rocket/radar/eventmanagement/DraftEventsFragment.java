@@ -3,10 +3,13 @@ package com.rocket.radar.eventmanagement;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.databinding.BindingAdapter;
@@ -23,9 +26,20 @@ import com.rocket.radar.profile.ProfileViewModel;
 public class DraftEventsFragment extends Fragment {
     FragmentDraftEventsBinding binding;
 
+    // AI slop. But this is actually kindof neat. I'll need to read into the docs for this.
+    private final ActivityResultLauncher<Intent> createEventLauncher =
+          registerForActivityResult(
+              new ActivityResultContracts.StartActivityForResult(),
+              result -> {
+                  Log.d("DraftEventsFragment", "Returned from CreateEventActivity with result: " + result.getResultCode());
+                  // Fragment will properly refresh here
+              }
+          );
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        Log.d("DraftEventsFragment", "onCreateView called");
         binding = FragmentDraftEventsBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -36,14 +50,13 @@ public class DraftEventsFragment extends Fragment {
 
         binding.organizingEventsCreateButton.setOnClickListener(button -> {
             // Rhu roh.
-            Intent createEvent = new Intent(getActivity(), CreateEventActivity.class);
-            startActivity(createEvent);
+            Intent intent = new Intent(getActivity(), CreateEventActivity.class);
+            createEventLauncher.launch(intent);
         });
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        binding = null;
     }
 }

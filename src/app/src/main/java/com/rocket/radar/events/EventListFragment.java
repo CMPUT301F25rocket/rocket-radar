@@ -24,6 +24,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * This fragment is responsible for displaying a list of events.
+ * It allows users to toggle between "Discover", "Waitlist", and "Attending" views.
+ * It also provides access to notifications and event filtering options.
+ * Outstanding issues: The "Attending" filter functionality is not yet implemented.
+ */
 public class EventListFragment extends Fragment implements EventAdapter.OnEventListener {
 
     private RecyclerView eventRecyclerView;
@@ -37,6 +43,8 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
     private MaterialButtonToggleGroup toggleGroup;
     private TextView notificationBadge;
     private NotificationRepository notificationRepository;
+    private Button filterButton;
+
 
 
     public EventListFragment() {
@@ -50,6 +58,8 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         notificationButton = view.findViewById(R.id.btnNotification);
         toggleGroup = view.findViewById(R.id.toggleGroup);
         notificationBadge = view.findViewById(R.id.notification_badge);
+        filterButton = view.findViewById(R.id.button_filter); // Initialize filter button
+
 
 
         return view;
@@ -82,6 +92,17 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
             }
         });
 
+        filterButton.setOnClickListener(v -> {
+            FilterEventsFragment filterFragment = new FilterEventsFragment();
+            if (getActivity() != null) {
+                getActivity().getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.nav_host_fragment, filterFragment)
+                        .addToBackStack(null) // Allows user to go back to the event list
+                        .commit();
+            }
+        });
+
+
         setupToggleListener();
 
         // Start observing data
@@ -113,6 +134,12 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
      * @param profile the current user profile that is using the app.
      */
     private void updateNotificationButtonUI(ProfileModel profile) {
+        if (profile == null) {
+            notificationButton.setAlpha(0.5f);
+            notificationBadge.setAlpha(0.0f);
+            return;
+        }
+
         Boolean isEnabled = profile.isNotificationsEnabled();
 
         if (Boolean.TRUE.equals(isEnabled)) {

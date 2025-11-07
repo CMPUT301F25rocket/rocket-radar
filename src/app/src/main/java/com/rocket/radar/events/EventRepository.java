@@ -3,8 +3,11 @@ package com.rocket.radar.events;
 import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
@@ -18,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+// FIXME: This is functionally a singleton we should store the global instance in a static and return
+// that instead of creating many of these objects.
 public class EventRepository {
 
     private static final String TAG = "EventRepository";
@@ -35,6 +40,10 @@ public class EventRepository {
      * It listens for real-time updates from the "events" collection in Firestore
      * and returns the data wrapped in LiveData.
      */
+    // FIXME: This is bad practice and going to spike our firestore reads really hard.
+    // TODO: EventListFragment should query the firestore for events upcoming soon, and as the user
+    // nears the bottom of the list should load additional events as they are required.
+    // But that's hard and annoying so part 4 it is.
     public LiveData<List<Event>> getAllEvents() {
         MutableLiveData<List<Event>> eventsLiveData = new MutableLiveData<>();
         eventRef.addSnapshotListener((value, error) -> {
@@ -52,6 +61,14 @@ public class EventRepository {
             eventsLiveData.postValue(eventList);
         });
         return eventsLiveData;
+    }
+
+    /**
+     * @param eventId UUID of the event we want to fetch.
+     * @return Task yielding a {@code DocumentSnapshot} which can be converted into an {@code Event}
+     */
+    public Task<DocumentSnapshot> getEvent(String eventId) {
+        return eventRef.document(eventId).get();
     }
 
     public interface WaitlistSizeListener {
@@ -76,7 +93,7 @@ public class EventRepository {
         // CORRECT PATH: events -> {event-id} -> waitlistedUsers
         // IMPORTANT: I noticed you are using event.getEventTitle() as the document ID. This is risky if titles can change or are not unique.
         // It's better to use event.getEventId(). For now, I'll stick to your current implementation.
-        CollectionReference waitlistRef = db.collection("events").document(event.getEventTitle())
+        CollectionReference waitlistRef = db.collection("events").document(event.getEventId())
                 .collection("waitlistedUsers");
 
         waitlistRef.get().addOnSuccessListener(queryDocumentSnapshots -> {
@@ -121,7 +138,7 @@ public class EventRepository {
         else {
             // --- START OF FIX ---
             // 1. Get the correct path: events -> {event-id} -> waitlistedUsers -> {user-id}
-            DocumentReference waitlistRef = db.collection("events").document(event.getEventTitle())
+            DocumentReference waitlistRef = db.collection("events").document(event.getEventId())
                     .collection("waitlistedUsers").document(userId);
 
             // 2. Create a map to hold some data, like a timestamp.
@@ -154,7 +171,7 @@ public class EventRepository {
             Log.e(TAG, "User ID is null or empty. Cannot remove user from waitlist.");
             return;
         }
-        DocumentReference userDocumentInWaitlist = db.collection("events").document(event.getEventTitle())
+        DocumentReference userDocumentInWaitlist = db.collection("events").document(event.getEventId())
                 .collection("waitlistedUsers").document(userId);
 
         // 2. Call .delete() on that specific document reference.

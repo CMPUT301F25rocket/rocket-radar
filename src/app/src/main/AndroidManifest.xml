@@ -24,15 +24,21 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <!--
-             android-app://{package_id}[/{scheme}[/{host}[/{path}]]][#Intent;{...}]
-             So our QR codes should contain the text:
-             'android-app://com.rocket.radar#Intent;action=com.rocket.radar.events.VIEW_EVENT;S.eventId=<event id here>;end'
+            https://developer.android.com/training/app-links/verify-applinks
+            https://developers.google.com/digital-asset-links/tools/generator
+            https://developer.android.com/training/app-links/create-deeplinks#read-data
             -->
-            <!-- <category android:name="android.intent.category.DEFAULT" /> -->
-            <intent-filter android:label="@string/filter_view_qr">
-                <action android:name="@strings/intent_action_view_event" />
+            <intent-filter
+                android:label="@string/filter_view_qr"
+                android:autoVerify="true"
+                >
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="android-app" />
+                <data
+                    android:scheme="https"
+                    android:host="radar-65b66.web.app"
+                    />
             </intent-filter>
         </activity>
 

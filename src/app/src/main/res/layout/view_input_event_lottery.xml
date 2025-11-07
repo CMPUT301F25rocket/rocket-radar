@@ -19,11 +19,12 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingVertical="12dp"
             >
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="24dp"
                 android:orientation="vertical"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -48,7 +49,7 @@
                 android:id="@+id/inputEventLotteryIncludeWaitlistCapacity"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
+                android:layout_marginEnd="24dp"
                 android:checked="@={createEvent.hasWaitlistCapacity}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -58,11 +59,12 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingVertical="12dp"
             >
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="24dp"
                 android:orientation="vertical"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -87,7 +89,7 @@
                 android:id="@+id/inputEventLotteryIncludeLocationRequirement"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
+                android:layout_marginEnd="24dp"
                 android:checked="@={createEvent.hasLocationRequirement}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -101,6 +103,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_margin="24dp"
             >
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/inputEventLotteryWaitlistCapacity"
@@ -123,6 +126,7 @@
                 android:id="@+id/inputEventLotteryEventCapacity"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
                 android:hint="Event Capacity"
                 app:layout_constraintTop_toBottomOf="@id/inputEventLotteryWaitlistCapacity"
                 >
@@ -139,6 +143,8 @@
                 android:id="@+id/lotterySectionDateLayout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginEnd="12dp"
                 android:hint="Lottery Date"
                 app:layout_constraintTop_toBottomOf="@id/inputEventLotteryEventCapacity"
                 app:layout_constraintStart_toStartOf="parent"
@@ -161,6 +167,8 @@
                 android:id="@+id/lotterySectionTimeLayout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginStart="12dp"
                 android:hint="Lottery Time"
                 app:layout_constraintTop_toBottomOf="@id/inputEventLotteryEventCapacity"
                 app:layout_constraintEnd_toEndOf="parent"

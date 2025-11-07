@@ -1,5 +1,15 @@
 package com.rocket.radar.notifications;
 
+/**
+ * A {@link Fragment} that displays a list of notifications for the current user.
+ * It uses a {@link RecyclerView} to present the data and communicates with a
+ * {@link NotificationRepository} to fetch and observe notification data from Firestore.
+ *
+ * This fragment manages the UI state, showing a "no notifications" message when the list
+ * is empty. It also handles navigation, allowing the user to return to the previous screen.
+ * The sorting of notifications (unread first, then by date) is handled within this class.
+ */
+
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
