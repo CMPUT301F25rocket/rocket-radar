@@ -101,7 +101,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         return VIEW_TYPE_NOTIFICATION;
     }
 
-    // --- MODIFIED ---
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -185,7 +184,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         return count;
     }
 
-    // --- VIEW HOLDERS (New one added) ---
 
     /**
      * ViewHolder for a single notification item. Caches view references and binds data.

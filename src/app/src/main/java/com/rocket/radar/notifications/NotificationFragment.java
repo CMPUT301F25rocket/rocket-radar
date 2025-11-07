@@ -121,7 +121,6 @@ public class NotificationFragment extends Fragment {
         // Register the observer with the adapter.
         adapter.registerAdapterDataObserver(adapterObserver);
 
-        // --- IMPORTANT ---
         // Perform an initial check in case the LiveData is already populated
         checkEmpty();
     }

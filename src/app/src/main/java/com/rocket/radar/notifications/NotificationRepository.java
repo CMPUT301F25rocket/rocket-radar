@@ -160,8 +160,6 @@ public class NotificationRepository {
                         userIds.add(userDoc.getId());
                     }
 
-                    // --- START OF FIX ---
-
                     // 2. Create a list of tasks to fetch each user's profile document.
                     List<Task<DocumentSnapshot>> userFetchTasks = new ArrayList<>();
                     for (String userId : userIds) {
@@ -197,7 +195,6 @@ public class NotificationRepository {
                         createAndFanOutNotification(title, body, usersToNotify);
 
                     }).addOnFailureListener(e -> Log.e(TAG, "Failed to fetch one or more user profiles.", e));
-                    // --- END OF FIX ---
 
                 }).addOnFailureListener(e -> Log.e(TAG, "Failed to fetch users from collection '" + groupCollection + "' for event: " + eventId, e));
     }
