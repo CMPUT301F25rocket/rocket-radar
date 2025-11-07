@@ -95,15 +95,16 @@
     </LinearLayout>
 
 
-
-    <include layout="@layout/category_chip_group"
+    <include
         android:id="@+id/category_chip_group_event_list"
+        layout="@layout/category_chip_group"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        app:layout_constraintBottom_toTopOf="@id/event_list_recycler_view"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/linearLayout" />
 
 
