@@ -36,6 +36,15 @@ public class NotificationFragment extends Fragment {
     private NotificationRepository notificationRepository;
     private RecyclerView.AdapterDataObserver adapterObserver; // Declare the observer
 
+    /**
+     * Inflates the fragment's layout and initializes view and repository instances.
+     * This method is called to create the view hierarchy associated with the fragment.
+     *
+     * @param inflater The LayoutInflater object that can be used to inflate any views in the fragment.
+     * @param container If non-null, this is the parent view that the fragment's UI should be attached to.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     * @return The View for the fragment's UI, or null.
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.notification_list, container, false);
@@ -50,6 +59,14 @@ public class NotificationFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Called immediately after {@link #onCreateView(LayoutInflater, ViewGroup, Bundle)} has returned,
+     * but before any saved state has been restored in to the view. This is where final view
+     * initialization, such as setting up RecyclerView, click listeners, and observers, should occur.
+     *
+     * @param view The View returned by {@link #onCreateView}.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -58,6 +75,11 @@ public class NotificationFragment extends Fragment {
         observeNotifications();
     }
 
+    /**
+     * Configures the RecyclerView, its layout manager, and the custom adapter.
+     * It also sets up a {@link RecyclerView.AdapterDataObserver} to monitor changes in the
+     * adapter's data set and toggle the visibility of the empty state view.
+     */
     private void setupRecyclerView() {
         // Use the original adapter that does NOT handle the empty state
         adapter = new NotificationAdapter(getContext(), new ArrayList<>(), notificationRepository);
@@ -104,6 +126,10 @@ public class NotificationFragment extends Fragment {
         checkEmpty();
     }
 
+    /**
+     * Sets up the click listener for the back button, which pops the back stack to
+     * return the user to the previous screen.
+     */
     private void setupClickListeners() {
         backButton.setOnClickListener(v -> {
             if (getParentFragmentManager() != null) {
@@ -112,6 +138,11 @@ public class NotificationFragment extends Fragment {
         });
     }
 
+    /**
+     * Subscribes to the notification data stream from the {@link NotificationRepository}.
+     * When new data is received, it sorts the notifications (unread first, then by date)
+     * and updates the adapter.
+     */
     private void observeNotifications() {
         notificationRepository.getMyNotifications().observe(getViewLifecycleOwner(), newNotifications -> {
             Log.d("NotificationFragment", "Data updated. " + newNotifications.size() + " notifications received.");
@@ -130,7 +161,11 @@ public class NotificationFragment extends Fragment {
         });
     }
 
-    // This is the checkEmpty() method, now part of the observer's logic.
+    /**
+     * Checks if the adapter is empty and updates the visibility of the RecyclerView and
+     * the empty state TextView accordingly. This provides a user-friendly message when
+     * there are no notifications to display.
+     */
     private void checkEmpty() {
         if (adapter != null && emptyNotificationsTextView != null && notificationRecyclerView != null) {
             if (adapter.getItemCount() == 0) {
@@ -143,7 +178,12 @@ public class NotificationFragment extends Fragment {
         }
     }
 
-
+    /**
+     * Called when the view hierarchy associated with the fragment is being removed.
+     * This method is responsible for cleaning up resources, such as unregistering the
+     * {@link RecyclerView.AdapterDataObserver} to prevent memory leaks and restoring
+     * the visibility of the main activity's bottom navigation.
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -156,6 +196,11 @@ public class NotificationFragment extends Fragment {
         }
     }
 
+    /**
+     * Called when the fragment is visible to the user and actively running.
+     * This implementation ensures the bottom navigation bar is hidden while the
+     * notification screen is displayed, providing more screen real estate.
+     */
     @Override
     public void onResume() {
         super.onResume();
