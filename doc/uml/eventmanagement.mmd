@@ -179,31 +179,37 @@ class DraftEventsFragment {
 + onDestroy() void 
 }
 
-InputFragment <|.. EventDeadlinesFragment
-CreateEventModel -- EventDeadlinesFragment
-BottomSheetProvider -- EventDeadlinesFragment
-Section -- Section
-Time .. Section
+DraftEventsFragment --> CreateEventActivity : starts
+
+CreateEventActivity "1" o-- "1" EventGeneralFragment : hosts
+CreateEventActivity "1" o-- "1" EventDateTimeFragment : hosts
+CreateEventActivity "1" o-- "1" EventDeadlinesFragment : hosts
+CreateEventActivity "1" o-- "1" EventLotteryFragment : hosts
+CreateEventActivity "1" o-- "1" EventStyleFragment : hosts
+
+CreateEventActivity "1" o-- "1" CreateEventModel : watches
+
+%% Event builder relationship
+Event_Builder -- EventGeneralFragment : fills
+Event_Builder -- EventDateTimeFragment : fills
+Event_Builder -- EventDeadlinesFragment : fills
+Event_Builder -- EventLotteryFragment : fills
+Event_Builder -- EventStyleFragment : fills
+
+%% Create Event Model Relationship
+CreateEventModel "1" -- "1" EventGeneralFragment : stores input data
+CreateEventModel "1" -- "1" EventDateTimeFragment : stores input data
+CreateEventModel "1" -- "1" EventDeadlinesFragment : stores input data
+CreateEventModel "1" -- "1" EventLotteryFragment : stores input data
+CreateEventModel "1" -- "1" EventStyleFragment : stores input data
+
+%% implements
 BottomSheetProvider <|.. CreateEventActivity
-CreateEventModel -- CreateEventActivity
-EventGeneralFragment -- CreateEventActivity
-EventDateTimeFragment -- CreateEventActivity
-EventDeadlinesFragment -- CreateEventActivity
-EventLotteryFragment -- CreateEventActivity
-EventStyleFragment -- CreateEventActivity
-Section .. CreateEventActivity
-InputFragment <|.. EventLotteryFragment
-CreateEventModel -- EventLotteryFragment
-BottomSheetProvider -- EventLotteryFragment
-InputFragment <|.. EventDateTimeFragment
-CreateEventModel -- EventDateTimeFragment
-BottomSheetProvider -- EventDateTimeFragment
-Time <|.. Time
+ 
 InputFragment <|.. EventGeneralFragment
-CreateEventModel -- EventGeneralFragment
-Section -- CreateEventModel
-InputFragment .. CreateEventModel
-InputFragment .. InputFragment
+InputFragment <|.. EventDateTimeFragment
+InputFragment <|.. EventDeadlinesFragment
+InputFragment <|.. EventLotteryFragment
 InputFragment <|.. EventStyleFragment
-CreateEventModel -- EventStyleFragment
+
 

@@ -19,5 +19,8 @@ class QRGenerator {
 + generate(String)$ Bitmap 
 }
 
+class Bitmap
 
+QRGenerator --> Bitmap : generates
+QRDialog "1" o-- "1" Bitmap : displays
 
