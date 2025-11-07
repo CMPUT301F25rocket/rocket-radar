@@ -24,6 +24,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * This fragment is responsible for displaying a list of events.
+ * It allows users to toggle between "Discover", "Waitlist", and "Attending" views.
+ * It also provides access to notifications and event filtering options.
+ * Outstanding issues: The "Attending" filter functionality is not yet implemented.
+ */
 public class EventListFragment extends Fragment implements EventAdapter.OnEventListener {
 
     private RecyclerView eventRecyclerView;
