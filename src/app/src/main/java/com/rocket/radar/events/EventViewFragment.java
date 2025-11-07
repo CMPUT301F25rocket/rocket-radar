@@ -145,6 +145,14 @@ public class EventViewFragment extends Fragment {
             }
             eventDescription.setText(event.getDescription());
 
+            // Load and display the event banner image
+            if (event.getBannerImageBlob() != null) {
+                Bitmap bannerBitmap = event.getBannerImageBitmap();
+                if (bannerBitmap != null) {
+                    eventImageView.setImageBitmap(bannerBitmap);
+                }
+            }
+
             repo.getWaitlistSize(event, new EventRepository.WaitlistSizeListener() {
                 @Override
                 public void onSizeReceived(int size) {
