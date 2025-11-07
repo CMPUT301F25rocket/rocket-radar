@@ -22,21 +22,6 @@ class NotificationAdapter {
 + getItemCount() int 
 }
 
-class NotificationAdapter_NotificationViewHolder { 
-~ ImageView eventImage
-~ TextView eventTitle
-~ View unreadIndicator
-+ NotificationViewHolder(View) NotificationAdapter.NotificationViewHolder 
-}
-
-class NotificationAdapter_SeparatorViewHolder { 
-~ TextView separatorText
-+ SeparatorViewHolder(View) NotificationAdapter.SeparatorViewHolder 
-}
-
-class NotificationAdapter_EmptyViewHolder { 
-+ EmptyViewHolder(View) NotificationAdapter.EmptyViewHolder 
-}
 
 class MyFirebaseMessagingService { 
 - String TAG$
@@ -94,10 +79,8 @@ class NotificationRepository {
 }
 
 Notification -- NotificationAdapter
+Notification -- NotificationFragment
 NotificationRepository -- NotificationAdapter
-NotificationAdapter_NotificationViewHolder <.. NotificationAdapter : << contains >>
-NotificationAdapter_SeparatorViewHolder <.. NotificationAdapter : << contains >>
-NotificationAdapter_EmptyViewHolder <.. NotificationAdapter : << contains >>
 NotificationAdapter -- NotificationFragment
 NotificationRepository -- NotificationFragment
 
