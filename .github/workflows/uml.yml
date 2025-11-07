@@ -19,7 +19,7 @@ permissions:
   contents: write
 
 jobs:
-  install-crcgen:
+  mirror-uml:
     runs-on: ubuntu-latest
     steps:
       - name: Install Mermaid Binary
@@ -51,7 +51,16 @@ jobs:
         run: |
           # NOTE: We do not grab UML recursively like the CRC cards.
           cd rocket-radar/doc/uml
-          bash makeUml.sh ../../../wiki/media
+          # Sandbox workaround
+          echo "{ \"args\": [\"--no-sandbox\"] }" > puppeteer-config.json
+          for diagram in *.mmd; do
+              [ -e "${diagram}" ] || continue
+              # https://stackoverflow.com/a/125340
+              # I did not know this was a thing.
+              name="${diagram%.mmd}"
+              printf "Now generating ${name}.svg\n"
+              mmdc -p puppeteer-config.json -i "${diagram}" -o "../../../wiki/media/uml-${name}.svg"
+          done
           # May not be necessary
           cd ../../../
 
