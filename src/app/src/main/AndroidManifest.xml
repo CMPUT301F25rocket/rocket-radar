@@ -40,6 +40,29 @@
                     android:host="radar-65b66.web.app"
                     />
             </intent-filter>
+            <intent-filter
+                android:label="@string/filter_view_qr"
+                android:autoVerify="true"
+                >
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="http"
+                    android:host="radar-65b66.web.app"
+                    />
+            </intent-filter>
+            <intent-filter
+                android:label="@string/filter_view_qr"
+                >
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="radar"
+                    android:host="radar-65b66.web.app"
+                    />
+            </intent-filter>
         </activity>
 
         <activity android:name=".eventmanagement.CreateEventActivity" />
