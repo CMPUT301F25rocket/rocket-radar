@@ -30,6 +30,9 @@ import com.rocket.radar.profile.ProfileRepository;
 import com.rocket.radar.profile.ProfileViewModel;
 import com.rocket.radar.qr.QRDialog;
 
+/**
+ Main activity that handles user authentication, navigation, and location services.
+ */
 public class MainActivity extends AppCompatActivity {
     private NavBarBinding navBarBinding;
 
@@ -68,6 +71,9 @@ public class MainActivity extends AppCompatActivity {
             });
 
     @Override
+    /**
+     * Initializes the activity, sets up navigation, and requests necessary permissions.
+     */
     protected void onCreate(Bundle savedInstanceState) {
         mAuth = FirebaseAuth.getInstance();
         profileViewModel = new ViewModelProvider(this).get(ProfileViewModel.class);
@@ -95,7 +101,9 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "FCM Registration Token: " + token);
                 });
     }
-
+    /**
+     * Requests notification permission for Android 13 and above.
+     */
     private void askNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -104,6 +112,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Handles user sign-in and intent actions when the activity starts.
+     */
     @Override
     public void onStart() {
         super.onStart();
@@ -141,6 +152,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Signs in the user anonymously using Firebase Authentication.
+     */
     private void signInAnonymously() {
         mAuth.signInAnonymously()
                 .addOnCompleteListener(this, task -> {
@@ -155,6 +169,10 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Handles actions to be taken when a user signs in.
+     * @param user The signed-in Firebase user.
+     */
     private void handleUserSignIn(FirebaseUser user) {
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.nav_host_fragment);
@@ -188,6 +206,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Checks if geolocation permission is needed based on user profile settings and requests it if necessary.
+     * @param profile The user's profile model.
+     */
     private void checkGeolocationPermission(ProfileModel profile) {
         if (profile.isGeolocationEnabled()) {
             Log.d(TAG, "User has geolocation enabled in their profile.");
@@ -203,6 +225,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Fetches the last known location of the user and updates their profile in Firestore.
+     */
     private void fetchLastKnownLocation() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                 || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -227,6 +252,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Sets the visibility of the bottom navigation bar.
+     * @param visibility View.VISIBLE, View.INVISIBLE, or View.GONE
+     */
     public void setBottomNavigationVisibility(int visibility) {
         if (navBarBinding != null && navBarBinding.bottomNavigationView != null) {
             navBarBinding.bottomNavigationView.setVisibility(visibility);

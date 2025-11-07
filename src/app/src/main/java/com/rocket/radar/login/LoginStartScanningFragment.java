@@ -35,6 +35,9 @@ public class LoginStartScanningFragment extends Fragment {
     // A flag to ensure we only set up the observer once.
     private boolean isObserverInitialized = false;
 
+    /**
+     * Inflates the layout for this fragment has three input fields for email, email, and phone number.
+     */
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         ((MainActivity) requireActivity()).setBottomNavigationVisibility(View.GONE);
         View view = inflater.inflate(R.layout.login_start_scanning, container, false);
@@ -47,6 +50,9 @@ public class LoginStartScanningFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Sets up the UI elements and their event listeners.
+     */
     private void setupUI(View view) {
         button_continue = view.findViewById(R.id.button_continue);
         TextInputLayout layout_username = view.findViewById(R.id.usernameLayout);
@@ -90,6 +96,9 @@ public class LoginStartScanningFragment extends Fragment {
     }
 
     @Override
+    /**
+     * Fix for logging in after just deleting an account. Makes this fragment work again after redirect.
+     */
     public void onResume() {
         super.onResume();
         ((MainActivity) requireActivity()).setBottomNavigationVisibility(View.GONE);
@@ -98,6 +107,9 @@ public class LoginStartScanningFragment extends Fragment {
         updateOrCreateUser();
     }
 
+    /**
+     * Ensures that a Firebase user exists and updates or creates the user profile as needed.
+     */
     private void updateOrCreateUser() {
         deviceId = android.provider.Settings.Secure.getString(
                 requireContext().getContentResolver(),
@@ -134,6 +146,9 @@ public class LoginStartScanningFragment extends Fragment {
         });
     }
 
+    /**
+     * Saves the user profile to the profileViewModel.
+     */
     private void saveProfile(String uid) {
         ProfileModel defaultProfile = new ProfileModel(uid, username, email, phoneNumber, null, true, true, false);
         profileViewModel.updateProfile(defaultProfile);

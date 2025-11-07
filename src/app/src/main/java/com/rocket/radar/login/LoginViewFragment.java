@@ -15,12 +15,17 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
 
-
+/**
+ Fragment for the main login view with options to start scanning or view criteria.
+ */
 public class LoginViewFragment extends Fragment {
     FirebaseAuth mAuth;
     private Button button_start_scanning;
     private Button button_criteria;
 
+    /**
+     * Inflates the layout for onCreateView and sets up criteria and start scanning buttons.
+     */
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         ((MainActivity) getActivity()).setBottomNavigationVisibility(View.GONE);
         View view = inflater.inflate(R.layout.login_main, container, false);
@@ -38,6 +43,9 @@ public class LoginViewFragment extends Fragment {
 
     }
 
+    /**
+     * Initializes UI components after the view is created.
+     */
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         // Initialize UI components
         super.onViewCreated(view, savedInstanceState);

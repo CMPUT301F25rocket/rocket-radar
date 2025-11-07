@@ -14,11 +14,14 @@ import androidx.navigation.fragment.NavHostFragment;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
 
-/*
-Basic fragment for showing login criteria information.
+/**
+Basic fragment for showing login criteria information. Only has a back button to go back to login.
  */
 public class LoginCriteriaFragment extends Fragment {
     private ImageButton button_back;
+    /**
+     * Inflates the layout for this fragment and sets up the back button to navigate up in the navigation stack.
+     */
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         ((MainActivity) getActivity()).setBottomNavigationVisibility(View.GONE);
         View view = inflater.inflate(R.layout.login_criteria, container, false);

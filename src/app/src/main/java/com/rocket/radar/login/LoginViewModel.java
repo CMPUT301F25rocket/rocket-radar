@@ -14,6 +14,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.rocket.radar.profile.ProfileModel;
 import com.rocket.radar.profile.ProfileViewModel;
 
+/** ViewModel to manage user login and profile initialization. */
 public class LoginViewModel extends AndroidViewModel {
     private static final String TAG = "LoginViewModel";
 
@@ -22,6 +23,7 @@ public class LoginViewModel extends AndroidViewModel {
     private final MutableLiveData<Boolean> isNewUserLiveData = new MutableLiveData<>();
     private final ProfileViewModel profileViewModel;
 
+    /** Constructor initializes FirebaseAuth and ProfileViewModel. */
     public LoginViewModel(@NonNull Application application) {
         super(application);
         mAuth = FirebaseAuth.getInstance();
@@ -29,16 +31,17 @@ public class LoginViewModel extends AndroidViewModel {
         profileViewModel = new ViewModelProvider.AndroidViewModelFactory(application)
                 .create(ProfileViewModel.class);
     }
-
+    /** LiveData for observing the current Firebase user. */
     public LiveData<FirebaseUser> getUserLiveData() {
         return userLiveData;
     }
 
+    /** LiveData for observing if the user is new. */
     public LiveData<Boolean> getIsNewUserLiveData() {
         return isNewUserLiveData;
     }
 
-    /** Called from your Activity.onStart() */
+    /** Checks if a user is signed in; if not, signs them in anonymously. */
     public void checkOrSignIn() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
@@ -49,6 +52,7 @@ public class LoginViewModel extends AndroidViewModel {
         }
     }
 
+    /** Signs in the user anonymously and initializes their profile if needed. */
     private void signInAnonymously() {
         mAuth.signInAnonymously()
                 .addOnCompleteListener(task -> {
@@ -69,6 +73,7 @@ public class LoginViewModel extends AndroidViewModel {
                 });
     }
 
+    /** Checks if the user's profile exists; if not, creates a default profile. */
     private void handleUserProfile(FirebaseUser user) {
         if (user == null) return;
         String uid = user.getUid();
