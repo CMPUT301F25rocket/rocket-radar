@@ -189,13 +189,37 @@ public class MainActivity extends AppCompatActivity {
             QRDialog qrDialog = new QRDialog(getApplicationContext(), eventId);
             if (currentProfile != null) {
                 currentProfile.addOnMyEventId(eventId);
+                repo.addEventIdToMyEvent(currentProfile.getUid(), eventId, new ProfileRepository.WriteCallback() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d(TAG, "Event ID added to Firestore for user: " + currentProfile.getUid());
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        Log.e(TAG, "Failed to add event ID to Firestore", e);
+                    }
+                });
             }
             else {
                 Log.d(TAG, "Profile is null");
                 profileViewModel.getProfileLiveData().observe(this, new Observer<ProfileModel>() {
                     @Override
                     public void onChanged(ProfileModel profile) {
-                        profile.addOnMyEventId(eventId);
+                        if (profile != null) {
+                            profile.addOnMyEventId(eventId);
+                            repo.addEventIdToMyEvent(profile.getUid(), eventId, new ProfileRepository.WriteCallback() {
+                                @Override
+                                public void onSuccess() {
+                                    Log.d(TAG, "Event ID added to Firestore after profile load");
+                                }
+
+                                @Override
+                                public void onError(Exception e) {
+                                    Log.e(TAG, "Failed to add event ID after profile load", e);
+                                }
+                            });
+                        }
                     }
                 });
 
