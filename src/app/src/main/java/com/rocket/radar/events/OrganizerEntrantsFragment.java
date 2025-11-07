@@ -487,7 +487,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
     private void onEntrantListItemClick(String userId) {
 
 
-        eventRepository.getUserLocationFromWaitlist(userId, event.getEventTitle(), new EventRepository.UserLocationCallback() {
+        eventRepository.getUserLocationFromWaitlist(userId, event.getEventId(), new EventRepository.UserLocationCallback() {
 
             @Override
             public void onLocationFetched(GeoPoint location) {
