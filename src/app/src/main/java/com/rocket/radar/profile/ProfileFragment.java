@@ -31,6 +31,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * This fragment is where the user can see their name, their events and their history.
+ * It observes the ProfileViewModel and EventRepository for updates.
+ */
 public class ProfileFragment extends Fragment implements EventAdapter.OnEventListener {
 
 
@@ -47,7 +51,20 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
     private EventRepository eventRepository;
 
 
-
+    /**
+     * This fragment inflates the profile fragment layout, initializes UI elements,
+     * and sets up the account settings button and profile name observer.
+     *
+     * @param inflater The LayoutInflater object that can be used to inflate
+     * any views in the fragment,
+     * @param container If non-null, this is the parent view that the fragment's
+     * UI should be attached to.  The fragment should not add the view itself,
+     * but this can be used to generate the LayoutParams of the view.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed
+     * from a previous saved state as given here.
+     *
+     * @return the root view
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view =  inflater.inflate(R.layout.fragment_profile, container, false);
@@ -72,6 +89,13 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
         return view;
     }
 
+    /**
+     * Called after the view is created. Sets up the RecyclerView,
+     * toggle listener, and observes profile and event data.
+     * @param view The View returned by {@link #onCreateView(LayoutInflater, ViewGroup, Bundle)}.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed
+     * from a previous saved state as given here.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -89,12 +113,18 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
         observeEvents();
     }
 
+    /**
+     * Sets up the toggle group listener to filter events when toggled.
+     */
     private void setupToggleListener() {
         toggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             filterAndDisplayEvents();
         });
     }
 
+    /**
+     * Observes changes in the user's profile and updates displayed events.
+     */
     private void observeUserProfile() {
         profileViewModel.getProfileLiveData().observe(getViewLifecycleOwner(), profile -> {
             currentUserProfile = profile;
@@ -102,6 +132,9 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
         });
     }
 
+    /**
+     * Observes all events from the repository and updates the displayed list.
+     */
     private void observeEvents() {
         eventRepository.getAllEvents().observe(getViewLifecycleOwner(), newEvents -> {
             Log.d("EventListFragment", "Data updated. " + newEvents.size() + " events received.");
@@ -110,6 +143,10 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
             filterAndDisplayEvents();
         });
     }
+
+    /**
+     * Filters events based on the toggle selection and updates the adapter.
+     */
     private void filterAndDisplayEvents() {
         // 1. Wait until both the profile and event list are loaded.
         if (allEvents == null || currentUserProfile == null) {
@@ -147,6 +184,11 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
         adapter.notifyDataSetChanged();
     }
 
+    /**
+     * Called when an event is clicked in the RecyclerView.
+     * Opens the EventViewFragment for the selected event.
+     * @param position The position of the clicked item in the adapter.
+     */
     @Override
     public void onEventClick(int position) {
         Event clickedEvent = displayedEvents.get(position);
@@ -165,6 +207,9 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
         }
     }
 
+    /**
+     * Called when the fragment resumes. Re-observes events and restores UI visibility.
+     */
     @Override
     public void onResume() {
         super.onResume();

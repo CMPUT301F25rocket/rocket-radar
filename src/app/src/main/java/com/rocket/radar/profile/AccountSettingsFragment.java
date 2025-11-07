@@ -35,7 +35,7 @@ public class AccountSettingsFragment extends Fragment {
 
     /**
      * Inflates the fragment layout, initializes UI,
-     * adds listeners for buttons, observees changes in ProfileViewModel
+     * adds listeners for buttons, observes changes in ProfileViewModel
      *
      * @param inflater The LayoutInflater object that can be used to inflate
      * any views in the fragment,
