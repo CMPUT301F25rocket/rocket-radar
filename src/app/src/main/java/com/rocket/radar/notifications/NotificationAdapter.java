@@ -46,6 +46,11 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 return;
             }
         }
+        // This case handles when there are notifications, but all of them are unread.
+        // In this scenario, we still want a separator, but it should be at the end of the list.
+        if (separatorIndex == -1 && !notificationList.isEmpty()) {
+            separatorIndex = notificationList.size();
+        }
     }
 
     // --- MODIFIED ---
@@ -129,20 +134,15 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }
     }
 
-    // --- MODIFIED ---
+    // --- FIX IS HERE ---
     @Override
     public int getItemCount() {
-        // If the list is empty, we must return 1 to show our single "Empty" view.
-        if (notificationList.isEmpty()) {
-            return 1;
+        int count = notificationList.size();
+        // If a separator exists (is not -1), we need one extra space for it.
+        if (separatorIndex != -1) {
+            count++;
         }
-
-        // Otherwise, use the corrected logic from before.
-        if (separatorIndex > 0) {
-            return notificationList.size() + 1;
-        }
-
-        return notificationList.size();
+        return count;
     }
 
     // --- VIEW HOLDERS (New one added) ---
