@@ -36,6 +36,11 @@ import org.junit.runner.RunWith;
  */
 public class RadarNavigationTests {
 
+    /**
+     * Asserts that the current fragment matches the expected fragment ID.
+     * @param rule
+     * @param expectedFragmentId
+     */
     private static void assertCurrentFragmentIs(ActivityScenarioRule<MainActivity> rule, int expectedFragmentId) {
         rule.getScenario().onActivity(activity -> {
             NavHostFragment navHostFragment = (NavHostFragment)
@@ -56,6 +61,10 @@ public class RadarNavigationTests {
         });
     }
 
+    /**
+     * Handles system permission dialogs by clicking the button with the specified text.
+     * @param buttonText The text of the button to click (e.g., "Allow", "While using the app").
+     */
     private static void handleSystemPermission(String buttonText) {
         UiDevice device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
         UiObject allowButton = device.findObject(new UiSelector().text(buttonText));
@@ -70,6 +79,11 @@ public class RadarNavigationTests {
         }
     }
 
+    /**
+     * Clicks a button with the specified text.
+     * Waits up to 3 seconds for the button to appear.
+     * @param buttonText The text of the button to click.
+     */
     public static void clickButtonByText(String buttonText) {
         try {
             UiDevice device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
@@ -103,6 +117,11 @@ public class RadarNavigationTests {
         )).perform(clearText(), typeText(input), closeSoftKeyboard());
     }
 
+    /**
+     * Navigates from the default fragment to the Event List Fragment.
+     * @param activityRule The activity scenario rule for MainActivity.
+     * @param expectedFragmentId The expected fragment ID to reach (eventListFragment).
+     */
     public static void goToEventListFragment(ActivityScenarioRule<MainActivity> activityRule, int expectedFragmentId) {
         // 1. Wait for the default fragment (radarDefaultViewFragment)
         assertCurrentFragmentIs(activityRule, R.id.radarDefaultViewFragment);
@@ -129,6 +148,11 @@ public class RadarNavigationTests {
         clickButtonByText("Continue");
     }
 
+    /**
+     * Checks that the EditText with the given ID has the expected value.
+     * @param id The resource ID of the EditText.
+     * @param expectedValue The expected text value.
+     */
     public static void checkValueWithId(int id, String expectedValue) {
         onView(withId(id))
                 .check((view, noViewFoundException) -> {
@@ -304,6 +328,32 @@ public class RadarNavigationTests {
 
                 // 2.) Click plus to add new draft event
                 onView(withId(R.id.organizing_events_create_button)).perform(click());
+
+                // 3.) General
+
+                typeIntoField("Event Name", "Test Event");
+                typeIntoField("Description", "This is a test event.");
+                typeIntoField("Tagline", "Testing");
+                clickButtonByText("Workshop");
+                clickButtonByText("Next");
+
+                // 4.) Date and Time
+                clickButtonByText("Event Date");
+                clickButtonByText("11");
+                clickButtonByText("OK");
+                clickButtonByText("Start Time");
+                clickButtonByText("1");
+                clickButtonByText("1");
+                clickButtonByText("OK");
+                clickButtonByText("End Time");
+                clickButtonByText("OK");
+                clickButtonByText("Next");
+
+                // 5.)
+
+
+
+
 
 
             }

@@ -86,7 +86,7 @@ public class LoginStartScanningFragment extends Fragment {
                 layout_email.setError(null);
             }
 
-            if ((Patterns.PHONE.matcher(phoneNumber).matches() == false && phoneNumber.length() > 0)|| (phoneNumber.length() == 10 && phoneNumber.length() > 0)) {
+            if ((Patterns.PHONE.matcher(phoneNumber).matches() == false && phoneNumber.length() > 0)|| (phoneNumber.length() > 10 && phoneNumber.length() > 0)) {
                 layout_phoneNumber.setError("Invalid phone number");
                 return;
             } else {
