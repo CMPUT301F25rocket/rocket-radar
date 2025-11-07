@@ -339,7 +339,9 @@ class EventAdapter_OnEventListener {
 ~ onEventClick(int) void 
 }
 
-Event .. EventRepository
+Event "0..*" --o "1" EventRepository : manages
+
+%% Nesting Relationships
 EventRepository_WaitlistSizeListener <.. EventRepository : << contains >>
 EventRepository_WaitlistEntrantsCallback <.. EventRepository : << contains >>
 EventRepository_UserLocationCallback <.. EventRepository : << contains >>
@@ -353,19 +355,26 @@ EventRepository_CancelledLocationsCallback <.. EventRepository : << contains >>
 EventRepository_SelectedEntrantsCallback <.. EventRepository : << contains >>
 EventRepository_UserLocationFromSelectedCallback <.. EventRepository : << contains >>
 EventRepository_SelectedLocationsCallback <.. EventRepository : << contains >>
-Event -- OrganizerEntrantsFragment
-EventRepository -- OrganizerEntrantsFragment
-OrganizerEntrantsFragment .. OrganizerEntrantsFragment
-Event -- EventViewFragment
-EventRepository -- EventViewFragment
-EventViewFragment .. EventViewFragment
+
 Event_Builder <.. Event : << contains >>
-Event -- Event_Builder
-EventAdapter_OnEventListener <|.. EventListFragment
-EventAdapter -- EventListFragment
-Event -- EventListFragment
-EventRepository -- EventListFragment
-EventAdapter_MyViewHolder <|-- EventAdapter
-Event -- EventAdapter
 EventAdapter_OnEventListener <.. EventAdapter : << contains >>
 
+%% OrganizerEntrantsFragment relationships.
+%% shows all entrants for the event
+%% shows entrant map locations
+%% sends notifications to all entrants on waitlist (to different groups)
+%% export final attendees as CSV
+%% cancel entrants
+%% draw replacements
+Event "1" --o "1" OrganizerEntrantsFragment : organizer management of
+EventRepository "1" --o "1" OrganizerEntrantsFragment
+NotificationRepository "1" --o "1" OrganizerEntrantsFragment
+ProfileRepository "1" --o "1" OrganizerEntrantsFragment
+
+
+Event "1" --o "1" EventViewFragment : shows details for
+EventRepository "1" --o "1" EventViewFragment
+
+Event "1" <-- "1" Event_Builder : assembles
+
+Event "0..*" --o "1" EventListFragment : shows
