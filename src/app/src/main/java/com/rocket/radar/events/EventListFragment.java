@@ -113,6 +113,12 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
      * @param profile the current user profile that is using the app.
      */
     private void updateNotificationButtonUI(ProfileModel profile) {
+        if (profile == null) {
+            notificationButton.setAlpha(0.5f);
+            notificationBadge.setAlpha(0.0f);
+            return;
+        }
+
         Boolean isEnabled = profile.isNotificationsEnabled();
 
         if (Boolean.TRUE.equals(isEnabled)) {
