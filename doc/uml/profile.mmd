@@ -3,8 +3,8 @@ title: profile package
 config:
   htmlLabels: false
 ---
-
 classDiagram
+
 class ProfileViewModel { 
 - String TAG$
 - FirebaseFirestore db
@@ -126,14 +126,24 @@ class InputValidator {
 + isValidPhone(String)$ boolean 
 + cleanText(TextInputEditText)$ String 
 }
+ProfileViewModel "1" --> "1" ProfileRepository : uses
 
-ProfileRepository -- ProfileViewModel
-ProfileModel -- ProfileViewModel
-ProfileViewModel -- ProfileFragment
-ProfileModel -- ProfileFragment
-ProfileModel .. ProfileRepository
-ProfileRepository_ReadCallback <.. ProfileRepository : << contains >>
-ProfileModel .. ProfileRepository_ReadCallback
-ProfileRepository_WriteCallback <.. ProfileRepository : << contains >>
-ProfileViewModel -- AccountSettingsFragment
+ProfileViewModel "1" *-- "0..1" ProfileModel : observes/manages as live data
 
+ProfileFragment "1" *-- "1" ProfileViewModel : observes
+
+ProfileFragment "1" *-- "0..1" ProfileModel : displays
+
+ProfileRepository "1" ..> "*" ProfileModel : creates/manages
+
+ProfileRepository "1" *-- "2" ProfileRepository_ReadCallback : defines
+
+ProfileRepository "1" *-- "2" ProfileRepository_WriteCallback : defines
+
+ProfileRepository_ReadCallback "1" ..> "1" ProfileModel : returns
+
+AccountSettingsFragment "1" *-- "1" ProfileViewModel : uses
+
+AccountSettingsFragment "1" ..> "1" InputValidator : validates with
+
+ProfileFragment "1" ..> "1" InputValidator : validates with
