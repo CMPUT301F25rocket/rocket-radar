@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer;
@@ -138,16 +139,35 @@ public class MainActivity extends AppCompatActivity {
     public void onStart() {
         super.onStart();
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        ProfileModel currentProfile = profileViewModel.getProfileLiveData().getValue();
         if (currentUser == null)
             signInAnonymously();
         else
             handleUserSignIn(currentUser);
 
+    }
+
+    /**
+     * This was devised by a moron. By default when a new intent is provided to an activity it is
+     * ignored. This override ensures that it is not ignored.
+     * @param intent The new intent that was given to the activity
+     */
+    @Override
+    protected void onNewIntent(@NonNull Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+    }
+
+    /**
+     * If an 
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
         Intent intent = getIntent();
         String action = intent.getAction();
         if (action == null) return;
         // TODO: This is begging to be refactored.
+        ProfileModel currentProfile = profileViewModel.getProfileLiveData().getValue();
         if (action.equals("android.intent.action.VIEW")) {
             Uri uri = intent.getData();
             String id = uri.getQueryParameter("eventId");
@@ -274,7 +294,15 @@ public class MainActivity extends AppCompatActivity {
         String uid = user.getUid();
 
         Log.d(TAG, "User signed in with UID: " + uid + ". Updating last login time.");
-        navController.navigate(R.id.action_returning_user_event_list);
+
+        // WARN: This is new. May cause a bug. But without it caused a bug.
+        // Activities started that went back to main activity without starting a new main activity
+        // would crash the fragments that made them. The slop machine told me so.
+        if (navController.getCurrentDestination() != null
+            && navController.getCurrentDestination().getId() == R.id.radarDefaultViewFragment) {
+            navController.navigate(R.id.action_returning_user_event_list);
+        }
+
         profileViewModel.updateLastLogin(uid);
 
         profileViewModel.setUserIdForProfileListener(uid);

@@ -141,11 +141,7 @@ public class CreateEventModel extends ViewModel {
 
     public LiveData<Integer> getLeftButtonVisibility() {
         return Transformations.map(section, s -> {
-            if (s == Section.GENERAL) {
-                return View.GONE;
-            } else {
-                return View.VISIBLE;
-            }
+            return View.VISIBLE;
         });
     }
 
