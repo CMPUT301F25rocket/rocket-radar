@@ -1,6 +1,7 @@
 package com.rocket.radar.login;
 
 import android.os.Bundle;
+import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -70,6 +71,26 @@ public class LoginStartScanningFragment extends Fragment {
             if (username.isEmpty()) {
                 layout_username.setError("Username is required");
                 return;
+            }
+            if(username.length() > 30){
+                layout_username.setError("Username is too long");
+                return;
+            } else {
+                layout_username.setError(null);
+            }
+
+            if (Patterns.EMAIL_ADDRESS.matcher(email).matches() == false && email.length() > 0) {
+                layout_email.setError("Invalid email address");
+                return;
+            } else {
+                layout_email.setError(null);
+            }
+
+            if ((Patterns.PHONE.matcher(phoneNumber).matches() == false && phoneNumber.length() > 0)|| (phoneNumber.length() == 10 && phoneNumber.length() > 0)) {
+                layout_phoneNumber.setError("Invalid phone number");
+                return;
+            } else {
+                layout_phoneNumber.setError(null);
             }
 
             deviceId = android.provider.Settings.Secure.getString(

@@ -23,12 +23,17 @@ import androidx.test.uiautomator.UiDevice;
 import androidx.test.uiautomator.UiObject;
 import androidx.test.uiautomator.UiSelector;
 
+import com.rocket.radar.eventmanagement.CreateEventActivity;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 
 @RunWith(AndroidJUnit4.class)
+/**
+ * Instrumented tests for navigating through the Radar app.
+ */
 public class RadarNavigationTests {
 
     private static void assertCurrentFragmentIs(ActivityScenarioRule<MainActivity> rule, int expectedFragmentId) {
@@ -51,7 +56,6 @@ public class RadarNavigationTests {
         });
     }
 
-
     private static void handleSystemPermission(String buttonText) {
         UiDevice device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
         UiObject allowButton = device.findObject(new UiSelector().text(buttonText));
@@ -59,7 +63,7 @@ public class RadarNavigationTests {
             if (allowButton.exists()) {
                 allowButton.click();
                 // Give UI time to settle
-                Thread.sleep(1500);
+                Thread.sleep(300);
             }
         } catch (Exception e) {
             throw new AssertionError("Failed to handle system permission dialog with text: " + buttonText, e);
@@ -99,14 +103,7 @@ public class RadarNavigationTests {
         )).perform(clearText(), typeText(input), closeSoftKeyboard());
     }
 
-
-
-@Rule
-    public ActivityScenarioRule<MainActivity> activityRule =
-            new ActivityScenarioRule<>(MainActivity.class);
-
-    @Test
-    public void exploreLogin() throws Exception {
+    public static void goToEventListFragment(ActivityScenarioRule<MainActivity> activityRule, int expectedFragmentId) {
         // 1. Wait for the default fragment (radarDefaultViewFragment)
         assertCurrentFragmentIs(activityRule, R.id.radarDefaultViewFragment);
 
@@ -115,15 +112,6 @@ public class RadarNavigationTests {
 
         // 3. Wait for the LoginFragment to load
         assertCurrentFragmentIs(activityRule, R.id.loginFragment);
-
-        // 4. Criteria and Guidelines Button
-        clickButtonByText("Criteria and Guidelines");
-
-        // 5.) Check that we are on the LoginCriteriaFragment
-        assertCurrentFragmentIs(activityRule, R.id.loginCriteriaFragment);
-
-        // 6. Back to Login Screen
-        onView(withId(R.id.button_back)).perform(click());
 
         // 7. Start Scanning Button
         clickButtonByText("Start Scanning");
@@ -139,18 +127,184 @@ public class RadarNavigationTests {
         typeIntoField("Email", "me@gmail.com");
         typeIntoField("Phone Number", "1234567890");
         clickButtonByText("Continue");
+    }
 
-        // 11.) Do you end up in the eventlistfragment?
-        assertCurrentFragmentIs(activityRule, R.id.eventListFragment);
-
-        // 12.) Navigate to Profile Fragment
-        clickButtonByText("Profile");
-        assertCurrentFragmentIs(activityRule, R.id.profileFragment);
-
+    public static void checkValueWithId(int id, String expectedValue) {
+        onView(withId(id))
+                .check((view, noViewFoundException) -> {
+                    if (noViewFoundException != null) {
+                        throw noViewFoundException;
+                    }
+                    if (view instanceof EditText) {
+                        EditText editText = (EditText) view;
+                        String actualValue = editText.getText().toString();
+                        if (!actualValue.equals(expectedValue)) {
+                            throw new AssertionError("Expected value: " + expectedValue + " but was: " + actualValue);
+                        }
+                    } else {
+                        throw new AssertionError("View with id " + id + " is not an EditText.");
+                    }
+                });
 
     }
 
-    public void testFragment(){
 
-    }
-}
+            @Rule
+            public ActivityScenarioRule<MainActivity> activityRule =
+                    new ActivityScenarioRule<>(MainActivity.class);
+
+            @Rule
+            public ActivityScenarioRule<CreateEventActivity> activityRule2 =
+                    new ActivityScenarioRule<>(CreateEventActivity.class);
+
+
+    @Test
+            public void exploreLogin() throws Exception {
+                // Login Tests
+
+                // 1. Wait for the default fragment (radarDefaultViewFragment)
+                assertCurrentFragmentIs(activityRule, R.id.radarDefaultViewFragment);
+
+                // 2. Handle the "Allow Notifications" system popup if it appears
+                handleSystemPermission("Allow");
+
+                // 3. Wait for the LoginFragment to load
+                assertCurrentFragmentIs(activityRule, R.id.loginFragment);
+
+                // 4. Criteria and Guidelines Button
+                clickButtonByText("Criteria and Guidelines");
+
+                // 5.) Check that we are on the LoginCriteriaFragment
+                assertCurrentFragmentIs(activityRule, R.id.loginCriteriaFragment);
+
+                // 6. Back to Login Screen
+                onView(withId(R.id.button_back)).perform(click());
+
+                // 7. Start Scanning Button
+                clickButtonByText("Start Scanning");
+
+                // 8.) Allow Location Permission
+                handleSystemPermission("While using the app");
+
+                // 9.) Check that we are on the LoginStartScanningFragment
+                assertCurrentFragmentIs(activityRule, R.id.loginStartScanningFragment);
+
+                // 10.) Write in details
+                typeIntoField("Name (Mandatory)", "Test User");
+                typeIntoField("Email", "me@gmail.com");
+                typeIntoField("Phone Number", "1234567890");
+                clickButtonByText("Continue");
+
+                // 11.) Do you end up in the eventListFragment?
+                assertCurrentFragmentIs(activityRule, R.id.eventListFragment);
+
+                // 12.) Navigate to Profile Fragment
+                clickButtonByText("Profile");
+                assertCurrentFragmentIs(activityRule, R.id.profileFragment);
+
+                // 13.) Account settings button
+                onView(withId(R.id.account_settings_button)).perform(click());
+
+                // 14.) Check that we are on the AccountSettingsFragment
+                assertCurrentFragmentIs(activityRule, R.id.accountSettingsFragment);
+
+                // 15.) Delete Account Button
+                clickButtonByText("DELETE ACCOUNT");
+
+                // 16.) Confirm Deletion
+                clickButtonByText("Delete Account");
+
+                // 17.) Verify we are back at the LoginFragment
+                assertCurrentFragmentIs(activityRule, R.id.loginFragment);
+
+                // 18.) Verify anonymous sign-in again
+                clickButtonByText("Start Scanning");
+
+                // 19.) Allow Location Permission again
+                handleSystemPermission("While using the app");
+
+                // 20.) Check that we are on the LoginStartScanningFragment again
+                assertCurrentFragmentIs(activityRule, R.id.loginStartScanningFragment);
+
+                // 21.) Write in details again, but wrong email and phone
+                typeIntoField("Name (Mandatory)", "Test User 222222222222222222222222222222222222222222222222222222222222222222222222");
+                typeIntoField("Email", "poop");
+                typeIntoField("Phone Number", "0987652312312312123123123123123234321");
+                clickButtonByText("Continue");
+
+                // 22.) Verify we are still on the LoginStartScanningFragment due to validation failure
+                assertCurrentFragmentIs(activityRule, R.id.loginStartScanningFragment);
+
+                // 23.)
+                // Correct the name
+                typeIntoField("Name (Mandatory)", "Test User 2");
+                clickButtonByText("Continue");
+                assertCurrentFragmentIs(activityRule, R.id.loginStartScanningFragment);
+
+
+                // Correct the email
+                typeIntoField("Email", "hello@gmail.com");
+                clickButtonByText("Continue");
+                assertCurrentFragmentIs(activityRule, R.id.loginStartScanningFragment);
+
+
+                // Correct the phone number
+                typeIntoField("Phone Number", "1234567890");
+                clickButtonByText("Continue");
+
+                // 24.) Verify we are back at the EventListFragment
+                assertCurrentFragmentIs(activityRule, R.id.eventListFragment);
+
+                // Login Test Complete
+
+                // Profile Tests
+            }
+
+
+    @Test
+            public void exploreProfile() throws Exception {
+
+                // Navigate to Event List Fragment first
+                goToEventListFragment(activityRule, R.id.eventListFragment);
+
+                // 1.) Navigate to Profile Fragment
+                clickButtonByText("Profile");
+                assertCurrentFragmentIs(activityRule, R.id.profileFragment);
+
+                // 2.) Edit Settings Button
+                onView(withId(R.id.account_settings_button)).perform(click());
+
+                // 3.) Check that we are on the AccountSettingsFragment
+                assertCurrentFragmentIs(activityRule, R.id.accountSettingsFragment);
+
+                // 4.) Change Name and Save
+                typeIntoField("Name", "Updated Test User");
+                typeIntoField("Email", "new@gmail.com");
+                typeIntoField("Phone Number", "5555555555");
+                clickButtonByText("SAVE");
+
+                // 5.) Verify that the name has changed
+                onView(withId(R.id.account_settings_button)).perform(click());
+                checkValueWithId(R.id.usernameField, "Updated Test User");
+                checkValueWithId(R.id.emailField, "new@gmail.com");
+                checkValueWithId(R.id.phoneField, "5555555555");
+                // Profile Tests Complete
+            }
+
+            @Test
+            public void exploreEvents() throws Exception {
+                // Navigate to Event List Fragment first
+                goToEventListFragment(activityRule, R.id.eventListFragment);
+
+                // Event Tests
+
+                // 1.) Create Events
+                clickButtonByText("Create");
+                assertCurrentFragmentIs(activityRule, R.id.draftEventsFragment);
+
+                // 2.) Click plus to add new draft event
+                onView(withId(R.id.organizing_events_create_button)).perform(click());
+
+
+            }
+        }

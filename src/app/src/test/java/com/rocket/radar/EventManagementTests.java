@@ -1,15 +1,10 @@
 package com.rocket.radar;
 
-import org.junit.Test;
-
-import static org.junit.Assert.*;
-
-import com.rocket.radar.eventmanagement.CreateEventModel;
-import com.rocket.radar.eventmanagement.Section;
-
 /**
- * Test the eventmanagement package.
+ * Combined JUnit test suite for the entire eventmanagement module.
+ * Includes CreateEventModel, all Fragments, and BottomSheetProvider behavior.
  */
+
 public class EventManagementTests {
     // WARN: This will need to be updated when validation is implemented.
     // probably need test for validating each section.

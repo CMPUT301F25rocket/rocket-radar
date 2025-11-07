@@ -49,6 +49,10 @@ android {
 }
 
 dependencies {
+
+    //Phone number authentication
+    implementation("com.googlecode.libphonenumber:libphonenumber:8.13.27")
+
     //Unit Testing
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.mockito:mockito-core:4.11.0")
