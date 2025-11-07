@@ -3,6 +3,7 @@ package com.rocket.radar;
 
 import android.Manifest;import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,6 +21,7 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.GeoPoint;
@@ -128,8 +130,17 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = getIntent();
         String action = intent.getAction();
         if (action == null) return;
-        if (action.equals(getString(R.string.intent_action_view_event))) {
-            // TODO
+        if (action.equals("android.intent.action.VIEW")) {
+            MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(MainActivity.this);
+            dialog.setTitle("IT WORKS");
+            Uri uri = intent.getData();
+            String id = uri.getQueryParameter("eventId");
+            if (id == null)
+                dialog.setMessage("But id is null :(");
+            else
+                dialog.setMessage("Recieved id: " + id);
+            dialog.setPositiveButton("Ok", null);
+            dialog.create().show();
         } else if (action.equals(getString(R.string.intent_action_show_qr))) {
             String eventId = intent.getStringExtra("eventId");
             QRDialog qrDialog = new QRDialog(getApplicationContext(), eventId);

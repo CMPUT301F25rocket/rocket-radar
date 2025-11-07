@@ -1,0 +1,5 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target" : { "namespace": "android_app", "package_name": "com.rocket.radar",
+               "sha256_cert_fingerprints": ["27:34:B7:D0:88:41:DC:56:01:F0:24:32:31:B1:E8:5C:7F:C6:36:63:E9:A8:F1:CC:17:A0:57:BA:1C:24:45:87"] }
+}]

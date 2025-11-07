@@ -6,7 +6,7 @@ import io.nayuki.qrcodegen.QrCode;
 
 public class QRGenerator {
     public static Bitmap generate(String eventId) {
-        String content = "android-app://com.rocket.radar#Intent;action=com.rocket.radar.events.VIEW_EVENT;S.eventId=" + eventId + ";end";
+        String content = "https://radar-65b66.web.app/?eventId=" + eventId;
         QrCode code = QrCode.encodeText(content, QrCode.Ecc.MEDIUM);
 
         // Copy the code into a bitmap.
