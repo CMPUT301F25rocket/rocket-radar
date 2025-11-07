@@ -87,6 +87,7 @@ public class AccountSettingsFragment extends Fragment {
             emailField.setText(profile.getEmail());
             phoneNumberField.setText(profile.getPhoneNumber());
             uid = profile.getUid();
+            // cite: the following two lines are from ChatGPT, "What is the safest way to check for a True Boolean in Java?", accessed: October 27, 2025
             notificationsEnabled.setChecked(Boolean.TRUE.equals(profile.isNotificationsEnabled()));
             geolocationEnabled.setChecked(Boolean.TRUE.equals(profile.isGeolocationEnabled()));
         });
