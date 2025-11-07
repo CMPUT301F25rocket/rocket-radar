@@ -27,6 +27,9 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.rocket.radar.databinding.NavBarBinding;
+import com.rocket.radar.events.Event;
+import com.rocket.radar.events.EventRepository;
+import com.rocket.radar.events.EventViewFragment;
 import com.rocket.radar.profile.ProfileModel;
 import com.rocket.radar.profile.ProfileRepository;
 import com.rocket.radar.profile.ProfileViewModel;
@@ -131,16 +134,40 @@ public class MainActivity extends AppCompatActivity {
         String action = intent.getAction();
         if (action == null) return;
         if (action.equals("android.intent.action.VIEW")) {
-            MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(MainActivity.this);
-            dialog.setTitle("IT WORKS");
             Uri uri = intent.getData();
             String id = uri.getQueryParameter("eventId");
-            if (id == null)
-                dialog.setMessage("But id is null :(");
-            else
-                dialog.setMessage("Recieved id: " + id);
-            dialog.setPositiveButton("Ok", null);
-            dialog.create().show();
+            if (id == null) {
+                MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(MainActivity.this);
+                dialog.setTitle("Scan Error");
+                dialog.setMessage("The link did not provide and event it");
+                dialog.setPositiveButton("Ok", null);
+                dialog.show();
+                return;
+            }
+            EventRepository eventRepository = new EventRepository();
+            eventRepository.getEvent(id)
+                    .addOnSuccessListener(documentSnapshot -> {
+                        Event event = documentSnapshot.toObject(Event.class);
+                        if (event == null) {
+                            MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(MainActivity.this);
+                            dialog.setTitle("Fetch Error");
+                            dialog.setMessage("This event does not exist.");
+                            dialog.setPositiveButton("Ok", null);
+                            dialog.show();
+                        }
+                        EventViewFragment eventViewFragment = EventViewFragment.newInstance(event);
+                        getSupportFragmentManager().beginTransaction()
+                                .replace(R.id.nav_host_fragment, eventViewFragment)
+                                .addToBackStack(EventViewFragment.TAG)
+                                .commit();
+                    })
+                    .addOnFailureListener(why -> {
+                        MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(MainActivity.this);
+                        dialog.setTitle("Fetch error");
+                        dialog.setMessage("Failed to fetch the event with id `" + id + "`");
+                        dialog.setPositiveButton("Ok", null);
+                        dialog.show();
+                    });
         } else if (action.equals(getString(R.string.intent_action_show_qr))) {
             String eventId = intent.getStringExtra("eventId");
             QRDialog qrDialog = new QRDialog(getApplicationContext(), eventId);

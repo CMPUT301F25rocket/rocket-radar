@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EventViewFragment extends Fragment {
+    public static final String TAG = EventViewFragment.class.getSimpleName();
 
     private static final String ARG_EVENT = "event";
     // 1. ADD ARG_IS_ORGANIZER CONSTANT

@@ -155,9 +155,11 @@ public class CreateEventModel extends ViewModel {
         });
     }
 
-    public String getRightButtonText() {
-        if (section.getValue() == Section.STYLE) return "Create";
-        else return "Next";
+    public LiveData<String> getRightButtonText() {
+        return Transformations.map(section, s -> {
+            if (s == Section.STYLE) return "Create";
+            else return "Next";
+        });
     }
 
     public void nextSection(InputFragment fragment) {

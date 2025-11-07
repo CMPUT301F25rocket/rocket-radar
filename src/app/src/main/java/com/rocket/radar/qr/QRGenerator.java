@@ -6,7 +6,8 @@ import io.nayuki.qrcodegen.QrCode;
 
 public class QRGenerator {
     public static Bitmap generate(String eventId) {
-        String content = "https://radar-65b66.web.app/?eventId=" + eventId;
+        // TRIM probably unneded but I'm going crazy
+        String content = "https://radar-65b66.web.app/?eventId=" + eventId.trim();
         QrCode code = QrCode.encodeText(content, QrCode.Ecc.MEDIUM);
 
         // Copy the code into a bitmap.

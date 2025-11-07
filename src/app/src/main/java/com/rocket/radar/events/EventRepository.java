@@ -3,8 +3,11 @@ package com.rocket.radar.events;
 import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
@@ -18,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+// FIXME: This is functionally a singleton we should store the global instance in a static and return
+// that instead of creating many of these objects.
 public class EventRepository {
 
     private static final String TAG = "EventRepository";
@@ -35,6 +40,10 @@ public class EventRepository {
      * It listens for real-time updates from the "events" collection in Firestore
      * and returns the data wrapped in LiveData.
      */
+    // FIXME: This is bad practice and going to spike our firestore reads really hard.
+    // TODO: EventListFragment should query the firestore for events upcoming soon, and as the user
+    // nears the bottom of the list should load additional events as they are required.
+    // But that's hard and annoying so part 4 it is.
     public LiveData<List<Event>> getAllEvents() {
         MutableLiveData<List<Event>> eventsLiveData = new MutableLiveData<>();
         eventRef.addSnapshotListener((value, error) -> {
@@ -52,6 +61,14 @@ public class EventRepository {
             eventsLiveData.postValue(eventList);
         });
         return eventsLiveData;
+    }
+
+    /**
+     * @param eventId UUID of the event we want to fetch.
+     * @return Task yielding a {@code DocumentSnapshot} which can be converted into an {@code Event}
+     */
+    public Task<DocumentSnapshot> getEvent(String eventId) {
+        return eventRef.document(eventId).get();
     }
 
     public interface WaitlistSizeListener {
