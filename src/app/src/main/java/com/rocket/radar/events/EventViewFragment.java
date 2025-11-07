@@ -47,16 +47,30 @@ public class EventViewFragment extends Fragment {
     // 2. ADD isOrganizer aS A MEMBER VARIABLE
     private boolean isOrganizer;
 
+    /**
+     * Required empty public constructor for fragment instantiation.
+     */
     public EventViewFragment() {
         // Required empty public constructor
     }
 
+    /**
+     * Creates a new instance of EventViewFragment for a regular user.
+     * @param event The event to display.
+     * @return A new instance of EventViewFragment.
+     */
     // This newInstance is for regular users
     public static EventViewFragment newInstance(Event event) {
         // Call the other newInstance, passing 'false' for the organizer flag
         return newInstance(event, false);
     }
 
+    /**
+     * Creates a new instance of EventViewFragment, specifying if the user is the organizer.
+     * @param event The event to display.
+     * @param isOrganizer True if the current user is the organizer of the event, false otherwise.
+     * @return A new instance of EventViewFragment.
+     */
     // This newInstance is for both organizers and regular users
     public static EventViewFragment newInstance(Event event, boolean isOrganizer) {
         EventViewFragment fragment = new EventViewFragment();
@@ -179,6 +193,10 @@ public class EventViewFragment extends Fragment {
         // REMOVED redundant listeners from here as they are now correctly placed inside the if/else block
     }
 
+    /**
+     * Hides the main activity's bottom navigation bar when the fragment is resumed.
+     */
+
     @Override
     public void onResume() {
         super.onResume();
@@ -187,6 +205,9 @@ public class EventViewFragment extends Fragment {
         }
     }
 
+    /**
+     * Restores the main activity's bottom navigation bar when the fragment is stopped.
+     */
     @Override
     public void onStop() {
         super.onStop();
@@ -195,12 +216,19 @@ public class EventViewFragment extends Fragment {
         }
     }
 
+    /**
+     * Navigates back to the previous fragment in the back stack.
+     */
     private void navigateBack() {
         if (getActivity() != null) {
             getActivity().getSupportFragmentManager().popBackStack();
         }
     }
 
+    /**
+     * Handles the logic for a user joining or leaving the event's waitlist.
+     * It updates the user's profile and the event's waitlist in the database.
+     */
     private void handleJoinLeaveWaitlist() {
         ProfileModel currentProfile = profileViewModel.getProfileLiveData().getValue();
         if (currentProfile == null || event == null) {
@@ -238,6 +266,11 @@ public class EventViewFragment extends Fragment {
         profileViewModel.updateProfile(currentProfile);
     }
 
+    /**
+     * Updates the text and enabled state of the waitlist button based on the user's current status.
+     * @param button The button to update.
+     * @param profile The current user's profile.
+     */
     private void updateWaitlistButton(Button button, ProfileModel profile) {
         if (event == null || profile == null) {
             button.setEnabled(false);
@@ -248,6 +281,11 @@ public class EventViewFragment extends Fragment {
         button.setEnabled(true);
     }
 
+    /**
+     * Checks if the current user is on the waitlist for the event.
+     * @param profile The current user's profile.
+     * @return True if the user is on the waitlist, false otherwise.
+     */
     private boolean isOnWaitlist(ProfileModel profile) {
         if (profile == null || event == null || profile.getOnWaitlistEventIds() == null) {
             return false;

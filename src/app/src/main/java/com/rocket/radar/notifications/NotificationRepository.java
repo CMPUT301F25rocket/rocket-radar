@@ -23,12 +23,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Repository class for managing notifications.
+ * This class handles all the data operations related to notifications, such as fetching,
+ * marking as read, and sending notifications to users or groups. It interacts directly
+ * with the Firebase Firestore database to manage notification data.
+ *
+ * The data model is a "fan-out" model where a single notification content is stored in a top-level
+ * 'notifications' collection, and then references (stubs) to this content are distributed to each
+ * relevant user's sub-collection ('users/{uid}/notifications'). This stub also contains user-specific
+ * metadata like the read status.
+ */
 public class NotificationRepository {
 
     private static final String TAG = "NotificationRepository";
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference userNotificationsRef; // This will point to users/{uid}/notifications
 
+    /**
+     * Constructs a NotificationRepository and initializes the Firestore reference
+     * to the current user's notification collection.
+     */
     public NotificationRepository() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
@@ -37,6 +52,13 @@ public class NotificationRepository {
         }
     }
 
+    /**
+     * Fetches the notifications for the currently logged-in user in real-time.
+     * It listens to the user's notification sub-collection, resolves the notification
+     * content from the top-level 'notifications' collection, and returns them as LiveData.
+     *
+     * @return A LiveData object containing a list of the user's notifications.
+     */
     public LiveData<List<Notification>> getMyNotifications() {
         MutableLiveData<List<Notification>> resolvedNotificationsLiveData = new MutableLiveData<>();
         if (userNotificationsRef == null) {
@@ -96,6 +118,11 @@ public class NotificationRepository {
         return resolvedNotificationsLiveData;
     }
 
+    /**
+     * Updates the 'readStatus' of a specific notification for the current user to true.
+     *
+     * @param userNotificationId The unique ID of the notification stub in the user's sub-collection.
+     */
     public void markNotificationAsRead(String userNotificationId) {
         if (userNotificationsRef == null || userNotificationId == null) return;
         userNotificationsRef.document(userNotificationId)

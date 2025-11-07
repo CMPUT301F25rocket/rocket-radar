@@ -12,6 +12,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.rocket.radar.R;
 import java.util.List;
 
+/**
+ * Adapter for the RecyclerView in the notifications screen.
+ * This class is responsible for displaying a list of {@link Notification} objects.
+ * It handles multiple view types:
+ * - A standard notification item.
+ * - A separator to distinguish between read and unread notifications.
+ * - An empty state message for when there are no notifications.
+ * It also manages the visual state for read/unread notifications.
+ */
 public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     // --- NEW VIEW TYPE ADDED ---
