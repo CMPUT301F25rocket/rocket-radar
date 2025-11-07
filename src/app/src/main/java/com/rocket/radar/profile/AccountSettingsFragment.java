@@ -18,6 +18,12 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.rocket.radar.R;
 
 // cite: toast code for save button based on https://developer.android.com/guide/topics/ui/notifiers/toasts
+
+/**
+ * This fragment is where the user can edit their settings.
+ * This includes personal information, notification and geolocation preferences.
+ * Input is validated and modifies the ProfileViewModel.
+ */
 public class AccountSettingsFragment extends Fragment {
 
     private MaterialButton backButton, saveButton, deleteButton;
@@ -27,6 +33,20 @@ public class AccountSettingsFragment extends Fragment {
 
     private String uid;
 
+    /**
+     * Inflates the fragment layout, initializes UI,
+     * adds listeners for buttons, observees changes in ProfileViewModel
+     *
+     * @param inflater The LayoutInflater object that can be used to inflate
+     * any views in the fragment,
+     * @param container If non-null, this is the parent view that the fragment's
+     * UI should be attached to.  The fragment should not add the view itself,
+     * but this can be used to generate the LayoutParams of the view.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed
+     * from a previous saved state as given here.
+     *
+     * @return the fragment root view
+     */
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -134,6 +154,11 @@ public class AccountSettingsFragment extends Fragment {
         return view;
     }
 
+    /**
+     * This function handles the logic for when the user presses "Delete Account" on the dialog.
+     * It calls deleteProfile on the ProfileViewModel, and then if that succeeds, it navigates back to the login.
+     * A toast is also displayed for success and error.
+     */
     public void confirmAccountDelete() {
         ProfileModel profile = profileViewModel.getProfileLiveData().getValue();
         profileViewModel.deleteProfile(profile);
