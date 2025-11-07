@@ -91,8 +91,6 @@ public class EventRepository {
         }
 
         // CORRECT PATH: events -> {event-id} -> waitlistedUsers
-        // IMPORTANT: I noticed you are using event.getEventTitle() as the document ID. This is risky if titles can change or are not unique.
-        // It's better to use event.getEventId(). For now, I'll stick to your current implementation.
         CollectionReference waitlistRef = db.collection("events").document(event.getEventId())
                 .collection("waitlistedUsers");
 
@@ -136,7 +134,6 @@ public class EventRepository {
             return;
         }
         else {
-            // --- START OF FIX ---
             // 1. Get the correct path: events -> {event-id} -> waitlistedUsers -> {user-id}
             DocumentReference waitlistRef = db.collection("events").document(event.getEventId())
                     .collection("waitlistedUsers").document(userId);
@@ -157,7 +154,6 @@ public class EventRepository {
             waitlistRef.set(waitlistData)
                     .addOnSuccessListener(aVoid -> Log.d(TAG, "User " + userId + " successfully added to waitlist for event " + event.getEventId()))
                     .addOnFailureListener(e -> Log.e(TAG, "Error adding user to waitlist", e));
-            // --- END OF FIX ---
         }
     }
 
@@ -205,7 +201,6 @@ public class EventRepository {
         return eventList;
     }
 
-    // --- START OF FIX: ADD THE MISSING INTERFACE AND METHOD ---
 
     /**
      * Callback interface for fetching waitlist entrants.
@@ -224,32 +219,6 @@ public class EventRepository {
         void onError(Exception e);
     }
 
-    /**
-     * Asynchronously fetches the list of user IDs from the waitlist of a specific event.
-     *
-     * @param eventId The ID of the event to fetch the waitlist for.
-     * @param callback The callback to handle the success or failure of the operation.
-     */
-//    public void getWaitlistEntrants(Event event, WaitlistEntrantsCallback callback) {
-//        if (event.getEventTitle() == null) {
-//            Log.e(TAG, "Event is null or has no title.");
-//            return;
-//        }
-//
-//        // The path is events -> {eventId} -> waitlistedUsers
-//        db.collection("events").document(event.getEventTitle()).collection("waitlistedUsers")
-//                .get()
-//                .addOnSuccessListener(queryDocumentSnapshots -> {
-//                    List<String> userIds = new ArrayList<>();
-//                    // The document ID of each document in the 'waitlistedUsers' subcollection is the user's ID.
-//
-//                    queryDocumentSnapshots.forEach(doc -> userIds.add(doc.getId()));
-//                    callback.onWaitlistEntrantsFetched(userIds);
-//                })
-//                .addOnFailureListener(callback::onError);
-//    }
-
-    // --- START OF NEW METHODS ---
 
     /**
      * Callback interface for fetching a user's location from the waitlist.
@@ -336,7 +305,6 @@ public class EventRepository {
             .addOnFailureListener(callback::onError);
     }
 
-    // --- START OF INVITED ENTRANTS METHODS ---
 
     /**
      * Callback interface for fetching invited entrants.
@@ -518,9 +486,6 @@ public class EventRepository {
                 .addOnFailureListener(callback::onError);
     }
 
-    // --- END OF CANCELLED ENTRANTS METHODS ---
-
-    // --- START OF SELECTED ENTRANTS METHODS ---
 
     /**
      * Callback interface for fetching selected entrants.
@@ -609,10 +574,4 @@ public class EventRepository {
                 })
                 .addOnFailureListener(callback::onError);
     }
-
-    // --- END OF SELECTED ENTRANTS METHODS ---
-
-    // --- END OF NEW METHODS ---
-    // --- END OF FIX ---
-
 }

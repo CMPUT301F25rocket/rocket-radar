@@ -291,13 +291,11 @@ public class EventViewFragment extends Fragment {
             // Logic for joining a waitlist
             currentProfile.addOnWaitlistEventId(event.getEventId());
 
-            // --- REFACTORED LOGIC ---
             // 1. Get the location from the user's profile.
             GeoPoint lastKnownLocation = currentProfile.getLastKnownLocation();
 
             // 2. Pass the user ID and location to the repository method.
             repo.addUserToWaitlist(event, currentProfile.getUid(), lastKnownLocation);
-            // --- END OF REFACTOR ---
 
             navigateBack();
             Toast.makeText(getContext(), "Added to waitlist!", Toast.LENGTH_SHORT).show();
