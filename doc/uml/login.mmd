@@ -5,50 +5,67 @@ config:
 ---
 
 classDiagram
-class LoginStartScanningFragment { 
-- Button button_continue
-- String TAG$
-- String username
-- String email
-- String phoneNumber
-- String deviceId
-- String uid
-- ProfileViewModel profileViewModel
-- FirebaseAuth mAuth
-- boolean isObserverInitialized
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-- setupUI(View) void 
-+ onResume() void 
-- updateOrCreateUser() void 
-- saveProfile(String) void 
-}
+    direction TB
 
-class LoginViewFragment { 
-~ FirebaseAuth mAuth
-- Button button_start_scanning
-- Button button_criteria
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-+ onViewCreated(View,Bundle) void 
-}
+    class MainActivity {
+        +setBottomNavigationVisibility(visible: boolean)
+    }
 
-class LoginViewModel { 
-- String TAG$
-- FirebaseAuth mAuth
-- MutableLiveData~FirebaseUser~ userLiveData
-- MutableLiveData~Boolean~ isNewUserLiveData
-- ProfileViewModel profileViewModel
-+ LoginViewModel(Application) LoginViewModel 
-+ getUserLiveData() LiveData~FirebaseUser~ 
-+ getIsNewUserLiveData() LiveData~Boolean~ 
-+ checkOrSignIn() void 
-- signInAnonymously() void 
-- handleUserProfile(FirebaseUser) void 
-}
+    class LoginViewFragment {
+        -FirebaseAuth mAuth
+        -Button button_start_scanning
+        -Button button_criteria
+        +onCreateView(inflater, container, savedInstanceState)
+        +onViewCreated(view, savedInstanceState)
+    }
 
-class LoginCriteriaFragment { 
-- ImageButton button_back
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-}
+    class LoginCriteriaFragment {
+        -ImageButton button_back
+        +onCreateView(inflater, container, savedInstanceState)
+    }
 
+    class LoginStartScanningFragment {
+        -Button button_continue
+        -String username
+        -String email
+        -String phoneNumber
+        -String deviceId
+        -String uid
+        -ProfileViewModel profileViewModel
+        -FirebaseAuth mAuth
+        +onCreateView(inflater, container, savedInstanceState)
+        -setupUI(view)
+        +onResume()
+        -updateOrCreateUser()
+        -saveProfile(uid: String)
+    }
+
+    class ProfileViewModel {
+        +updateProfile(profile: ProfileModel)
+    }
+
+    class ProfileModel {
+        +uid: String
+        +username: String
+        +email: String
+        +phoneNumber: String
+        +photoUrl: String
+        +notificationsEnabled: boolean
+        +isProfileVisible: boolean
+        +isAdmin: boolean
+    }
+
+    %% Relationships
+
+    LoginStartScanningFragment --> ProfileViewModel
+    ProfileViewModel --> ProfileModel
+
+    LoginCriteriaFragment --> MainActivity
+    LoginViewFragment --> MainActivity
+    LoginStartScanningFragment --> MainActivity
+
+    LoginViewFragment --> LoginCriteriaFragment : "navigates to"
+    LoginViewFragment --> LoginStartScanningFragment : "navigates to"
+    LoginStartScanningFragment --> EventListFragment : "navigates to"
 
 
