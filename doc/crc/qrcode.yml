@@ -1,3 +1,5 @@
+# Project Part 3 Update
+
 QRCode:
   role:
     - store encoded data of an event
@@ -29,3 +31,28 @@ QRCodeCameraScanner:
   collab:
     - QRCode
     - Event
+
+QRDialog:
+  role:
+    - Displays a QR code in a Material dialog for event sharing or attendance.
+    - Uses QRGenerator to create a scannable Bitmap from an event ID.
+    - Allows users to share the QR code as an image through Android’s share intent system.
+    - Handles temporary file creation and cleanup for safe sharing.
+  collab:
+    - QRBase
+    - QRGenerator
+    - MaterialAlertDialogBuilder
+    - DialogQrcodeBinding
+    - Android Intent system
+
+QRGenerator:
+  role:
+    - Encodes event data into a QR code following Android Intent URI standards.
+    - Generates Bitmap images of QR codes using Nayuki’s QRCode library.
+    - Used by QRDialog and other QR-based views to visually represent event data.
+    - Handles pixel-level rendering for optimal scan reliability.
+  collab:
+    - QRBase
+    - QRDialog
+    - io.nayuki.qrcodegen.QrCode
+    - Android Bitmap APIs

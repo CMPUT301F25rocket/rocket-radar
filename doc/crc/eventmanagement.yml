@@ -1,0 +1,127 @@
+# Project Part 3 Update
+
+CreateEventActivity:
+  role:
+    - Controls the full event creation wizard.
+    - Implements navigation between fragments based on section order.
+    - Implements BottomSheetProvider for calendar and time pickers.
+    - Handles event creation by collecting data from fragments and saving via EventRepository.
+  collab:
+    - CreateEventModel
+    - EventGeneralFragment
+    - EventDateTimeFragment
+    - EventDeadlinesFragment
+    - EventLotteryFragment
+    - EventStyleFragment
+    - EventRepository
+    - BottomSheetProvider
+
+CreateEventModel:
+  role:
+    - Acts as the shared ViewModel between all fragments in the event creation flow.
+    - Holds LiveData for all event-related input fields (title, description, dates, capacities, etc.).
+    - Manages navigation between sections of the wizard.
+  collab:
+    - Section
+    - InputFragment
+    - EventGeneralFragment
+    - EventDateTimeFragment
+    - EventDeadlinesFragment
+    - EventLotteryFragment
+    - EventStyleFragment
+
+EventGeneralFragment:
+  role:
+    - Manages general event info input, title, description, tagline, and categories.
+    - Validates that all fields are filled before advancing.
+  collab:
+    - CreateEventModel
+    - InputFragment
+    - Event
+
+EventDateTimeFragment:
+  role:
+    - Manages event date and start/end times.
+    - Uses BottomSheetProvider for pickers.
+    - Validates chronological order of times.
+  collab:
+    - CreateEventModel
+    - BottomSheetProvider
+    - InputFragment
+    - Event
+    - Time
+
+EventDeadlinesFragment:
+  role:
+    - Handles registration, selection, and decision deadline dates.
+    - Uses BottomSheetProvider for calendar pickers.
+    - Validates deadline order chronologically.
+  collab:
+    - CreateEventModel
+    - BottomSheetProvider
+    - InputFragment
+    - Event
+
+EventLotteryFragment:
+  role:
+    - Handles lottery, waitlist, and capacity inputs.
+    - Uses bottom sheets for date/time inputs.
+    - Validates capacities and lottery time.
+  collab:
+    - CreateEventModel
+    - BottomSheetProvider
+    - InputFragment
+    - Event
+    - Time
+
+EventStyleFragment:
+  role:
+    - Handles selection of event banner image and color theme.
+    - Uses color picker and media picker.
+    - Validates presence of both color and image.
+  collab:
+    - CreateEventModel
+    - InputFragment
+    - Event
+
+InputFragment:
+  role:
+    - Interface defining validation and extraction methods for input fragments.
+    - Provides standardized data extraction for event building.
+  collab:
+    - Event
+    - CreateEventActivity
+
+BottomSheetProvider:
+  role:
+    - Interface for hosting fragments that need date/time pickers.
+    - Provides reusable UI components for calendar and clock bottom sheets.
+  collab:
+    - CreateEventActivity
+    - EventDateTimeFragment
+    - EventDeadlinesFragment
+    - EventLotteryFragment
+
+Section:
+  role:
+    - Enumerates sections of the event creation wizard.
+    - Provides section titles and simple validation logic.
+  collab:
+    - CreateEventModel
+    - CreateEventActivity
+
+Time:
+  role:
+    - Represents hour-minute pair for event time fields.
+    - Provides comparison and string formatting.
+  collab:
+    - EventDateTimeFragment
+    - EventLotteryFragment
+    - CreateEventModel
+
+DraftEventsFragment:
+  role:
+    - Displays user’s saved draft events.
+    - Launches CreateEventActivity for new event creation.
+  collab:
+    - CreateEventActivity

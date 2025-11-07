@@ -1,30 +1,94 @@
+# Project Part 3 Update
+
 User:
   role:
-    - Edit optional personal information.
-    - Delete profile.
-    - Receive or opt out of notifications.
-    - Create events.
+    - Represents the currently authenticated app user.
+    - Interacts indirectly through ProfileModel for stored information.
+    - Holds transient authentication state managed by FirebaseAuth.
+    - Controls personal settings such as notifications, geolocation, and account details.
+    - Participates in events, notifications, and waitlists tracked via Firestore.
   collab:
-    - EventView
-    - ProfileView
-
-ProfileView:
-  role:
-    - Display profile photo and user information
-    - Display My Events (active or waitlisted events)
-    - Display My History (past events the user interacted with)
-    - Navigate to AccountSettingsFragment
-  collab:
-    - User
+    - FirebaseAuth
+    - ProfileModel
+    - ProfileViewModel
     - AccountSettingsFragment
-    - Event
+    - ProfileFragment
+    - EventRepository
+    - NotificationRepository
 
 AccountSettingsFragment:
   role:
-    - Edit personal information (name, email, phone number)
-    - Toggle notifications and geo-location settings
-    - Switch to moderator mode if applicable
-    - Delete user account and update User model
+    - Allows users to view and edit their account settings, including username, email, phone, and preferences.
+    - Validates input before saving using InputValidator.
+    - Updates and persists changes via ProfileViewModel.
+    - Provides an option to delete the user’s account with confirmation dialogue.
+    - Hides the navigation bar while editing settings.
   collab:
-    - User
+    - ProfileViewModel
+    - ProfileModel
+    - InputValidator
+    - NavHostFragment
+    - MaterialAlertDialogBuilder
+    - MainActivity
+
+InputValidator:
+  role:
+    - Provides static validation utilities for user input fields.
+    - Ensures email and phone inputs match standard patterns or are left blank if optional.
+    - Cleans text fields by trimming whitespace.
+  collab:
+    - AccountSettingsFragment
+    - TextInputEditText
+
+ProfileFragment:
+  role:
+    - Displays the user’s profile and event history.
+    - Observes ProfileViewModel for live profile updates.
+    - Uses EventRepository to load event data related to the user.
+    - Filters between "My Events" and "History" using toggle buttons.
+    - Navigates to AccountSettingsFragment or EventViewFragment.
+  collab:
+    - ProfileViewModel
+    - ProfileModel
+    - EventRepository
+    - EventAdapter
+    - EventViewFragment
+    - MainActivity
+
+ProfileModel:
+  role:
+    - Represents the user’s profile data model.
+    - Stores identity, contact information, settings, and event participation lists.
+    - Provides safe defaults for Firestore deserialization.
+    - Manages helper methods for modifying waitlist and event lists.
+  collab:
+    - ProfileRepository
+    - ProfileViewModel
+    - EventRepository
+    - Firestore (GeoPoint, Timestamp)
+
+ProfileRepository:
+  role:
+    - Handles CRUD operations for user profiles in Firestore.
+    - Updates, reads, and deletes profile data.
+    - Provides atomic array operations for event ID updates using FieldValue.
+    - Manages geolocation and login timestamps.
+  collab:
+    - FirebaseFirestore
+    - FirebaseUser
+    - ProfileModel
+    - ProfileViewModel
+
+ProfileViewModel:
+  role:
+    - Acts as a bridge between ProfileRepository and the UI.
+    - Maintains LiveData for user profile and deletion success state.
+    - Listens for real-time updates on a specific user’s profile document.
+    - Supports updating, deleting, and reading profiles while ensuring lifecycle safety.
+  collab:
+    - ProfileRepository
+    - ProfileModel
+    - FirebaseAuth
+    - FirebaseFirestore
+    - AccountSettingsFragment
     - ProfileFragment

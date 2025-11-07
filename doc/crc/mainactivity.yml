@@ -1,0 +1,34 @@
+MainActivity:
+  role:
+    - Serves as the core entry point and controller for the Rocket Radar app.
+    - Manages authentication, navigation, permissions, and global app lifecycle events.
+    - Handles user sign-in (anonymous or returning) via FirebaseAuth.
+    - Connects to Firebase Cloud Messaging (FCM) for push notification registration.
+    - Requests location and notification permissions dynamically based on user settings.
+    - Updates user geolocation and last login timestamp in Firestore through ProfileRepository.
+    - Handles QR code intents (for viewing or sharing event QR codes) and initializes related dialogs.
+    - Provides a method for showing or hiding the bottom navigation bar across fragments.
+  collab:
+    - FirebaseAuth
+    - FirebaseUser
+    - FirebaseMessaging
+    - FirebaseFirestore
+    - ProfileViewModel
+    - ProfileRepository
+    - ProfileModel
+    - QRDialog
+    - FusedLocationProviderClient
+    - NavHostFragment
+    - NavigationUI
+    - RadarDefaultViewFragment
+    - EventRepository
+    - Android Permission APIs
+
+RadarDefaultViewFragment:
+  role:
+    - Displays a placeholder or default screen for the Radar view.
+    - Hides the main bottom navigation bar while active to emphasize the fragment content.
+    - Acts as a neutral landing view before users navigate to specific app functions.
+  collab:
+    - MainActivity
+    - Navigation Framework (NavHostFragment)

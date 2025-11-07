@@ -1,0 +1,48 @@
+# Project Part 3 Update
+
+LoginCriteriaFragment:
+  role:
+    - Displays information about login criteria.
+    - Provides a simple navigation option to return to the previous login screen.
+    - Hides the main bottom navigation while active.
+  collab:
+    - MainActivity
+    - NavHostFragment
+
+LoginStartScanningFragment:
+  role:
+    - Handles user input for username, email, and phone number during login.
+    - Initializes Firebase authentication and anonymous sign-in.
+    - Creates or updates user profile data in ProfileViewModel.
+    - Navigates to the EventList screen after successful profile setup.
+    - Ensures a Firebase user session exists upon resuming the fragment.
+  collab:
+    - MainActivity
+    - FirebaseAuth
+    - FirebaseUser
+    - ProfileModel
+    - ProfileViewModel
+    - NavHostFragment
+
+LoginViewFragment:
+  role:
+    - Serves as the entry point for the login process.
+    - Provides navigation options to start scanning or view login criteria.
+    - Manages navigation flow between login-related fragments.
+  collab:
+    - MainActivity
+    - NavHostFragment
+    - LoginStartScanningFragment
+    - LoginCriteriaFragment
+
+LoginViewModel:
+  role:
+    - Manages Firebase authentication and user session state.
+    - Observes and exposes LiveData for user authentication and new-user status.
+    - Coordinates with ProfileViewModel to ensure each Firebase user has a profile.
+    - Handles anonymous sign-in and initialization of default profiles.
+  collab:
+    - FirebaseAuth
+    - FirebaseUser
+    - ProfileViewModel
+    - ProfileModel

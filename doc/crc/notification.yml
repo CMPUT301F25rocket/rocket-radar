@@ -1,35 +1,62 @@
-NotificationView:
-  role:
-    - Display a notification to the user from organizer.
-    - Be easily associated with the event that creates it.
-    - Be clickable and bring the user to the event that created it.
+# Project Part 3 Update
 
-  collab:
-    - NotificationList
-    - EventFragment
-
-NotificationFilter:
+MyFirebaseMessagingService:
   role:
-    - Be a predicate for notifications
+    - Handles incoming Firebase Cloud Messaging (FCM) notifications.
+    - Displays system-level notifications when the user has them enabled.
+    - Manages notification channels for different Android versions.
+    - Logs received messages and new FCM tokens.
+    - Deprecated in favor of backend Cloud Functions but retained for fallback use.
   collab:
-    - NotificationList
+    - FirebaseMessagingService
+    - NotificationManager
+    - NotificationRepository
+    - SharedPreferences
 
-NotificationList:
+Notification:
   role:
-    - Show the user many notifications.
+    - Represents a single notification entity stored in Firestore.
+    - Contains event details, timestamp, and read status.
+    - Automatically maps Firestore document fields through annotations.
+    - Supports both global notifications and user-specific notification stubs.
   collab:
-    - NotificationFilter
-    - NotificationView
+    - NotificationRepository
+    - NotificationAdapter
+    - Firestore (DocumentId, ServerTimestamp)
+
+NotificationAdapter:
+  role:
+    - Binds notification data to RecyclerView items for display in the UI.
+    - Differentiates between unread, read, and separator view types.
+    - Provides an empty state when no notifications exist.
+    - Handles marking notifications as read via repository updates.
+  collab:
+    - Notification
+    - NotificationRepository
+    - NotificationFragment
+    - RecyclerView
 
 NotificationFragment:
   role:
-    - Allow the specification of a NotificationFilter
-    - When in the fragment is not in admin mode we should add a filter for the 
-      specific users event notifications.
-    - When in admin mode we can see all notifications.
-    - When in admin mode allow filtering notifications by what has been flagged.
+    - Displays a list of notifications for the current user.
+    - Observes real-time updates from NotificationRepository.
+    - Handles UI visibility for empty states and back navigation.
+    - Sorts notifications by read status and timestamp.
   collab:
-    - NotificationList
-    - NotificationFilter
-    - NotificationView
+    - NotificationAdapter
+    - NotificationRepository
+    - MainActivity
+    - RecyclerView
 
+NotificationRepository:
+  role:
+    - Manages Firestore operations for creating, reading, and updating notifications.
+    - Observes real-time user notifications via snapshot listeners.
+    - Sends event notifications to user groups while respecting user preferences.
+    - Creates centralized notification content and distributes references to users.
+  collab:
+    - FirebaseAuth
+    - FirebaseFirestore
+    - Notification
+    - NotificationFragment
+    - MyFirebaseMessagingService

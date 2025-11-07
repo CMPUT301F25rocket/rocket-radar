@@ -1,208 +1,81 @@
+# Project Part 3 Update
+
 Event:
   role:
-    - Represent key features of event including name, participating users, lottery 
-      limits, etc.
-    - Be deletable.
+    - Represents a single event in the system.
+    - Stores metadata such as title, description, date, time, capacity, and images.
+    - Supports serialization for Firestore and Android inter-component communication.
+    - Provides a nested Builder for constructing complex Event objects.
   collab:
-    - EventView
-    - ProfileView
+    - EventRepository
+    - EventAdapter
+    - EventViewFragment
+    - OrganizerEntrantsFragment
+    - EventListFragment
 
-EventView:
+EventAdapter:
   role:
-    - Show a preview of details to the user with the name, date, and description.
-    - When clicked should go to the EventFragment with this event filled.
-  collab:
-    - EventFragment
-
-EventFragment:
-  role:
-    - Allows entrants to view event details, join the waitlist, leave the waitlist.
-    - Organizer can move to the EditFragment for the contained event.
-    - Organizer can manage the lottery selection.
-    - Admins in this fragment are able to see notifications sent out and delete 
-      the event if they need.
-  collab:
-    - EventView
-
-EventManagementFragment:
-  role:
-    - Switch between a create mode which uses a wizard and edit mode which uses a menu.
-    - Allow the users to build and modify event data.
-    - Save the event to drafts if the user doesn't want to publish it.
-
+    - Binds a list of Event objects to a RecyclerView for display.
+    - Manages view creation and data binding for each event list item.
+    - Handles user clicks through OnEventListener interface.
   collab:
     - Event
-    # FIXME: I'm thinking we add a preview of hte EventView to the final page so the 
-    # user can see what the dialog looks like.
-    - EventView
+    - EventListFragment
+    - RecyclerView
 
-EventList:
+EventListFragment:
   role:
-    - Show a list of events, only showing those that meet some set of criteria.
+    - Displays and filters events in a scrollable list.
+    - Connects with EventRepository to fetch event data.
+    - Observes ProfileViewModel to personalize event filtering.
+    - Navigates to EventViewFragment when an event is clicked.
   collab:
-    - EventView
-    - Event
-    - EventFilter
+    - EventAdapter
+    - EventRepository
+    - EventViewFragment
+    - ProfileViewModel
+    - NotificationRepository
+    - MainActivity
 
-EventFilter:
+EventRepository:
   role:
-    - Be a predicate we can use to find events.
-  collab:
-    - Event
-
-EventDisplay:
-  role:
-    - Present key event details (poster, name, date, description, organizer).
-    - Provide primary CTA based on role (Join/Leave waitlist for entrants).
-    - Surface current waitlist count when available.
-  collab:
-    - Event
-    - EventFragment
-
-# Event Feeds
-
-EventFeedView:
-  role:
-    - Display discoverable events for entrants.
-    - Updates on every visit to show new events.
-    - Open EventDetailView on card tap.
-  collab:
-    - EventList
-    - EventView
-    - EventFilter
-
-EventFeedView/Attending:
-  role:
-    - List events the user is currently selected/enrolled in.
-    - Open EventFragment for details.
+    - Manages Firestore interactions for creating, reading, and updating events.
+    - Provides LiveData of events for real-time updates.
+    - Handles event-related subcollections like waitlist, invited, selected, and cancelled users.
+    - Provides location and notification data for entrants.
   collab:
     - Event
-    - EventFragment
+    - EventListFragment
+    - EventViewFragment
+    - OrganizerEntrantsFragment
+    - FirebaseFirestore
+    - ProfileRepository
+    - NotificationRepository
 
-EventFeedView/Discover:
+EventViewFragment:
   role:
-    - Show discoverable events in a scrolling list.
-    - Each card shows name, date, short description, and poster thumbnail.
-    - On click, open EventFragment for details.
+    - Displays detailed view of an individual event.
+    - Allows users to join or leave an event waitlist.
+    - Allows organizers to manage entrants.
+    - Updates profile and event repository when user interacts.
   collab:
     - Event
-    - EventFragment
-    - EventFilter
+    - EventRepository
+    - ProfileViewModel
+    - ProfileModel
+    - OrganizerEntrantsFragment
+    - MainActivity
 
-EventFeed/FilterChips:
+OrganizerEntrantsFragment:
   role:
-    - Toggle interest, date, availability, and nearby filters as chips.
-  collab:
-    - EventFilter
-    - EventFeedView
-    - User
-
-EventFeedView/QRCodeGen:
-  role:
-    - Shortcut surface to generate/share an event QR code.
-    - Display QR preview and share options.
+    - Enables organizers to manage event entrants by category (waitlisted, invited, selected, cancelled).
+    - Displays entrants on a map with location markers.
+    - Allows sending group notifications and switching between entrant categories.
+    - Fetches user profiles for entrant names and displays in list.
   collab:
     - Event
-    - QRCodeGeneratorController
-    - QRCodeGeneratorView
-
-EventFeedView/Search:
-  role:
-    - Provide a calendar for date-based event searching.
-    - Show possible filter options for events.
-  collab:
-    - EventList
-    - EventView
-    - EventFeedView
-    - EventFilter
-
-EventView/Organizer:
-  role:
-    - Organizer-facing summary card with quick actions to manage the event.
-    - Navigate to EventManagementFragment.
-  collab:
-    - Event
-    - EventManagementFragment
-
-# Create Events
-
-# DNE
-CreateWizardNavbar:
-  role:
-    - Allow the user to move between consecutive wizard pages.
-    - Restrict forward movement when required field of the page are empty.
-  collab:
-    - Event
-    - EventManagementFragment
-
-CreateEventLottery:
-  role:
-    - Configure basic lottery options (e.g., optional waitlist size limit).
-    - Do not promise complex rules or weighted draws.
-  collab:
-    - Event
-    - CreateWizardNavbar
-
-CreateEventStatusDate:
-  role:
-    - Choose/preview registration “opens” and “closes” dates.
-    - Indicate when registration is not yet open or closed.
-  collab:
-    - Event
-    - CreateWizardNavbar
-
-CreateEventBasic:
-  role:
-    - Capture name, description, and optional poster upload.
-    - Validate minimal required fields before moving forward.
-  collab:
-    - Event
-    - CreateWizardNavbar
-
-CreateEventDateTime:
-  role:
-    - Set event date/time and registration period.
-    - Provide simple validation (start <= end).
-  collab:
-    - Event
-    - CreateWizardNavbar
-
-
-CreateEventDateTime/EditDate:
-  role:
-    - Edit a previously set date/time within the wizard or edit mode.
-  collab:
-    - Event
-    - CreateWizardNavbar
-
-CreateEventStyle/Initial:
-  role:
-    - Show default style preview for the event card/poster.
-  collab:
-    - Event
-    - ColorSelector
-
-CreateEventStyle/CustomColorPick:
-  role:
-    - Allow choosing a custom color using ColorSelector.
-  collab:
-    - Event
-    - ColorSelector
-
-CreateEventStyle/DefaultColorPick:
-  role:
-    - Allow choosing one of the predefined default colors.
-  collab:
-    - Event
-    - ColorSelector
-
-ColorSelector:
-    role:
-        - Switch between custom and default color selection.
-        - Allow the definition of a list of default colors in a resource file.
-        - Close the selector when the user clicks off of the bottom sheet.
-        - Allows self to be attached to any view.
-    collab:
-        - Color
-        - Event
-        - EventManagementFragment
+    - EventRepository
+    - ProfileRepository
+    - NotificationRepository
+    - MainActivity
+    - GoogleMap
