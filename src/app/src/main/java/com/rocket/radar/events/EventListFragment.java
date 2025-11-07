@@ -107,6 +107,11 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         });
     }
 
+    /**
+     * This function updates the bell to be greyed out and the badge to be hidden
+     * when notifications are off, otherwise both ui components are visible.
+     * @param profile the current user profile that is using the app.
+     */
     private void updateNotificationButtonUI(ProfileModel profile) {
         Boolean isEnabled = profile.isNotificationsEnabled();
 
