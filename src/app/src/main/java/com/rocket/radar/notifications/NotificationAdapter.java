@@ -34,12 +34,26 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     private int separatorIndex = -1;
 
+    /**
+     * Constructs a new NotificationAdapter.
+     *
+     * @param context The current context, used for inflating layouts.
+     * @param notificationList The list of notifications to be displayed.
+     * @param repository The repository to handle data operations, like marking notifications as read.
+     */
     public NotificationAdapter(Context context, List<Notification> notificationList, NotificationRepository repository) {
         this.context = context;
         this.notificationList = notificationList;
         this.repository = repository;
     }
 
+    /**
+     * Updates the list of notifications displayed by the adapter.
+     * This method clears the existing list, adds the new notifications, recalculates the
+     * separator position, and refreshes the RecyclerView.
+     *
+     * @param newNotifications The new list of notifications to display.
+     */
     public void setNotifications(List<Notification> newNotifications) {
         notificationList.clear();
         notificationList.addAll(newNotifications);
@@ -47,6 +61,12 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         notifyDataSetChanged();
     }
 
+    /**
+     * Calculates the position for the "Previously Read" separator.
+     * The separator is placed just before the first read notification. If all notifications are
+     * unread, the separator is placed at the end of the list. If there are no notifications,
+     * the separator is not shown.
+     */
     private void calculateSeparatorIndex() {
         separatorIndex = -1;
         for (int i = 0; i < notificationList.size(); i++) {
@@ -62,7 +82,12 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }
     }
 
-    // --- MODIFIED ---
+    /**
+     * Returns the view type for the item at the given position.
+     *
+     * @param position The position of the item within the adapter's data set.
+     * @return An integer representing the view type.
+     */
     @Override
     public int getItemViewType(int position) {
         // If the list is empty, we only show the empty view type.
@@ -143,7 +168,13 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }
     }
 
-    // --- FIX IS HERE ---
+
+    /**
+     * Returns the total number of items in the data set held by the adapter.
+     * This includes notifications and the separator, if present.
+     *
+     * @return The total number of items.
+     */
     @Override
     public int getItemCount() {
         int count = notificationList.size();
@@ -156,12 +187,18 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     // --- VIEW HOLDERS (New one added) ---
 
-    // ViewHolder for the notification item
+    /**
+     * ViewHolder for a single notification item. Caches view references and binds data.
+     */
     public static class NotificationViewHolder extends RecyclerView.ViewHolder {
         ImageView eventImage;
         TextView eventTitle, notificationType;
         View unreadIndicator;
 
+        /**
+         * Constructs the ViewHolder.
+         * @param itemView The view for a single notification item.
+         */
         public NotificationViewHolder(@NonNull View itemView) {
             super(itemView);
             eventImage = itemView.findViewById(R.id.event_background_image);
@@ -171,7 +208,9 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }
     }
 
-    // ViewHolder for the separator
+    /**
+     * ViewHolder for the separator view, which displays a title like "Previously Read".
+     */
     public static class SeparatorViewHolder extends RecyclerView.ViewHolder {
         TextView separatorText;
         public SeparatorViewHolder(@NonNull View itemView) {
@@ -180,8 +219,14 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }
     }
 
-    // --- NEW --- ViewHolder for the empty state message
+    /**
+     * ViewHolder for the empty state view, displayed when there are no notifications.
+     */
     public static class EmptyViewHolder extends RecyclerView.ViewHolder {
+        /**
+         * Constructs the ViewHolder for the empty state.
+         * @param itemView The empty state view.
+         */
         public EmptyViewHolder(@NonNull View itemView) {
             super(itemView);
         }

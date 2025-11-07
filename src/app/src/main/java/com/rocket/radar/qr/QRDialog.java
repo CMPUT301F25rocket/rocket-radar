@@ -24,17 +24,41 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+
+/**
+ * A {@link DialogFragment} that displays a QR code for a specific event.
+ * This dialog is responsible for generating a QR code from an event ID, displaying it
+ * in a material dialog, and providing options to either share the QR code image or
+ * dismiss the dialog.
+ */
 public class QRDialog extends DialogFragment {
     public static final String TAG = QRDialog.class.getSimpleName();
     private final Bitmap bitmap;
     private final BitmapDrawable drawable;
 
+    /**
+     * Constructs a new QRDialog.
+     * The constructor generates the QR code bitmap based on the provided eventId
+     * and prepares it for display.
+     *
+     * @param context The context used to access resources.
+     * @param eventId The unique identifier for the event, which will be encoded in the QR code.
+     */
     public QRDialog(Context context, String eventId) {
         bitmap = QRGenerator.generate(eventId);
         drawable = new BitmapDrawable(context.getResources(), bitmap);
         drawable.getPaint().setFilterBitmap(false);
     }
 
+    /**
+     * Creates and configures the dialog box to be shown.
+     * This method inflates the layout, sets the generated QR code image, and
+     * configures the "Cancel" and "Share" buttons.
+     *
+     * @param savedInstanceState The last saved instance state of the Fragment,
+     *                           or null if this is a freshly created Fragment.
+     * @return A new Dialog instance to be displayed by the Fragment.
+     */
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
@@ -49,6 +73,12 @@ public class QRDialog extends DialogFragment {
                 .create();
     }
 
+    /**
+     * Handles click events for the dialog's positive and negative buttons.
+     *
+     * @param dialog The dialog that received the click.
+     * @param which The button that was clicked (e.g., {@link DialogInterface#BUTTON_POSITIVE}).
+     */
     private void buttonClick(DialogInterface dialog, int which) {
         switch (which) {
             case DialogInterface.BUTTON_POSITIVE:

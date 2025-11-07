@@ -32,6 +32,7 @@ import com.rocket.radar.databinding.NavBarBinding;
 import com.rocket.radar.events.Event;
 import com.rocket.radar.events.EventRepository;
 import com.rocket.radar.events.EventViewFragment;
+import com.rocket.radar.events.FilterModel;
 import com.rocket.radar.profile.ProfileModel;
 import com.rocket.radar.profile.ProfileRepository;
 import com.rocket.radar.profile.ProfileViewModel;

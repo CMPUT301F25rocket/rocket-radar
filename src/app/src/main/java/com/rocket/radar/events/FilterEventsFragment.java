@@ -14,12 +14,22 @@ import android.widget.Button;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.rocket.radar.R;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class FilterEventsFragment extends Fragment {
 
     private Button cancelButton;
     private Button confirmButton;
+    private FilterModel filterModel;
+    private ChipGroup chipGroup;
+
 
     @Nullable
     @Override
@@ -35,6 +45,33 @@ public class FilterEventsFragment extends Fragment {
         // Initialize buttons
         cancelButton = view.findViewById(R.id.cancel_button);
         confirmButton = view.findViewById(R.id.confirm_button);
+        chipGroup = view.findViewById(R.id.interests_chip_group);
+        filterModel = new ViewModelProvider(requireActivity()).get(FilterModel.class);
+
+        for (var category : filterModel.getFilters().getValue()) {
+            for (int i = 0; i < chipGroup.getChildCount(); ++i) {
+                View maybeChip = chipGroup.getChildAt(i);
+                if (maybeChip instanceof Chip) {
+                    Chip chip = (Chip)maybeChip;
+                    if (chip.getText().toString().equals(category)) {
+                        chip.setChecked(true);
+                    }
+                }
+            }
+        }
+
+        chipGroup.setOnCheckedStateChangeListener((group, checkedIds) ->  {
+            ArrayList<String> checkedCategories = new ArrayList<>();
+            for (var chipid : checkedIds) {
+                String category = ((Chip)chipGroup.findViewById(chipid)).getText().toString();
+                checkedCategories.add(category);
+            }
+            // save the categories that are selected
+            // refilter all the events
+            filterModel.setFilters(checkedCategories);
+        });
+
+
 
         // Set OnClickListener for the cancel button
         cancelButton.setOnClickListener(v -> {
