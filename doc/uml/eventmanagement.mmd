@@ -209,6 +209,8 @@ CreateEventModel "1" -- "1" EventStyleFragment : stores input data
 CreateEventModel "1" *-- "1" Section : stores
 CreateEventModel "1" --> "1" Section : changes
 
+note for Time "This was made because Date objects can't store time"
+
 %% implements
 BottomSheetProvider <|.. CreateEventActivity
  
