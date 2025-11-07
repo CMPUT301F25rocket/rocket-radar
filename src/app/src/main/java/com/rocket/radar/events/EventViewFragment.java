@@ -26,6 +26,13 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A fragment that displays the details of a specific event.
+ * This view adapts its functionality based on whether the current user is the event organizer
+ * or a regular user. Organizers get options to manage entrants and edit the event, while
+ * regular users can join or leave the event's waitlist.
+ * Outstanding Issues: The "Edit" functionality for organizers is not yet implemented.
+ */
 public class EventViewFragment extends Fragment {
     public static final String TAG = EventViewFragment.class.getSimpleName();
 
