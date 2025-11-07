@@ -171,7 +171,7 @@ public class EventRepository {
             Log.e(TAG, "User ID is null or empty. Cannot remove user from waitlist.");
             return;
         }
-        DocumentReference userDocumentInWaitlist = db.collection("events").document(event.getEventTitle())
+        DocumentReference userDocumentInWaitlist = db.collection("events").document(event.getEventId())
                 .collection("waitlistedUsers").document(userId);
 
         // 2. Call .delete() on that specific document reference.
