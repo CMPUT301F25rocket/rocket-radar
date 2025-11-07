@@ -14,36 +14,31 @@ import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.rocket.radar.R;
 
-/*
-
-
-
-
-
-
-
-
-
-
-this file is deprecated unless we can get an api to use cloud functions.
-I will keep it just in case
-
-
-
-
-
-
-
-
-
-
+/**
+ * Handles Firebase Cloud Messaging (FCM) services for receiving push notifications.
+ * This service is responsible for processing incoming messages from FCM, displaying
+ * system notifications, and handling FCM token refreshes.
+ *
+ * <p><b>Outstanding Issues:</b></p>
+ * This file is considered deprecated and is not currently in use because the project
+ * does not have access to a paid Firebase plan required for deploying Cloud Functions.
+ * Without Cloud Functions, we cannot programmatically send push notifications from the
+ * server-side logic (e.g., when a new event announcement is made). It is being kept
+ * in the codebase in case this functionality becomes available in the future.
  */
-
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private static final String TAG = "MyFCMService";
     private static final String CHANNEL_ID = "event_notifications_channel";
 
+
+    /**
+     * Called when a new FCM message is received from the server.
+     * This method processes the incoming message, checks user preferences,
+     * and triggers a system notification if appropriate.
+     *
+     * @param remoteMessage Object representing the message received from Firebase Cloud Messaging.
+     */
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
@@ -73,6 +68,13 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
     }
 
+    /**
+     * Creates and displays a system notification in the device's notification tray.
+     * It also handles the creation of a notification channel for Android 8.0 (Oreo) and above.
+     *
+     * @param title The title of the notification.
+     * @param body The main content/body of the notification.
+     */
     private void sendSystemNotification(String title, String body) {
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -110,6 +112,14 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 //        repository.createTestNotificationForCurrentUser(title, body);
 //    }
 
+    /**
+     * Called when a new FCM registration token is generated.
+     * This can occur when the app is installed for the first time, when the user clears
+     * app data, or when the token expires. The new token should be sent to the
+     * application server to associate it with the user.
+     *
+     * @param token The new FCM registration token.
+     */
     @Override
     public void onNewToken(@NonNull String token) {
         super.onNewToken(token);
