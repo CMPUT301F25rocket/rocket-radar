@@ -14,7 +14,7 @@ class MainActivity {
 - FusedLocationProviderClient fusedLocationClient
 - NavController navController
 - ProfileRepository repo
-- boolean isObserverInitialized
+- boolean isObserverInitialized 
 - ActivityResultLauncher~String~ requestNotificationPermissionLauncher
 - ActivityResultLauncher~String~ requestLocationPermissionLauncher
 # onCreate(Bundle) void 
@@ -120,39 +120,6 @@ class NotificationRepository {
 + sendNotificationToGroup(String,String,String,String) void 
 }
 
-class NotificationAdapter { 
-- int VIEW_TYPE_NOTIFICATION$
-- int VIEW_TYPE_SEPARATOR$
-- int VIEW_TYPE_EMPTY$
-- Context context
-- List~Notification~ notificationList
-- NotificationRepository repository
-- int separatorIndex
-+ NotificationAdapter(Context,List~Notification~,NotificationRepository) NotificationAdapter 
-+ setNotifications(List~Notification~) void 
-- calculateSeparatorIndex() void 
-+ getItemViewType(int) int 
-+ onCreateViewHolder(ViewGroup,int) RecyclerView.ViewHolder 
-+ onBindViewHolder(RecyclerView.ViewHolder,int) void 
-+ getItemCount() int 
-}
-
-class NotificationAdapter_NotificationViewHolder { 
-~ ImageView eventImage
-~ TextView eventTitle
-~ View unreadIndicator
-+ NotificationViewHolder(View) NotificationAdapter.NotificationViewHolder 
-}
-
-class NotificationAdapter_SeparatorViewHolder { 
-~ TextView separatorText
-+ SeparatorViewHolder(View) NotificationAdapter.SeparatorViewHolder 
-}
-
-class NotificationAdapter_EmptyViewHolder { 
-+ EmptyViewHolder(View) NotificationAdapter.EmptyViewHolder 
-}
-
 class LoginStartScanningFragment { 
 - Button button_continue
 - String TAG$
@@ -205,18 +172,6 @@ class ProfileRepository {
 + updateUserProfileLocation(String,GeoPoint) void 
 }
 
-class ProfileRepository_ReadCallback { 
-<<interface>>
-~ onProfileLoaded(ProfileModel) void 
-~ onError(Exception) void 
-}
-
-class ProfileRepository_WriteCallback { 
-<<interface>>
-~ onSuccess() void 
-~ onError(Exception) void 
-}
-
 class CreateEventActivity { 
 + String TAG$
 ~ ActivityCreateEventBinding binding
@@ -258,29 +213,6 @@ class EventLotteryFragment {
 + onDestroyView() void 
 }
 
-class EventAdapter { 
-~ Context context
-~ List~Event~ eventList
-- OnEventListener onEventListener
-+ EventAdapter(Context,List~Event~,OnEventListener) EventAdapter 
-+ onCreateViewHolder(ViewGroup,int) EventAdapter.MyViewHolder 
-+ onBindViewHolder(EventAdapter.MyViewHolder,int) void 
-+ getItemCount() int 
-}
-
-class EventAdapter_MyViewHolder { 
-~ ImageView eventImage
-~ TextView eventTitle
-~ OnEventListener onEventListener
-+ MyViewHolder(View,OnEventListener) EventAdapter.MyViewHolder 
-+ onClick(View) void 
-}
-
-class EventAdapter_OnEventListener { 
-<<interface>>
-~ onEventClick(int) void 
-}
-
 class EventDeadlinesFragment { 
 - String TAG$
 - ViewInputEventDeadlinesBinding binding
@@ -319,85 +251,6 @@ class EventRepository {
 + getSelectedLocations(String,SelectedLocationsCallback) void 
 }
 
-class EventRepository_WaitlistSizeListener { 
-<<interface>>
-~ onSizeReceived(int) void 
-~ onWaitlistEntrantsFetched(List~String~) void 
-~ onError(Exception) void 
-}
-
-class EventRepository_WaitlistEntrantsCallback { 
-<<interface>>
-~ onWaitlistEntrantsFetched(List~String~) void 
-~ onError(Exception) void 
-}
-
-class EventRepository_UserLocationCallback { 
-<<interface>>
-~ onLocationFetched(GeoPoint) void 
-~ onError(Exception) void 
-}
-
-class EventRepository_WaitlistLocationsCallback { 
-<<interface>>
-~ onWaitlistLocationsFetched(List~GeoPoint~) void 
-~ onError(Exception) void 
-}
-
-class EventRepository_InvitedEntrantsCallback { 
-<<interface>>
-~ onInvitedEntrantsFetched(List~String~) void 
-~ onError(Exception) void 
-}
-
-class EventRepository_UserLocationFromInvitedCallback { 
-<<interface>>
-~ onLocationFetched(GeoPoint) void 
-~ onError(Exception) void 
-}
-
-class EventRepository_InvitedLocationsCallback { 
-<<interface>>
-~ onInvitedLocationsFetched(List~GeoPoint~) void 
-~ onError(Exception) void 
-}
-
-class EventRepository_CancelledEntrantsCallback { 
-<<interface>>
-~ onCancelledEntrantsFetched(List~String~) void 
-~ onError(Exception) void 
-}
-
-class EventRepository_UserLocationFromCancelledCallback { 
-<<interface>>
-~ onLocationFetched(GeoPoint) void 
-~ onError(Exception) void 
-}
-
-class EventRepository_CancelledLocationsCallback { 
-<<interface>>
-~ onCancelledLocationsFetched(List~GeoPoint~) void 
-~ onError(Exception) void 
-}
-
-class EventRepository_SelectedEntrantsCallback { 
-<<interface>>
-~ onSelectedEntrantsFetched(List~String~) void 
-~ onError(Exception) void 
-}
-
-class EventRepository_UserLocationFromSelectedCallback { 
-<<interface>>
-~ onLocationFetched(GeoPoint) void 
-~ onError(Exception) void 
-}
-
-class EventRepository_SelectedLocationsCallback { 
-<<interface>>
-~ onSelectedLocationsFetched(List~GeoPoint~) void 
-~ onError(Exception) void 
-}
-
 class EventDateTimeFragment { 
 - String TAG$
 - ViewInputEventDatetimeBinding binding
@@ -419,120 +272,8 @@ class LoginViewFragment {
 + onViewCreated(View,Bundle) void 
 }
 
-class CreateEventModel { 
-- SimpleDateFormat dateFormatter
-- MutableLiveData~Section~ section
-+ MutableLiveData~String~ title
-+ MutableLiveData~String~ description
-+ MutableLiveData~String~ tagline
-+ MutableLiveData~Boolean~ singleDayEvent
-+ MutableLiveData~Optional~Date~~ eventDate
-+ MutableLiveData~Optional~Time~~ eventStartTime
-+ MutableLiveData~Optional~Time~~ eventEndTime
-+ MutableLiveData~Optional~Date~~ registrationStartDate
-+ MutableLiveData~Optional~Date~~ registrationEndDate
-+ MutableLiveData~Optional~Date~~ initialSelectionStartDate
-+ MutableLiveData~Optional~Date~~ initialSelectionEndDate
-+ MutableLiveData~Optional~Date~~ finalAttendeeSelectionDate
-+ MutableLiveData~Boolean~ hasWaitlistCapacity
-+ MutableLiveData~Boolean~ hasLocationRequirement
-+ MutableLiveData~Optional~Integer~~ waitlistCapacity
-+ MutableLiveData~Optional~Integer~~ eventCapacity
-+ MutableLiveData~Optional~Date~~ lotteryDate
-+ MutableLiveData~Optional~Time~~ lotteryTime
-+ MutableLiveData~Optional~Uri~~ image
-+ MutableLiveData~Optional~Color~~ color
-+ CreateEventModel() CreateEventModel 
-+ dateDisplay(MutableLiveData~Optional~Date~~) LiveData~String~ 
-+ eventDateDisplay() LiveData~String~ 
-+ eventStartTimeDisplay() LiveData~String~ 
-+ eventEndTimeDisplay() LiveData~String~ 
-+ registrationStartDateDisplay() LiveData~String~ 
-+ registrationEndDateDisplay() LiveData~String~ 
-+ initialSelectionStartDateDisplay() LiveData~String~ 
-+ initialSelectionEndDateDisplay() LiveData~String~ 
-+ finalAttendeeSelectionDateDisplay() LiveData~String~ 
-+ waitlistCapacityDisplay() LiveData~String~ 
-+ eventCapacityDisplay() LiveData~String~ 
-+ lotteryDateDisplay() LiveData~String~ 
-+ lotteryTimeDisplay() LiveData~String~ 
-+ getSection() LiveData~Section~ 
-+ getLeftButtonVisibility() LiveData~Integer~ 
-+ getRightButtonVisibility() LiveData~Integer~ 
-+ getRightButtonText() String 
-+ nextSection(InputFragment) void 
-+ prevSection() void 
-}
-
-class InputFragment { 
-<<interface>>
-~ valid(InputFragment) boolean 
-~ extract(Event.Builder) Event.Builder 
-}
-
 class RadarDefaultViewFragment { 
 + onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-}
-
-class MyFirebaseMessagingService { 
-- String TAG$
-- String CHANNEL_ID$
-+ onMessageReceived(RemoteMessage) void 
-- sendSystemNotification(String,String) void 
-+ onNewToken(String) void 
-}
-
-class LoginViewModel { 
-- String TAG$
-- FirebaseAuth mAuth
-- MutableLiveData~FirebaseUser~ userLiveData
-- MutableLiveData~Boolean~ isNewUserLiveData
-- ProfileViewModel profileViewModel
-+ LoginViewModel(Application) LoginViewModel 
-+ getUserLiveData() LiveData~FirebaseUser~ 
-+ getIsNewUserLiveData() LiveData~Boolean~ 
-+ checkOrSignIn() void 
-- signInAnonymously() void 
-- handleUserProfile(FirebaseUser) void 
-}
-
-class InputValidator { 
-+ isValidEmail(String)$ boolean 
-+ isValidPhone(String)$ boolean 
-+ cleanText(TextInputEditText)$ String 
-}
-
-class ProfileViewModel { 
-- String TAG$
-- FirebaseFirestore db
-- FirebaseAuth auth
-- ProfileRepository profileRepository
-- ListenerRegistration profileListenerRegistration
-- MutableLiveData~ProfileModel~ profileLiveData
-- MutableLiveData~Boolean~ deleteSuccess
-+ ProfileViewModel() ProfileViewModel 
-+ getProfileLiveData() LiveData~ProfileModel~ 
-+ getDeleteSuccess() LiveData~Boolean~ 
-+ setUserIdForProfileListener(String) void 
-+ deleteProfile(ProfileModel) void 
-+ updateProfile(ProfileModel) void 
-+ getProfile(String) void 
-+ updateLastLogin(String) void 
-# onCleared() void 
-}
-
-class Section { 
-<<enum>>
-+ Section firstSection$
-+ Section lastSection$
-+ GENERAL$
-+ DATETIME$
-+ DEADLINES$
-+ LOTTERY$
-+ STYLE$
-+ getTitle() String 
-+ isGeneralValid(String,String) boolean 
-+ isDatetimeValid(Date,Time,Time) boolean 
 }
 
 class OrganizerEntrantsFragment { 
@@ -581,53 +322,6 @@ class OrganizerEntrantsFragment {
 - getGroupForCurrentTab() String 
 }
 
-class BottomSheetProvider { 
-<<interface>>
-~ openCalendarBottomSheet(MutableLiveData~Optional~Date~~,View) void 
-~ openTimeBottomSheet(MutableLiveData~Optional~Time~~,View) void 
-}
-
-class ProfileModel { 
-- String uid
-- String name
-- String phoneNumber
-- String email
-- Timestamp lastLogin
-- Boolean notificationsEnabled
-- ArrayList~String~ onWaitlistEventIds
-- ArrayList~String~ onMyEventIds
-- GeoPoint lastKnownLocation
-+ ProfileModel() ProfileModel 
-+ ProfileModel(String,String,String,String,Timestamp,boolean,boolean,boolean) ProfileModel 
-+ getLastKnownLocation() GeoPoint 
-+ setLastKnownLocation(GeoPoint) void 
-+ getUid() String 
-+ setUid(String) void 
-+ getName() String 
-+ setName(String) void 
-+ getEmail() String 
-+ setEmail(String) void 
-+ getPhoneNumber() String 
-+ setPhoneNumber(String) void 
-+ getLastLogin() Timestamp 
-+ setLastLogin(Timestamp) void 
-+ isAdmin() Boolean 
-+ setAdmin(Boolean) void 
-+ isGeolocationEnabled() Boolean 
-+ setGeolocationEnabled(Boolean) void 
-+ isNotificationsEnabled() Boolean 
-+ setNotificationsEnabled(Boolean) void 
-+ getOnWaitlistEventIds() ArrayList~String~ 
-+ getOnMyEventIds() ArrayList~String~ 
-+ setOnMyEventIds(ArrayList~String~) void 
-+ setOnWaitlistEventIds(ArrayList~String~) void 
-+ addOnWaitlistEventId(String) void 
-+ addOnMyEventId(String) void 
-+ removeOnWaitlistEventId(String) void 
-+ removeOnMyEventId(String) void 
-+ clearOnWaitlistEventIds() void 
-}
-
 class EventGeneralFragment { 
 - ViewInputEventGeneralBinding binding
 - CreateEventModel model
@@ -637,10 +331,6 @@ class EventGeneralFragment {
 + valid(InputFragment) boolean 
 + extract(Event.Builder) Event.Builder 
 + onDestroyView() void 
-}
-
-class QRGenerator { 
-+ generate(String)$ Bitmap 
 }
 
 class Event { 
@@ -730,34 +420,6 @@ class Event {
 + setEventWaitlistIds(ArrayList~String~) void 
 }
 
-class Event_Builder { 
-- Event event
-+ Builder(Event) Event.Builder 
-+ Builder() Event.Builder 
-+ title(String) Builder 
-+ eventStartDate(Date) Builder 
-+ eventEndDate(Date) Builder 
-+ tagline(String) Builder 
-+ categories(ArrayList~String~) Builder 
-+ category(String) Builder 
-+ description(String) Builder 
-+ eventStartTime(Time) Builder 
-+ eventEndTime(Time) Builder 
-+ registrationStartDate(Date) Builder 
-+ registrationEndDate(Date) Builder 
-+ initialSelectionStartDate(Date) Builder 
-+ initialSelectionEndDate(Date) Builder 
-+ finalSelectionDate(Date) Builder 
-+ waitlistCapacity(Optional~Integer~) Builder 
-+ requireLocation(Boolean) Builder 
-+ eventCapacity(Integer) Builder 
-+ lotteryDate(Date) Builder 
-+ lotteryTime(Time) Builder 
-+ bannerImage(Bitmap) Builder 
-+ color(Color) Builder 
-+ build() Event 
-}
-
 class Notification { 
 - String eventTitle
 - String notificationType
@@ -819,18 +481,10 @@ ProfileModel .. EventViewFragment
 InputFragment <|.. EventStyleFragment
 CreateEventModel -- EventStyleFragment
 Event_Builder .. EventStyleFragment
-NotificationAdapter -- NotificationFragment
 NotificationRepository -- NotificationFragment
-Notification -- NotificationAdapter
-NotificationRepository -- NotificationAdapter
-NotificationAdapter_NotificationViewHolder <.. NotificationAdapter : << contains >>
-NotificationAdapter_SeparatorViewHolder <.. NotificationAdapter : << contains >>
-NotificationAdapter_EmptyViewHolder <.. NotificationAdapter : << contains >>
 ProfileViewModel -- LoginStartScanningFragment
-EventAdapter_OnEventListener <|.. ProfileFragment
 ProfileViewModel -- ProfileFragment
 ProfileModel -- ProfileFragment
-EventAdapter -- ProfileFragment
 Event -- ProfileFragment
 EventRepository -- ProfileFragment
 ProfileModel .. ProfileRepository
@@ -851,27 +505,11 @@ InputFragment <|.. EventLotteryFragment
 CreateEventModel -- EventLotteryFragment
 BottomSheetProvider -- EventLotteryFragment
 Event_Builder .. EventLotteryFragment
-EventAdapter_MyViewHolder <|-- EventAdapter
-Event -- EventAdapter
-EventAdapter_OnEventListener <.. EventAdapter : << contains >>
 InputFragment <|.. EventDeadlinesFragment
 CreateEventModel -- EventDeadlinesFragment
 BottomSheetProvider -- EventDeadlinesFragment
 Event_Builder .. EventDeadlinesFragment
 Event .. EventRepository
-EventRepository_WaitlistSizeListener <.. EventRepository : << contains >>
-EventRepository_WaitlistEntrantsCallback <.. EventRepository : << contains >>
-EventRepository_UserLocationCallback <.. EventRepository : << contains >>
-EventRepository_WaitlistLocationsCallback <.. EventRepository : << contains >>
-EventRepository_InvitedEntrantsCallback <.. EventRepository : << contains >>
-EventRepository_UserLocationFromInvitedCallback <.. EventRepository : << contains >>
-EventRepository_InvitedLocationsCallback <.. EventRepository : << contains >>
-EventRepository_CancelledEntrantsCallback <.. EventRepository : << contains >>
-EventRepository_UserLocationFromCancelledCallback <.. EventRepository : << contains >>
-EventRepository_CancelledLocationsCallback <.. EventRepository : << contains >>
-EventRepository_SelectedEntrantsCallback <.. EventRepository : << contains >>
-EventRepository_UserLocationFromSelectedCallback <.. EventRepository : << contains >>
-EventRepository_SelectedLocationsCallback <.. EventRepository : << contains >>
 InputFragment <|.. EventDateTimeFragment
 CreateEventModel -- EventDateTimeFragment
 BottomSheetProvider -- EventDateTimeFragment
@@ -894,11 +532,6 @@ InputFragment <|.. EventGeneralFragment
 CreateEventModel -- EventGeneralFragment
 Event_Builder .. EventGeneralFragment
 Time -- Event
-Event_Builder <.. Event : << contains >>
-Event -- Event_Builder
-Time .. Event_Builder
-EventAdapter_OnEventListener <|.. EventListFragment
-EventAdapter -- EventListFragment
 Event -- EventListFragment
 EventRepository -- EventListFragment
 ProfileViewModel -- EventListFragment
