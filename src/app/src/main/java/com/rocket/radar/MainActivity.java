@@ -57,16 +57,23 @@ public class MainActivity extends AppCompatActivity {
     // Launcher for Notification Permissions (Android 13+)
     private final ActivityResultLauncher<String> requestNotificationPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                ProfileModel currentUser = profileViewModel.getProfileLiveData().getValue();
                 if (isGranted) {
                     Log.d(TAG, "Notification permission granted.");
+                    if (currentUser != null)
+                        currentUser.setNotificationsEnabled(true);
+                    profileViewModel.updateProfile(currentUser);
+
                 } else {
                     Log.w(TAG, "Notification permission denied by user.");
+
                 }
             });
 
     // Launcher for Location Permissions
     private final ActivityResultLauncher<String> requestLocationPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                ProfileModel currentUser = profileViewModel.getProfileLiveData().getValue();
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                         || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                     Log.d(TAG, "Location permission has been granted (Precise or Coarse).");
@@ -74,6 +81,10 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     Log.w(TAG, "Location permission was explicitly denied by user.");
                     Toast.makeText(this, "Geolocation access is required for some features.", Toast.LENGTH_SHORT).show();
+                    if (currentUser != null) {
+                        currentUser.setGeolocationEnabled(false);
+                        profileViewModel.updateProfile(currentUser);
+                    }
                 }
             });
 
@@ -114,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
     private void askNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+
                 requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
             }
         }
