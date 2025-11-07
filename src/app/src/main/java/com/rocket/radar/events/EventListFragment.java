@@ -26,6 +26,8 @@ import com.rocket.radar.profile.ProfileViewModel;
 
 import org.checkerframework.checker.units.qual.A;
 
+import java.util.Date;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -221,7 +223,8 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
             // display events who have the selectedFIlters as items in their categories attribute
             for (Event event : allEvents) {
                 Log.d("EventListFragment", "Event: " + event.toString());
-                Log.d("EventListFragment", "categories of event: " + event.getCategories().toString());
+                //Log.d("EventListFragment", "categories of event: " + event.getCategories().toString());
+                Log.d("EventListFragment", "date of event: " + event.getEventStartDate().toString());
             }
             selectedFilters = filterModel.getFilters().getValue();
             if (selectedFilters.size() > 0) {
@@ -243,10 +246,36 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
 
                 // finally, display the filtered eventrs
                 ArrayList<String> finalSelectedFilters = selectedFilters;
-                filteredList = allEvents.stream()
+
+                Date selectedDate = filterModel.getDate().getValue();
+                if (selectedDate == null) {
+                    Log.e("EventListFragment", "selected date is null");
+                }
+
+
+
+                List<Event> intermediateList = allEvents.stream()
                         .filter(event -> event.getCategories().containsAll(finalSelectedFilters))
                         .filter(event -> !finalUserWaitlistEventIds.contains(event.getEventId()))
                         .collect(Collectors.toList());
+
+                if (selectedDate != null) {
+                    Log.d("EventListFragment", "date selected: + " + selectedDate);
+
+                    for (Event event : allEvents) {
+                        Log.d("EventListFragment", "Event: " + event.toString());
+                        //Log.d("EventListFragment", "categories of event: " + event.getCategories().toString());
+                        Log.d("EventListFragment", "date of event: " + event.getEventStartDate().toString());
+
+                        Log.d("EventListFragment", "is date of event after selected date?: " + event.getEventStartDate().after(selectedDate));
+                    }
+
+                    filteredList = intermediateList.stream()
+                            .filter(event -> event.getEventStartDate().after(selectedDate))
+                            .collect(Collectors.toList());
+                } else {
+                    filteredList = intermediateList;
+                }
             } else {
                 chipGroup.setVisibility(View.GONE);
                 filteredList = allEvents;
