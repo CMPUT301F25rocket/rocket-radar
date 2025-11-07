@@ -1,5 +1,6 @@
 package com.rocket.radar.eventmanagement;
 
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
@@ -14,6 +15,7 @@ import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -76,6 +78,28 @@ public class EventStyleFragment extends Fragment implements InputFragment {
         setupStylePickers();
     }
 
+    private String colorToString(Integer color) {
+        if (color == ContextCompat.getColor(requireContext(), R.color.red))
+            return "Red";
+
+        if (color == ContextCompat.getColor(requireContext(), R.color.orange))
+            return "Orange";
+
+        if (color == ContextCompat.getColor(requireContext(), R.color.yellow))
+            return "Yellow";
+
+        if (color == ContextCompat.getColor(requireContext(), R.color.green))
+            return "Green";
+
+        if (color == ContextCompat.getColor(requireContext(), R.color.cyan))
+            return "Cyan";
+
+        if (color == ContextCompat.getColor(requireContext(), R.color.blue))
+            return "Blue";
+
+        return color.toString();
+    }
+
     private void setupStylePickers() {
         // Color picker
         binding.inputEventStylePickColorButton.setOnClickListener(btn -> {
@@ -88,6 +112,7 @@ public class EventStyleFragment extends Fragment implements InputFragment {
                     Color color = Color.valueOf(selected);
                     model.color.setValue(Optional.of(color));
                     binding.inputEventStylePickColorButton.setBackgroundColor(color.toArgb());
+                    binding.inputEventStylePickColorButton.setText(colorToString(selected));
                     return Unit.INSTANCE;
                 });
                 return Unit.INSTANCE;
