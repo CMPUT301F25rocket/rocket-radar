@@ -121,7 +121,7 @@ public class EventRepository {
         else {
             // --- START OF FIX ---
             // 1. Get the correct path: events -> {event-id} -> waitlistedUsers -> {user-id}
-            DocumentReference waitlistRef = db.collection("events").document(event.getEventTitle())
+            DocumentReference waitlistRef = db.collection("events").document(event.getEventId())
                     .collection("waitlistedUsers").document(userId);
 
             // 2. Create a map to hold some data, like a timestamp.
