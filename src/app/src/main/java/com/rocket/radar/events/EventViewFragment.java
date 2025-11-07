@@ -214,7 +214,6 @@ public class EventViewFragment extends Fragment {
         } else {
             // Logic for joining a waitlist
             currentProfile.addOnWaitlistEventId(event.getEventId());
-            currentProfile.addOnMyEventId(event.getEventId());
 
             // --- REFACTORED LOGIC ---
             // 1. Get the location from the user's profile.

@@ -121,6 +121,20 @@ public class MainActivity extends AppCompatActivity {
         } else if (action.equals(getString(R.string.intent_action_show_qr))) {
             String eventId = intent.getStringExtra("eventId");
             QRDialog qrDialog = new QRDialog(getApplicationContext(), eventId);
+            ProfileModel currentProfile = profileViewModel.getProfileLiveData().getValue();
+            if (currentProfile != null) {
+                currentProfile.addOnMyEventId(eventId);
+            }
+            else {
+                Log.d(TAG, "Profile is null");
+                profileViewModel.getProfileLiveData().observe(this, new Observer<ProfileModel>() {
+                    @Override
+                    public void onChanged(ProfileModel profile) {
+                        profile.addOnMyEventId(eventId);
+                    }
+                });
+
+            }
             qrDialog.show(getSupportFragmentManager(), QRDialog.TAG);
         } else  {
             Log.e(TAG, "Unrecognized action for MainActivity: " + action);
