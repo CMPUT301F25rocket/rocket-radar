@@ -19,6 +19,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.maxkeppeler.sheets.color.ColorSheet;
 import com.maxkeppeler.sheets.core.SheetStyle;
+import com.rocket.radar.R;
 import com.rocket.radar.databinding.ViewInputEventStyleBinding;
 import com.rocket.radar.events.Event;
 
@@ -82,6 +83,7 @@ public class EventStyleFragment extends Fragment implements InputFragment {
             colorSheet.show(requireActivity(), null, sheet -> {
                 sheet.style(SheetStyle.BOTTOM_SHEET);
                 sheet.disableAlpha();
+                sheet.colorsRes(R.color.red, R.color.orange, R.color.yellow, R.color.green, R.color.cyan, R.color.blue);
                 sheet.onPositive(selected -> {
                     Color color = Color.valueOf(selected);
                     model.color.setValue(Optional.of(color));

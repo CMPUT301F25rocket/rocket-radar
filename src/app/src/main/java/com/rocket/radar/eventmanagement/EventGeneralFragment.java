@@ -10,8 +10,12 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.rocket.radar.databinding.CategoryChipBinding;
 import com.rocket.radar.databinding.ViewInputEventGeneralBinding;
 import com.rocket.radar.events.Event;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Fragment for the General section of the event creation wizard.
@@ -20,11 +24,26 @@ import com.rocket.radar.events.Event;
 public class EventGeneralFragment extends Fragment implements InputFragment {
     private ViewInputEventGeneralBinding binding;
     private CreateEventModel model;
+    // TODO: Pull all data from the model into the individual fragments.
+    List<Integer> categories;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = ViewInputEventGeneralBinding.inflate(inflater, container, false);
+
+        categories = new ArrayList<>();
+
+        for (var category : Event.allEventCategories) {
+            CategoryChipBinding chip = CategoryChipBinding.inflate(inflater, binding.createEventGeneralChipGroup.getRoot(), false);
+            chip.getRoot().setText(category);
+            binding.createEventGeneralChipGroup.getRoot().addView(chip.getRoot());
+        }
+
+        binding.createEventGeneralChipGroup.getRoot().setOnCheckedStateChangeListener((group, checkedIds) ->  {
+            categories = checkedIds;
+        });
+
         return binding.getRoot();
     }
 
@@ -44,16 +63,23 @@ public class EventGeneralFragment extends Fragment implements InputFragment {
     public boolean valid(InputFragment inputFragment) {
         String title = this.model.title.getValue();
         String descr = this.model.description.getValue();
+        String tagline = this.model.tagline.getValue();
 
         return (title != null && !title.isBlank())
-                && (descr != null && !descr.isBlank());
+                && (descr != null && !descr.isBlank())
+                && (tagline != null && !tagline.isBlank());
     }
 
 
     @Override
     public Event.Builder extract(Event.Builder builder) {
+        for (var idx : categories) {
+            builder.category(Event.allEventCategories.get(idx));
+        }
+
         return builder.title(this.model.title.getValue())
-                .description(this.model.description.getValue());
+                .description(this.model.description.getValue())
+                .tagline(model.tagline.getValue());
     }
 
     @Override

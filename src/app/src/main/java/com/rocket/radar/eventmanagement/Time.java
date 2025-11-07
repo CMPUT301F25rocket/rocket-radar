@@ -13,6 +13,11 @@ public class Time implements Comparable<Time> {
         this.minute = minute;
     }
 
+    public Time() {
+        hour = 0;
+        minute = 0;
+    }
+
     public int getHour() {
         return hour;
     }

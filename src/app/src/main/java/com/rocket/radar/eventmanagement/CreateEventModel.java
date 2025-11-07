@@ -21,6 +21,7 @@ public class CreateEventModel extends ViewModel {
     // General section field values
     public MutableLiveData<String> title;
     public MutableLiveData<String> description;
+    public MutableLiveData<String> tagline;
 
 
     // Datetime section field values
@@ -101,7 +102,7 @@ public class CreateEventModel extends ViewModel {
 
     public MutableLiveData<Optional<Time>> lotteryTime;
     public LiveData<String> lotteryTimeDisplay() {
-        return dateDisplay(lotteryDate);
+        return Transformations.map(lotteryTime, time -> time.map(Time::toString).orElse(""));
     }
 
     // Style section field values
@@ -113,6 +114,7 @@ public class CreateEventModel extends ViewModel {
         section = new MutableLiveData<>(Section.GENERAL);
         title = new MutableLiveData<>("");
         description = new MutableLiveData<>("");
+        tagline = new MutableLiveData<>("");
         singleDayEvent = new MutableLiveData<>(true);
         eventDate = new MutableLiveData<>(Optional.empty());
         eventStartTime = new MutableLiveData<>(Optional.empty());

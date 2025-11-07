@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.time.format.TextStyle;
+import java.util.List;
 import java.util.Locale;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -31,6 +32,19 @@ import java.io.Serializable;
  * passed in Bundles.
  */
 public class Event implements Serializable {
+    // This is the fixed list of categories that
+    public static final List<String> allEventCategories = new ArrayList<>();
+    static {
+        allEventCategories.add("Sport");
+        allEventCategories.add("Food");
+        allEventCategories.add("Music");
+        allEventCategories.add("Social");
+        allEventCategories.add("Business");
+        allEventCategories.add("Workshop");
+        allEventCategories.add("Art");
+    }
+
+
     // Primary event details
     private String eventId; // ADD THIS FIELD
     String eventTitle;
@@ -118,12 +132,12 @@ public class Event implements Serializable {
     public void setEventId(String eventId) { this.eventId = eventId; }
 
 
-    public Color getColor() {
-        return color;
+    public int getColor() {
+        return color.toArgb();
     }
 
-    public void setColor(Color color) {
-        this.color = color;
+    public void setColor(int color) {
+        this.color = Color.valueOf(color);
     }
 
     public Time getLotteryTime() {
@@ -234,12 +248,12 @@ public class Event implements Serializable {
         this.eventStartDate = eventStartDate;
     }
 
-    public SortedSet<String> getCategories() {
-        return categories;
+    public List<String> getCategories() {
+        return new ArrayList<>(categories);
     }
 
-    public void setCategories(SortedSet<String> categories) {
-        this.categories = categories;
+    public void setCategories(List<String> categories) {
+        this.categories = new TreeSet<>(categories);
     }
 
     public void setTagline(String tagline) {

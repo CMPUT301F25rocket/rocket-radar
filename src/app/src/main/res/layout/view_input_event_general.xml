@@ -42,6 +42,30 @@
                     android:text="@={createEvent.description}"
                     />
             </com.google.android.material.textfield.TextInputLayout>
+
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Tagline"
+                android:padding="24dp"
+                >
+                <com.google.android.material.textfield.TextInputEditText
+                    style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
+                    android:id="@+id/createEventGeneralTagline"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@={createEvent.tagline}"
+                    />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <include
+                layout="@layout/category_chip_group"
+                android:id="@+id/createEventGeneralChipGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="24dp"
+                />
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
