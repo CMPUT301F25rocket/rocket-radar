@@ -652,7 +652,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
             }
             String groupField = getGroupForCurrentTab();
             if (groupField != null) {
-                notificationRepository.sendNotificationToGroup(title, body, event.getEventTitle(), groupField);
+                notificationRepository.sendNotificationToGroup(title, body, event.getEventId(), groupField);
                 Toast.makeText(getContext(), "Notification sent to " + tabs.getTabAt(tabs.getSelectedTabPosition()).getText(), Toast.LENGTH_SHORT).show();
                 showSendNotificationDialog(false);
             } else {
