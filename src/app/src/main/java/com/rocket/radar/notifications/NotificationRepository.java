@@ -3,10 +3,14 @@ package com.rocket.radar.notifications;
 import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -107,7 +111,7 @@ public class NotificationRepository {
      * @param title      The title of the notification.
      * @param body       The body text of the notification.
      * @param eventId    The ID of the event to get the user group from.
-     * @param groupField The field in the event document that contains the list of user IDs
+     * @param groupCollection The field in the event document that contains the list of user IDs
      *                   (e.g., "attendees", "onWaitlistEventIds").
      */
     public void sendNotificationToGroup(String title, String body, String eventId, String groupCollection) {
@@ -116,9 +120,7 @@ public class NotificationRepository {
             return;
         }
 
-        // --- START OF REFACTOR ---
         // 1. Fetch the user IDs from the specified sub-collection of the event.
-        // The path is: events/{eventId}/{groupCollection}
         db.collection("events").document(eventId).collection(groupCollection).get()
                 .addOnSuccessListener(userCollectionSnapshot -> {
                     if (userCollectionSnapshot.isEmpty()) {
@@ -126,66 +128,84 @@ public class NotificationRepository {
                         return;
                     }
 
-                    // 2. Extract the user IDs. The document ID in the sub-collection *is* the user ID.
                     List<String> userIds = new ArrayList<>();
                     for (QueryDocumentSnapshot userDoc : userCollectionSnapshot) {
                         userIds.add(userDoc.getId());
                     }
 
-                    Log.d(TAG, "Found " + userIds.size() + " users in collection '" + groupCollection + "'. Preparing notification.");
+                    // --- START OF FIX ---
 
-                    // 3. Create the main notification content.
-                    Map<String, Object> newNotificationContent = new HashMap<>();
-                    newNotificationContent.put("eventTitle", title);
-                    newNotificationContent.put("notificationType", body);
-                    newNotificationContent.put("image", R.drawable.ic_radar); // Assuming this is a valid drawable
-                    newNotificationContent.put("timestamp", FieldValue.serverTimestamp());
+                    // 2. Create a list of tasks to fetch each user's profile document.
+                    List<Task<DocumentSnapshot>> userFetchTasks = new ArrayList<>();
+                    for (String userId : userIds) {
+                        userFetchTasks.add(db.collection("users").document(userId).get());
+                    }
 
-                    db.collection("notifications").add(newNotificationContent)
-                            .addOnSuccessListener(contentRef -> {
-                                Log.d(TAG, "Successfully created main notification with ID: " + contentRef.getId());
+                    // 3. Wait for ALL user profile fetches to complete.
+                    Tasks.whenAllSuccess(userFetchTasks).addOnSuccessListener(userSnapshots -> {
+                        // This list contains DocumentSnapshot objects for each user.
 
-                                // 4. Fan out the notification reference to all users in the group.
-                                WriteBatch batch = db.batch();
-                                for (String userId : userIds) {
-                                    if (userId != null && !userId.isEmpty()) {
-                                        DocumentReference userStubRef = db.collection("users").document(userId)
-                                                .collection("notifications").document();
-                                        Map<String, Object> userStub = new HashMap<>();
-                                        userStub.put("readStatus", false);
-                                        userStub.put("notificationRef", contentRef);
-                                        batch.set(userStubRef, userStub);
-                                    }
-                                }
+                        // 4. Filter the list to get only the users with notifications enabled.
+                        List<String> usersToNotify = new ArrayList<>();
+                        for (Object snapshot : userSnapshots) {
+                            DocumentSnapshot userDoc = (DocumentSnapshot) snapshot;
 
-                                batch.commit()
-                                        .addOnSuccessListener(aVoid -> Log.d(TAG, "Successfully fanned out notification to group '" + groupCollection + "'."))
-                                        .addOnFailureListener(e -> Log.e(TAG, "Failed to commit batch for group notification.", e));
+                            // This is the check. It defaults to 'true' if the field doesn't exist.
+                            // It only skips if the field exists and is explicitly 'false'.
+                            if (!Boolean.FALSE.equals(userDoc.getBoolean("notificationsEnabled"))) {
+                                usersToNotify.add(userDoc.getId());
+                            } else {
+                                Log.d(TAG, "Skipping user " + userDoc.getId() + " because they have notifications disabled.");
+                            }
+                        }
 
-                            }).addOnFailureListener(e -> Log.e(TAG, "Failed to create main notification content.", e));
+                        if (usersToNotify.isEmpty()) {
+                            Log.d(TAG, "No users in the group have notifications enabled. Aborting.");
+                            return;
+                        }
+
+                        Log.d(TAG, "Preparing to send notification to " + usersToNotify.size() + " enabled users.");
+
+                        // 5. Create and fan out the notification ONLY to the filtered list.
+                        createAndFanOutNotification(title, body, usersToNotify);
+
+                    }).addOnFailureListener(e -> Log.e(TAG, "Failed to fetch one or more user profiles.", e));
+                    // --- END OF FIX ---
 
                 }).addOnFailureListener(e -> Log.e(TAG, "Failed to fetch users from collection '" + groupCollection + "' for event: " + eventId, e));
-        // --- END OF REFACTOR ---
     }
 
-    /*
-
-        How to use this:
-
-        // Somewhere in your app where an organizer sends an announcement...
-
-        // 1. You only need the event ID and the target group.
-        String currentEventId = "some_event_id_12345";
-        String targetGroup = "attendees"; // Or "onWaitlistEventIds", or any other field in your event document.
-
-        // 2. Define the notification message.
-        String notificationTitle = "Important Update";
-        String notificationBody = "The event location has been changed. Please check the details.";
-
-        // 3. Create a repository instance and call the new, smarter method.
-        NotificationRepository repository = new NotificationRepository();
-        repository.sendNotificationToGroup(notificationTitle, notificationBody, currentEventId, targetGroup);
-
+    /**
+     * Helper method to create the main notification content and fan it out to the specified users.
      */
+    private void createAndFanOutNotification(String title, String body, List<String> usersToNotify) {
+        Map<String, Object> newNotificationContent = new HashMap<>();
+        newNotificationContent.put("eventTitle", title);
+        newNotificationContent.put("notificationType", body);
+        newNotificationContent.put("image", R.drawable.ic_radar);
+        newNotificationContent.put("timestamp", FieldValue.serverTimestamp());
+
+        db.collection("notifications").add(newNotificationContent)
+                .addOnSuccessListener(contentRef -> {
+                    // Create a batch write to fan out the notification to all ELIGIBLE users.
+                    WriteBatch batch = db.batch();
+                    for (String userId : usersToNotify) {
+                        DocumentReference userStubRef = db.collection("users").document(userId)
+                                .collection("notifications").document();
+
+                        Map<String, Object> userStub = new HashMap<>();
+                        userStub.put("readStatus", false);
+                        userStub.put("notificationRef", contentRef);
+                        batch.set(userStubRef, userStub);
+                    }
+
+                    // Commit the batch.
+                    batch.commit()
+                            .addOnSuccessListener(aVoid -> Log.d(TAG, "Successfully fanned out notification to " + usersToNotify.size() + " users."))
+                            .addOnFailureListener(e -> Log.e(TAG, "Failed to commit batch for notification fan-out.", e));
+
+                }).addOnFailureListener(e -> Log.e(TAG, "Failed to create main notification content.", e));
+    }
+
 
 }
