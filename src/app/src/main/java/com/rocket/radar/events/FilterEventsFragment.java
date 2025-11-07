@@ -7,10 +7,13 @@ package com.rocket.radar.events;
  * Outstanding Issues: The actual filtering logic is not yet implemented.
  */
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CalendarView;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -21,14 +24,18 @@ import com.google.android.material.chip.ChipGroup;
 import com.rocket.radar.R;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class FilterEventsFragment extends Fragment {
 
     private Button cancelButton;
     private Button confirmButton;
+    private CalendarView calendarView;
     private FilterModel filterModel;
     private ChipGroup chipGroup;
+    private boolean dateSelected = false;
 
 
     @Nullable
@@ -43,6 +50,7 @@ public class FilterEventsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         // Initialize buttons
+        calendarView = view.findViewById(R.id.calendar_view);
         cancelButton = view.findViewById(R.id.cancel_button);
         confirmButton = view.findViewById(R.id.confirm_button);
         chipGroup = view.findViewById(R.id.interests_chip_group);
@@ -70,6 +78,24 @@ public class FilterEventsFragment extends Fragment {
             // refilter all the events
             filterModel.setFilters(checkedCategories);
         });
+
+        calendarView.setOnDateChangeListener((view1, year, month, dayOfMonth) -> {
+            // Use Calendar to correctly build a Date object
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.YEAR, year);
+            calendar.set(Calendar.MONTH, month);
+            calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+            // Optional: Set time to the beginning of the day for consistent comparisons
+            calendar.set(Calendar.HOUR_OF_DAY, 0);
+            calendar.set(Calendar.MINUTE, 0);
+            calendar.set(Calendar.SECOND, 0);
+            calendar.set(Calendar.MILLISECOND, 0);
+
+            // update filter model with the setDate method
+            Log.d("FilterEventsFragment", "Date selected: " + calendar.getTime());
+            filterModel.setDate(calendar.getTime());
+        });
+
 
 
 
