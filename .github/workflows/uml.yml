@@ -1,0 +1,71 @@
+name: Mirror UML to wiki
+
+# We run anytime changes to the crc folder are pushed to main
+on:
+  push: 
+    branches:
+      - main
+      - dev
+    paths:
+      - 'doc/uml/**/*.mmd'
+
+  # Allow manual running
+  workflow_dispatch:
+
+
+# https://github.com/orgs/community/discussions/56893#discussioncomment-6054377
+# Turns out
+permissions:
+  contents: write
+
+jobs:
+  mirror-uml:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Mermaid Binary
+        shell: bash
+        run: |
+          echo "Started Mermaid Install"
+          npm install -g @mermaid-js/mermaid-cli
+          echo "Finished Mermaid Install"
+
+      # Clone the source of our repository so we can get into doc/crc.
+      # Here we are only fetching the most recent commit and even then 
+      # only grabbing docs. So should be pretty quick.
+      - uses: actions/checkout@v5
+        with:
+          path: rocket-radar
+          sparse-checkout: doc
+
+      # Clone the wiki into the $GITHUB_WORKSPACE/wiki (where $GITHUB_WORKSPACE is
+      # the default working directory for scripts.
+      - uses: actions/checkout@v5
+        with:
+          repository: ${{ github.repository }}.wiki
+          path: wiki
+
+      # As soon as we have the binary and docs we can generate the 
+      # rendered cards. Outputs: $GITHUB_WORKSPACE/CRC.md
+      - name: Generate Diagrams to Wiki
+        shell: bash
+        run: |
+          # NOTE: We do not grab UML recursively like the CRC cards.
+          cd rocket-radar/doc/uml
+          # Sandbox workaround
+          echo "{ \"args\": [\"--no-sandbox\"] }" > puppeteer-config.json
+          for diagram in *.mmd; do
+              [ -e "${diagram}" ] || continue
+              # https://stackoverflow.com/a/125340
+              # I did not know this was a thing.
+              name="${diagram%.mmd}"
+              printf "Now generating ${name}.svg\n"
+              mmdc -p puppeteer-config.json -i "${diagram}" -o "../../../wiki/media/uml-${name}.svg"
+          done
+          # May not be necessary
+          cd ../../../
+
+      # Deal with configuring dummy git user and email.
+      - uses: stefanzweifel/git-auto-commit-action@v6
+        with:
+          commit_message: "chore: mirror crc cards"
+          repository: wiki
