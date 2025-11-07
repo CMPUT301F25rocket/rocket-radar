@@ -9,6 +9,7 @@
 package com.rocket.radar.events;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,10 +52,25 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.MyViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull EventAdapter.MyViewHolder holder, int position) {
-        holder.eventImage.setImageResource(eventList.get(position).getImage());
-        holder.eventTitle.setText(eventList.get(position).getEventTitle());
-        holder.date.setText(eventList.get(position).getFormattedDate());
-        holder.tagline.setText(eventList.get(position).getTagline());
+        Event event = eventList.get(position);
+
+        // Display event banner image if available, otherwise use default resource
+        if (event.getBannerImageBlob() != null) {
+            Bitmap bannerBitmap = event.getBannerImageBitmap();
+            if (bannerBitmap != null) {
+                holder.eventImage.setImageBitmap(bannerBitmap);
+            } else {
+                // Fallback to default image if bitmap conversion fails
+                holder.eventImage.setImageResource(event.getImage());
+            }
+        } else {
+            // Use default image resource if no banner blob exists
+            holder.eventImage.setImageResource(event.getImage());
+        }
+
+        holder.eventTitle.setText(event.getEventTitle());
+        holder.date.setText(event.getFormattedDate());
+        holder.tagline.setText(event.getTagline());
     }
 
     @Override
