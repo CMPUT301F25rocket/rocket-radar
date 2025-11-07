@@ -108,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
     public void onStart() {
         super.onStart();
         FirebaseUser currentUser = mAuth.getCurrentUser();
+        ProfileModel currentProfile = profileViewModel.getProfileLiveData().getValue();
         if (currentUser == null)
             signInAnonymously();
         else
@@ -121,7 +122,6 @@ public class MainActivity extends AppCompatActivity {
         } else if (action.equals(getString(R.string.intent_action_show_qr))) {
             String eventId = intent.getStringExtra("eventId");
             QRDialog qrDialog = new QRDialog(getApplicationContext(), eventId);
-            ProfileModel currentProfile = profileViewModel.getProfileLiveData().getValue();
             if (currentProfile != null) {
                 currentProfile.addOnMyEventId(eventId);
             }
