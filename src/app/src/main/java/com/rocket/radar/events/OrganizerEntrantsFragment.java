@@ -44,6 +44,16 @@ import java.util.Objects;
 
 import kotlinx.serialization.descriptors.PrimitiveKind;
 
+/**
+ * A fragment for event organizers to manage entrants.
+ * This screen displays a list of entrants categorized by their status (Waitlisted, Invited, Selected, Cancelled)
+ * and a map showing the locations of waitlisted users.
+ * Organizers can send notifications to these groups.
+ *
+ * Outstanding Issues:
+ * - The "Attending" tab in the UI should be relabeled to "Selected" to match the data model.
+ * - The map currently only shows locations for waitlisted users, could be extended for other statuses if needed.
+ */
 public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCallback {
 
     private static final String ARG_EVENT = "event";

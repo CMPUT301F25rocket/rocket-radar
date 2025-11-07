@@ -1,5 +1,11 @@
 package com.rocket.radar.events;
 
+/**
+ * FilterEventsFragment provides a user interface for filtering the list of events.
+ * Currently, it's a placeholder UI with "Confirm" and "Cancel" buttons.
+ *
+ * Outstanding Issues: The actual filtering logic is not yet implemented.
+ */
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
