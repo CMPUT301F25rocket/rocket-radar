@@ -1,7 +1,8 @@
 // C:/Users/bwood/Cmput301/rocket-radar/src/app/src/main/java/com/rocket/radar/MainActivity.java
 package com.rocket.radar;
 
-import android.Manifest;import android.content.Intent;
+import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -36,8 +37,6 @@ import com.rocket.radar.profile.ProfileRepository;
 import com.rocket.radar.profile.ProfileViewModel;
 import com.rocket.radar.qr.QRDialog;
 
-import java.util.List;
-
 /**
  Main activity that handles user authentication, navigation, and location services.
  */
@@ -61,9 +60,10 @@ public class MainActivity extends AppCompatActivity {
                 ProfileModel currentUser = profileViewModel.getProfileLiveData().getValue();
                 if (isGranted) {
                     Log.d(TAG, "Notification permission granted.");
-                    if (currentUser != null)
+                    if (currentUser != null) {
                         currentUser.setNotificationsEnabled(true);
-                    profileViewModel.updateProfile(currentUser);
+                        profileViewModel.updateProfile(currentUser);
+                    }
 
                 } else {
                     Log.w(TAG, "Notification permission denied by user.");
