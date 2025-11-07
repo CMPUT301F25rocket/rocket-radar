@@ -118,11 +118,9 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         if (Boolean.TRUE.equals(isEnabled)) {
             notificationButton.setAlpha(1.0f);
             notificationBadge.setAlpha(1.0f);
-            notificationButton.setEnabled(true);
         } else {
             notificationButton.setAlpha(0.5f);
             notificationBadge.setAlpha(0.0f);
-            notificationButton.setEnabled(false);
         }
     }
 
