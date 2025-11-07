@@ -17,7 +17,7 @@ import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.rocket.radar.R;
 
-// cite: toast code for save button based on https://developer.android.com/guide/topics/ui/notifiers/toasts
+// cite: toast code for save button based on https://developer.android.com/guide/topics/ui/notifiers/toasts, accessed: November 3, 2025
 
 /**
  * This fragment is where the user can edit their settings.
