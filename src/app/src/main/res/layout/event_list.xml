@@ -15,8 +15,7 @@
         android:weightSum="3"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/event_list_recycler_view">
+        app:layout_constraintTop_toTopOf="parent">
 
         <!-- Filter Button (No change) -->
         <Button
@@ -96,6 +95,19 @@
     </LinearLayout>
 
 
+
+    <include layout="@layout/category_chip_group"
+        android:id="@+id/category_chip_group_event_list"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/linearLayout" />
+
+
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/event_list_recycler_view"
         android:layout_width="match_parent"
@@ -104,7 +116,8 @@
         android:layout_marginEnd="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/linearLayout" />
+        app:layout_constraintTop_toBottomOf="@id/category_chip_group_event_list" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

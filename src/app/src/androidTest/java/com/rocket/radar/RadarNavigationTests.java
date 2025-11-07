@@ -38,10 +38,19 @@ public class RadarNavigationTests {
             NavHostController navController = (NavHostController) navHostFragment.getNavController();
 
             int currentId = navController.getCurrentDestination().getId();
-            assertEquals("Expected fragment ID does not match current destination.",
-                    expectedFragmentId, currentId);
+
+            // Convert IDs to readable fragment names
+            String expectedName = activity.getResources().getResourceEntryName(expectedFragmentId);
+            String currentName = activity.getResources().getResourceEntryName(currentId);
+
+            assertEquals(
+                    "Expected fragment <" + expectedName + "> but was <" + currentName + ">",
+                    expectedFragmentId,
+                    currentId
+            );
         });
     }
+
 
     private static void handleSystemPermission(String buttonText) {
         UiDevice device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());

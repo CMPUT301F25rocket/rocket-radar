@@ -11,26 +11,64 @@ import com.google.firebase.firestore.SetOptions;
 import java.util.HashMap;
 import java.util.Map;
 
-//cite: general design was based on https://developer.android.com/topic/architecture, to separate the data layer in the architecture from the ui (view model)
+//cite: general design was based on https://developer.android.com/topic/architecture, to separate the data layer in the architecture from the ui (view model) accessed: October 28, 2025
+
+/**
+ * Repository class that manages read, write and delete operations for the Firestore user collection.
+ * It also manages adding event id's to collections stored in Firestore for waitlist and my events.
+ */
 public class ProfileRepository {
 
     private static final String TAG = "ProfileRepository";
     private final FirebaseFirestore db;
 
-    // dependency injection
+    /**
+     * Constructor for a new ProfileRepository.
+     */
     public ProfileRepository() {
         this.db = FirebaseFirestore.getInstance();
     }
 
+    /**
+     * Callback interface for reading profile data from Firestore.
+     * Used to handle asynchronous read operations.
+     */
     public interface ReadCallback {
+        /**
+         * Called when a user profile has been successfully loaded.
+         * @param profile the loaded ProfileModel object
+         */
         void onProfileLoaded(ProfileModel profile);
+
+        /**
+         * Called when an error occurs from a Firestore read.
+         * @param e the exception that occurred.
+         */
         void onError(Exception e);
     }
 
+    /**
+     * Callback interface for writing profile data to Firestore.
+     * Used to handle asynchronous write operations.
+     */
     public interface WriteCallback {
+        /**
+         * Called when the write succeeds.
+         */
         void onSuccess();
+
+        /**
+         * Called when an error occurs from a Firestore write.
+         * @param e the exception that occurred.
+         */
         void onError(Exception e);
     }
+
+    /**
+     * Reads a user profile document from Firestore using the uid.
+     * @param uid The user id of the user.
+     * @param callback A ReadCallback to handle success and failure of the async operation.
+     */
     public void readProfile(String uid, ReadCallback callback) {
         db.collection("users")
                 .document(uid)
@@ -39,6 +77,12 @@ public class ProfileRepository {
                         callback.onProfileLoaded(snapshot.toObject(ProfileModel.class)))
                 .addOnFailureListener(callback::onError);
     }
+
+    /**
+     * Writes or updates a user profile document in Firestore.
+     * @param profile the ProfileModel of the user.
+     * @param callback A WriteCallback to handle success and failure of the async operation.
+     */
     public void writeProfile(ProfileModel profile, WriteCallback callback) {
 
         // if you don't want to update something, assign the field to null
@@ -62,6 +106,12 @@ public class ProfileRepository {
                 .addOnFailureListener(callback::onError);
     }
 
+    /**
+     * Deletes a users account by calling delete on the user document in Firestore.
+     * @param user the FirebaseUser to delete.
+     * @param profile the ProfileModel of the user to delete.
+     * @param callback A WriteCallback to handle success and failure of the async operation.
+     */
     public void deleteAccount(FirebaseUser user, ProfileModel profile, WriteCallback callback) {
         if (user == null) {
             callback.onError(new Exception("No authenticated user."));
@@ -111,12 +161,21 @@ public class ProfileRepository {
     }
 
 
+    /**
+     * Updates the last login in Firestore for the user.
+     * @param uid The user id.
+     */
     public void updateLastLogin(String uid) {
         db.collection("users")
                 .document(uid)
                 .update("lastLogin", FieldValue.serverTimestamp());
     }
 
+    /**
+     * Updates the location of the user in Firestore.
+     * @param uid The user id.
+     * @param location The location of the user.
+     */
     public void updateUserProfileLocation(String uid, GeoPoint location) {
         if (uid == null || uid.isEmpty()) {
             Log.e("ProfileViewModel", "Cannot update location, UID is null or empty.");
