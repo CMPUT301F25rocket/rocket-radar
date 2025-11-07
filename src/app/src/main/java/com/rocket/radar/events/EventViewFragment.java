@@ -1,27 +1,36 @@
 // C:/Users/bwood/Cmput301/rocket-radar/src/app/src/main/java/com/rocket/radar/events/EventViewFragment.java
 package com.rocket.radar.events;
 
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.firestore.Blob;
 import com.google.firebase.firestore.GeoPoint;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
 import com.rocket.radar.profile.ProfileModel;
 import com.rocket.radar.profile.ProfileViewModel;
 
+import java.io.ByteArrayOutputStream;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +55,9 @@ public class EventViewFragment extends Fragment {
 
     // 2. ADD isOrganizer aS A MEMBER VARIABLE
     private boolean isOrganizer;
+
+    private ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
+    private ImageView eventImageView;
 
     /**
      * Required empty public constructor for fragment instantiation.
@@ -89,6 +101,16 @@ public class EventViewFragment extends Fragment {
             // 3. RETRIEVE the isOrganizer flag from the bundle
             isOrganizer = getArguments().getBoolean(ARG_IS_ORGANIZER, false); // Default to false
         }
+
+        // Register for activity result (must be done before onCreateView)
+        pickMedia = registerForActivityResult(
+                new ActivityResultContracts.PickVisualMedia(),
+                uri -> {
+                    if (uri != null && event != null) {
+                        updateEventBannerImage(uri);
+                    }
+                }
+        );
     }
 
     @Nullable
@@ -108,6 +130,7 @@ public class EventViewFragment extends Fragment {
         Button joinAndLeaveWaitlistButton = view.findViewById(R.id.join_and_leave_waitlist_button);
         // 4. DEFINE manageEntrantsButton
         Button manageEntrantsButton = view.findViewById(R.id.manage_entrants);
+        eventImageView = view.findViewById(R.id.event_image);
         TextView eventTitle = view.findViewById(R.id.event_title);
         TextView eventDate = view.findViewById(R.id.event_date);
         TextView eventDescription = view.findViewById(R.id.event_desc);
@@ -173,6 +196,15 @@ public class EventViewFragment extends Fragment {
             joinAndLeaveWaitlistButton.setVisibility(View.VISIBLE); // Make sure it is VISIBLE
             joinAndLeaveWaitlistButton.setText("Edit");
             // joinAndLeaveWaitlistButton.setOnClickListener(v -> handleEditEvent()); // Add your edit logic here
+
+            // 3. Allow organizer to click banner image to change it
+            eventImageView.setClickable(true);
+            eventImageView.setOnClickListener(v -> {
+                pickMedia.launch(new PickVisualMediaRequest.Builder()
+                        .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                        .build()
+                );
+            });
 
         } else {
             // Regular User View
@@ -291,5 +323,35 @@ public class EventViewFragment extends Fragment {
             return false;
         }
         return profile.getOnWaitlistEventIds().contains(event.getEventId());
+    }
+
+    /**
+     * Updates the event banner image in Firebase and refreshes the UI.
+     * @param uri The URI of the selected image
+     */
+    private void updateEventBannerImage(Uri uri) {
+        try {
+            // Convert URI to Bitmap
+            Bitmap bitmap = MediaStore.Images.Media.getBitmap(requireActivity().getContentResolver(), uri);
+
+            // Compress bitmap to Blob
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 70, outputStream);
+            Blob imageBlob = Blob.fromBytes(outputStream.toByteArray());
+
+            // Update the image in the UI immediately
+            eventImageView.setImageBitmap(bitmap);
+
+            // Update the event object
+            event.setBannerImageBlob(imageBlob);
+
+            // Save to Firebase using createEvent (which uses set() and will update if exists)
+            repo.createEvent(event);
+            Toast.makeText(getContext(), "Event banner updated!", Toast.LENGTH_SHORT).show();
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error processing image", e);
+            Toast.makeText(getContext(), "Failed to process image", Toast.LENGTH_SHORT).show();
+        }
     }
 }
