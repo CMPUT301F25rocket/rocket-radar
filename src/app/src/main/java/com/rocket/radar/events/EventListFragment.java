@@ -37,6 +37,8 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
     private MaterialButtonToggleGroup toggleGroup;
     private TextView notificationBadge;
     private NotificationRepository notificationRepository;
+    private Button filterButton;
+
 
 
     public EventListFragment() {
@@ -50,6 +52,8 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         notificationButton = view.findViewById(R.id.btnNotification);
         toggleGroup = view.findViewById(R.id.toggleGroup);
         notificationBadge = view.findViewById(R.id.notification_badge);
+        filterButton = view.findViewById(R.id.button_filter); // Initialize filter button
+
 
 
         return view;
@@ -81,6 +85,17 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
                         .commit();
             }
         });
+
+        filterButton.setOnClickListener(v -> {
+            FilterEventsFragment filterFragment = new FilterEventsFragment();
+            if (getActivity() != null) {
+                getActivity().getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.nav_host_fragment, filterFragment)
+                        .addToBackStack(null) // Allows user to go back to the event list
+                        .commit();
+            }
+        });
+
 
         setupToggleListener();
 
