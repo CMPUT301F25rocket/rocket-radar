@@ -199,38 +199,6 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
 
     }
 
-//    private void fetchAndDisplayCheckInLocations() {
-//        if (event == null || event.getEventTitle() == null) {
-//            Log.e(TAG, "Event is null, cannot fetch check-ins.");
-//            return;
-//        }
-//
-//        FirebaseFirestore.getInstance()
-//                .collection("events").document(event.getEventTitle())
-//                .collection("checkins")
-//                .get()
-//                .addOnCompleteListener(task -> {
-//                    if (task.isSuccessful()) {
-//                        allEntrantsList.clear();
-//                        for (QueryDocumentSnapshot document : task.getResult()) {
-//                            CheckIn checkIn = document.toObject(CheckIn.class);
-//                            // Store every fetched entrant
-//                            allEntrantsList.add(checkIn);
-//                        }
-//                        Log.d(TAG, "Fetched " + allEntrantsList.size() + " total entrants.");
-//
-//                        // After fetching, apply the initial filter based on the current tab
-//                        if (tabs != null) {
-//                            filterAndDisplayEntrants(tabs.getTabAt(tabs.getSelectedTabPosition()));
-//                        }
-//
-//                    } else {
-//                        Log.w(TAG, "Error getting check-in documents.", task.getException());
-//                    }
-//                });
-//    }
-
-
     private void filterAndDisplayEntrants(TabLayout.Tab tab) {
         // 1. Clear the member list. The adapter is already connected to this list.
         currentEntrants.clear();
