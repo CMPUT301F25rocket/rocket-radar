@@ -1,0 +1,370 @@
+---
+title: events package
+config:
+  htmlLabels: false
+---
+
+classDiagram
+class EventRepository { 
+- String TAG$
+- FirebaseFirestore db
+- CollectionReference eventRef
++ EventRepository() EventRepository 
++ getAllEvents() LiveData~List~Event~~ 
++ getWaitlistSize(Event,WaitlistSizeListener) void 
++ createEvent(Event) String 
++ addDummyDatatodb() void 
++ addUserToWaitlist(Event,String,GeoPoint) void 
++ removeUserFromWaitlist(Event,String) void 
+- loadDummyData() List~Event~ 
++ getUserLocationFromWaitlist(String,String,UserLocationCallback) void 
++ getWaitlistLocations(String,WaitlistLocationsCallback) void 
++ getInvitedEntrants(String,InvitedEntrantsCallback) void 
++ getUserLocationFromInvited(String,String,UserLocationFromInvitedCallback) void 
++ getInvitedLocations(String,InvitedLocationsCallback) void 
++ getCancelledEntrants(String,CancelledEntrantsCallback) void 
++ getUserLocationFromCancelled(String,String,UserLocationFromCancelledCallback) void 
++ getCancelledLocations(String,CancelledLocationsCallback) void 
++ getSelectedEntrants(String,SelectedEntrantsCallback) void 
++ getUserLocationFromSelected(String,String,UserLocationFromSelectedCallback) void 
++ getSelectedLocations(String,SelectedLocationsCallback) void 
+}
+
+class EventRepository_WaitlistSizeListener { 
+<<interface>>
+~ onSizeReceived(int) void 
+~ onWaitlistEntrantsFetched(List~String~) void 
+~ onError(Exception) void 
+}
+
+class EventRepository_WaitlistEntrantsCallback { 
+<<interface>>
+~ onWaitlistEntrantsFetched(List~String~) void 
+~ onError(Exception) void 
+}
+
+class EventRepository_UserLocationCallback { 
+<<interface>>
+~ onLocationFetched(GeoPoint) void 
+~ onError(Exception) void 
+}
+
+class EventRepository_WaitlistLocationsCallback { 
+<<interface>>
+~ onWaitlistLocationsFetched(List~GeoPoint~) void 
+~ onError(Exception) void 
+}
+
+class EventRepository_InvitedEntrantsCallback { 
+<<interface>>
+~ onInvitedEntrantsFetched(List~String~) void 
+~ onError(Exception) void 
+}
+
+class EventRepository_UserLocationFromInvitedCallback { 
+<<interface>>
+~ onLocationFetched(GeoPoint) void 
+~ onError(Exception) void 
+}
+
+class EventRepository_InvitedLocationsCallback { 
+<<interface>>
+~ onInvitedLocationsFetched(List~GeoPoint~) void 
+~ onError(Exception) void 
+}
+
+class EventRepository_CancelledEntrantsCallback { 
+<<interface>>
+~ onCancelledEntrantsFetched(List~String~) void 
+~ onError(Exception) void 
+}
+
+class EventRepository_UserLocationFromCancelledCallback { 
+<<interface>>
+~ onLocationFetched(GeoPoint) void 
+~ onError(Exception) void 
+}
+
+class EventRepository_CancelledLocationsCallback { 
+<<interface>>
+~ onCancelledLocationsFetched(List~GeoPoint~) void 
+~ onError(Exception) void 
+}
+
+class EventRepository_SelectedEntrantsCallback { 
+<<interface>>
+~ onSelectedEntrantsFetched(List~String~) void 
+~ onError(Exception) void 
+}
+
+class EventRepository_UserLocationFromSelectedCallback { 
+<<interface>>
+~ onLocationFetched(GeoPoint) void 
+~ onError(Exception) void 
+}
+
+class EventRepository_SelectedLocationsCallback { 
+<<interface>>
+~ onSelectedLocationsFetched(List~GeoPoint~) void 
+~ onError(Exception) void 
+}
+
+class OrganizerEntrantsFragment { 
+- String ARG_EVENT$
+- String TAG$
+- GoogleMap googleMap
+- BottomSheetBehavior~MaterialCardView~ bottomSheetBehavior
+- String TUPLE_NAME_KEY$
+- ListView entrantsListView
+- SimpleAdapter entrantsAdapter
+- ArrayList~Map~String,String~~ currentEntrants
+- Event event
+- EventRepository eventRepository
+- NotificationRepository notificationRepository
+- ProfileRepository profileRepository
+- LinearLayout waitlistActions
+- MaterialCardView sendNotificationDialog
+- View dialogScrim
+- EditText notificationTitleInput
+- TabLayout tabs
+- ArrayList~String~ allEntrantsList
+- ArrayList~String~ filteredEntrantsList
+- Map~String,Marker~ userMarkers
+- MaterialCardView bottomSheet
++ OrganizerEntrantsFragment() OrganizerEntrantsFragment 
++ newInstance(Event)$ OrganizerEntrantsFragment 
++ onCreate(Bundle) void 
++ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
++ onViewCreated(View,Bundle) void 
++ onResume() void 
++ onStop() void 
++ onMapReady(GoogleMap) void 
+- fetchAndDisplayWaitlistLocations() void 
+- filterAndDisplayEntrants(TabLayout.Tab) void 
+- updateEntrantName(String,String) void 
+- getStatusStringForTab(TabLayout.Tab) String 
+- onEntrantListItemClick(String) void 
+- setupBottomSheet(View) void 
+- setupActionBars() void 
+- setupTabs(View) void 
+- setupButtons(View) void 
+- updateActionButtons(TabLayout.Tab) void 
+- setupDialog(View) void 
+- showSendNotificationDialog(boolean) void 
+- getGroupFieldForCurrentTab() String 
+- getGroupForCurrentTab() String 
+}
+
+class EventViewFragment { 
+- String ARG_EVENT$
+- String ARG_IS_ORGANIZER$
+- Event event
+- ProfileViewModel profileViewModel
+~ EventRepository repo
+- boolean isOrganizer
++ EventViewFragment() EventViewFragment 
++ newInstance(Event)$ EventViewFragment 
++ newInstance(Event,boolean)$ EventViewFragment 
++ onCreate(Bundle) void 
++ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
++ onViewCreated(View,Bundle) void 
++ onResume() void 
++ onStop() void 
+- navigateBack() void 
+- handleJoinLeaveWaitlist() void 
+- updateWaitlistButton(Button,ProfileModel) void 
+- isOnWaitlist(ProfileModel) boolean 
+}
+
+class Event { 
++ List~String~ allEventCategories$
+- String eventId
+~ String eventTitle
+~ String tagline
+~ String description
+~ SortedSet~String~ categories
+- Date eventStartDate
+- Optional~Date~ eventEndDate
+- Time eventStartTime
+- Time eventEndTime
+- Date registrationStartDate
+- Date registrationEndDate
+- Date selectionStartDate
+- Date selectionEndDate
+- Date finalSelectionDate
+- Optional~Integer~ waitlistCapacity
+- boolean requireLocation
+- int eventCapacity
+- Date lotteryDate
+- Time lotteryTime
+- Blob bannerImageBlob
+- Bitmap bannerImage
+- Color color
+~ ArrayList~String~ eventWaitlistIds
+~ ArrayList~String~ eventInvitedIds
+~ ArrayList~String~ eventAttendingIds
+~ ArrayList~String~ eventCancelledIds
+~ int image
++ Event() Event 
++ Event(String,Date,String,String,int) Event 
++ getEventTitle() String 
++ getEventStartDate() Date 
++ getFormattedDate() String 
++ getTagline() String 
++ getEventId() String 
++ setEventId(String) void 
++ getColor() int 
++ setColor(int) void 
++ getLotteryTime() Time 
++ setLotteryTime(Time) void 
++ getLotteryDate() Date 
++ setLotteryDate(Date) void 
++ getEventCapacity() int 
++ setEventCapacity(int) void 
++ isRequireLocation() boolean 
++ setRequireLocation(boolean) void 
++ getWaitlistCapacity() Integer 
++ setWaitlistCapacity(Integer) void 
++ getFinalSelectionDate() Date 
++ setFinalSelectionDate(Date) void 
++ getSelectionEndDate() Date 
++ setSelectionEndDate(Date) void 
++ getSelectionStartDate() Date 
++ setSelectionStartDate(Date) void 
++ getRegistrationEndDate() Date 
++ setRegistrationEndDate(Date) void 
++ getRegistrationStartDate() Date 
++ setRegistrationStartDate(Date) void 
++ getEventEndTime() Time 
++ setEventEndTime(Time) void 
++ getEventStartTime() Time 
++ setEventStartTime(Time) void 
++ getEventEndDate() Date 
++ setEventEndDate(Date) void 
++ setEventStartDate(Date) void 
++ getCategories() List~String~ 
++ setCategories(List~String~) void 
++ setTagline(String) void 
++ setEventTitle(String) void 
++ getImage() int 
++ getDescription() String 
++ setDescription(String) void 
++ getBannerImageBitmap() Bitmap 
++ getBannerImageBlob() Blob 
++ setBannerImageBlob(Blob) void 
+- resizeBanner(Bitmap)$ Bitmap 
++ getEventCancelledIds() ArrayList~String~ 
++ setEventCancelledIds(ArrayList~String~) void 
++ getEventAttendingIds() ArrayList~String~ 
++ setEventAttendingIds(ArrayList~String~) void 
++ getEventInvitedIds() ArrayList~String~ 
++ setEventInvitedIds(ArrayList~String~) void 
++ getEventWaitlistIds() ArrayList~String~ 
++ setEventWaitlistIds(ArrayList~String~) void 
+}
+
+class Event_Builder { 
+- Event event
++ Builder(Event) Event.Builder 
++ Builder() Event.Builder 
++ title(String) Builder 
++ eventStartDate(Date) Builder 
++ eventEndDate(Date) Builder 
++ tagline(String) Builder 
++ categories(ArrayList~String~) Builder 
++ category(String) Builder 
++ description(String) Builder 
++ eventStartTime(Time) Builder 
++ eventEndTime(Time) Builder 
++ registrationStartDate(Date) Builder 
++ registrationEndDate(Date) Builder 
++ initialSelectionStartDate(Date) Builder 
++ initialSelectionEndDate(Date) Builder 
++ finalSelectionDate(Date) Builder 
++ waitlistCapacity(Optional~Integer~) Builder 
++ requireLocation(Boolean) Builder 
++ eventCapacity(Integer) Builder 
++ lotteryDate(Date) Builder 
++ lotteryTime(Time) Builder 
++ bannerImage(Bitmap) Builder 
++ color(Color) Builder 
++ build() Event 
+}
+
+class EventListFragment { 
+- RecyclerView eventRecyclerView
+- EventAdapter adapter
+- List~Event~ displayedEvents
+- List~Event~ allEvents
+- EventRepository eventRepository
+- ProfileViewModel profileViewModel
+- ProfileModel currentUserProfile
+- Button notificationButton
+- MaterialButtonToggleGroup toggleGroup
+- TextView notificationBadge
+- NotificationRepository notificationRepository
++ EventListFragment() EventListFragment 
++ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
++ onViewCreated(View,Bundle) void 
+- observeEvents() void 
+- observeUserProfile() void 
+- observeUnreadNotifications() void 
+- setupToggleListener() void 
+- filterAndDisplayEvents() void 
++ onEventClick(int) void 
++ onResume() void 
+}
+
+class EventAdapter { 
+~ Context context
+~ List~Event~ eventList
+- OnEventListener onEventListener
++ EventAdapter(Context,List~Event~,OnEventListener) EventAdapter 
++ onCreateViewHolder(ViewGroup,int) EventAdapter.MyViewHolder 
++ onBindViewHolder(EventAdapter.MyViewHolder,int) void 
++ getItemCount() int 
+}
+
+class EventAdapter_MyViewHolder { 
+~ ImageView eventImage
+~ TextView eventTitle
+~ OnEventListener onEventListener
++ MyViewHolder(View,OnEventListener) EventAdapter.MyViewHolder 
++ onClick(View) void 
+}
+
+class EventAdapter_OnEventListener { 
+<<interface>>
+~ onEventClick(int) void 
+}
+
+Event .. EventRepository
+EventRepository_WaitlistSizeListener <.. EventRepository : << contains >>
+EventRepository_WaitlistEntrantsCallback <.. EventRepository : << contains >>
+EventRepository_UserLocationCallback <.. EventRepository : << contains >>
+EventRepository_WaitlistLocationsCallback <.. EventRepository : << contains >>
+EventRepository_InvitedEntrantsCallback <.. EventRepository : << contains >>
+EventRepository_UserLocationFromInvitedCallback <.. EventRepository : << contains >>
+EventRepository_InvitedLocationsCallback <.. EventRepository : << contains >>
+EventRepository_CancelledEntrantsCallback <.. EventRepository : << contains >>
+EventRepository_UserLocationFromCancelledCallback <.. EventRepository : << contains >>
+EventRepository_CancelledLocationsCallback <.. EventRepository : << contains >>
+EventRepository_SelectedEntrantsCallback <.. EventRepository : << contains >>
+EventRepository_UserLocationFromSelectedCallback <.. EventRepository : << contains >>
+EventRepository_SelectedLocationsCallback <.. EventRepository : << contains >>
+Event -- OrganizerEntrantsFragment
+EventRepository -- OrganizerEntrantsFragment
+OrganizerEntrantsFragment .. OrganizerEntrantsFragment
+Event -- EventViewFragment
+EventRepository -- EventViewFragment
+EventViewFragment .. EventViewFragment
+Event_Builder <.. Event : << contains >>
+Event -- Event_Builder
+EventAdapter_OnEventListener <|.. EventListFragment
+EventAdapter -- EventListFragment
+Event -- EventListFragment
+EventRepository -- EventListFragment
+EventAdapter_MyViewHolder <|-- EventAdapter
+Event -- EventAdapter
+EventAdapter_OnEventListener <.. EventAdapter : << contains >>
+

@@ -1,0 +1,23 @@
+---
+title: qr package
+config:
+  htmlLabels: false
+---
+
+classDiagram
+class QRDialog { 
++ String TAG$
+- Bitmap bitmap
+- BitmapDrawable drawable
++ QRDialog(Context,String) QRDialog 
++ onCreateDialog(Bundle) Dialog 
+- buttonClick(DialogInterface,int) void 
+- shareQrCode() void 
+}
+
+class QRGenerator { 
++ generate(String)$ Bitmap 
+}
+
+
+
