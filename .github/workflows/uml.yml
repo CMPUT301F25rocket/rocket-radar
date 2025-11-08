@@ -1,16 +1,18 @@
 name: Mirror UML to wiki
 
 # We run anytime changes to the crc folder are pushed to main
-on:
-  push: 
-    branches:
-      - main
-      - dev
-    paths:
-      - 'doc/uml/**/*.mmd'
-
-  # Allow manual running
-  workflow_dispatch:
+# NOTE: Temporarily disable this to avoid overwriting UML before
+# TA can review.
+# on:
+#   push: 
+#     branches:
+#       - main
+#       - dev
+#     paths:
+#       - 'doc/uml/**/*.mmd'
+# 
+#   # Allow manual running
+#   workflow_dispatch:
 
 
 # https://github.com/orgs/community/discussions/56893#discussioncomment-6054377
