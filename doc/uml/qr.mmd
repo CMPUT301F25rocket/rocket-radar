@@ -5,19 +5,9 @@ config:
 ---
 
 classDiagram
-class QRDialog { 
-+ String TAG$
-- Bitmap bitmap
-- BitmapDrawable drawable
-+ QRDialog(Context,String) QRDialog 
-+ onCreateDialog(Bundle) Dialog 
-- buttonClick(DialogInterface,int) void 
-- shareQrCode() void 
-}
+class QRDialog 
 
-class QRGenerator { 
-+ generate(String)$ Bitmap 
-}
+class QRGenerator 
 
 class Bitmap
 

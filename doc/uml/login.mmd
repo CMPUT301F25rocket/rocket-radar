@@ -7,53 +7,17 @@ config:
 classDiagram
     direction TB
 
-    class MainActivity {
-        +setBottomNavigationVisibility(visible: boolean)
-    }
+    class MainActivity 
 
-    class LoginViewFragment {
-        -FirebaseAuth mAuth
-        -Button button_start_scanning
-        -Button button_criteria
-        +onCreateView(inflater, container, savedInstanceState)
-        +onViewCreated(view, savedInstanceState)
-    }
+    class LoginViewFragment 
 
-    class LoginCriteriaFragment {
-        -ImageButton button_back
-        +onCreateView(inflater, container, savedInstanceState)
-    }
+    class LoginCriteriaFragment 
 
-    class LoginStartScanningFragment {
-        -Button button_continue
-        -String username
-        -String email
-        -String phoneNumber
-        -String deviceId
-        -String uid
-        -ProfileViewModel profileViewModel
-        -FirebaseAuth mAuth
-        +onCreateView(inflater, container, savedInstanceState)
-        -setupUI(view)
-        +onResume()
-        -updateOrCreateUser()
-        -saveProfile(uid: String)
-    }
+    class LoginStartScanningFragment 
 
-    class ProfileViewModel {
-        +updateProfile(profile: ProfileModel)
-    }
+    class ProfileViewModel 
 
-    class ProfileModel {
-        +uid: String
-        +username: String
-        +email: String
-        +phoneNumber: String
-        +photoUrl: String
-        +notificationsEnabled: boolean
-        +isProfileVisible: boolean
-        +isAdmin: boolean
-    }
+    class ProfileModel 
 
     %% Relationships
 

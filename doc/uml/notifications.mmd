@@ -5,78 +5,16 @@ config:
 ---
 
 classDiagram
-class NotificationAdapter { 
-- int VIEW_TYPE_NOTIFICATION$
-- int VIEW_TYPE_SEPARATOR$
-- int VIEW_TYPE_EMPTY$
-- Context context
-- List~Notification~ notificationList
-- NotificationRepository repository
-- int separatorIndex
-+ NotificationAdapter(Context,List~Notification~,NotificationRepository) NotificationAdapter 
-+ setNotifications(List~Notification~) void 
-- calculateSeparatorIndex() void 
-+ getItemViewType(int) int 
-+ onCreateViewHolder(ViewGroup,int) RecyclerView.ViewHolder 
-+ onBindViewHolder(RecyclerView.ViewHolder,int) void 
-+ getItemCount() int 
-}
+class NotificationAdapter 
 
 
-class MyFirebaseMessagingService { 
-- String TAG$
-- String CHANNEL_ID$
-+ onMessageReceived(RemoteMessage) void 
-- sendSystemNotification(String,String) void 
-+ onNewToken(String) void 
-}
+class MyFirebaseMessagingService 
 
-class Notification { 
-- String eventTitle
-- String notificationType
-- int image
-- Date timestamp
-- String notificationId
-- String userNotificationId
-- boolean readStatus
-+ Notification() Notification 
-+ getEventTitle() String 
-+ getNotificationType() String 
-+ isReadStatus() boolean 
-+ getImage() int 
-+ getTimestamp() Date 
-+ getNotificationId() String 
-+ getUserNotificationId() String 
-+ setReadStatus(boolean) void 
-+ setUserNotificationId(String) void 
-}
+class Notification 
 
-class NotificationFragment { 
-- RecyclerView notificationRecyclerView
-- TextView emptyNotificationsTextView
-- Button backButton
-- NotificationAdapter adapter
-- NotificationRepository notificationRepository
-- RecyclerView.AdapterDataObserver adapterObserver
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-+ onViewCreated(View,Bundle) void 
-- setupRecyclerView() void 
-- setupClickListeners() void 
-- observeNotifications() void 
-- checkEmpty() void 
-+ onDestroyView() void 
-+ onResume() void 
-}
+class NotificationFragment 
 
-class NotificationRepository { 
-- String TAG$
-- FirebaseFirestore db
-- CollectionReference userNotificationsRef
-+ NotificationRepository() NotificationRepository 
-+ getMyNotifications() LiveData~List~Notification~~ 
-+ markNotificationAsRead(String) void 
-+ sendNotificationToGroup(String,String,String,String) void 
-}
+class NotificationRepository 
 
 Notification -- NotificationAdapter
 Notification -- NotificationFragment

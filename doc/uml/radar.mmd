@@ -8,457 +8,65 @@ config:
 %% eachother.
 
 classDiagram
-class MainActivity { 
-- NavBarBinding navBarBinding
-- String TAG$
-- FirebaseAuth mAuth
-- FusedLocationProviderClient fusedLocationClient
-- NavController navController
-- ProfileRepository repo
-- boolean isObserverInitialized 
-- ActivityResultLauncher~String~ requestNotificationPermissionLauncher
-- ActivityResultLauncher~String~ requestLocationPermissionLauncher
-# onCreate(Bundle) void 
-- askNotificationPermission() void 
-+ onStart() void 
-- signInAnonymously() void 
-- handleUserSignIn(FirebaseUser) void 
-- checkGeolocationPermission(ProfileModel) void 
-- fetchLastKnownLocation() void 
-+ setBottomNavigationVisibility(int) void 
-}
+class MainActivity 
 
 namespace qr {
-class QRDialog { 
-+ String TAG$
-- Bitmap bitmap
-- BitmapDrawable drawable
-+ QRDialog(Context,String) QRDialog 
-+ onCreateDialog(Bundle) Dialog 
-- buttonClick(DialogInterface,int) void 
-- shareQrCode() void 
-}
+class QRDialog 
 }
 
 namespace notifications {
-class NotificationFragment { 
-- RecyclerView notificationRecyclerView
-- TextView emptyNotificationsTextView
-- Button backButton
-- NotificationAdapter adapter
-- NotificationRepository notificationRepository
-- RecyclerView.AdapterDataObserver adapterObserver
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-+ onViewCreated(View,Bundle) void 
-- setupRecyclerView() void 
-- setupClickListeners() void 
-- observeNotifications() void 
-- checkEmpty() void 
-+ onDestroyView() void 
-+ onResume() void 
-}
+class NotificationFragment 
 
-class NotificationRepository { 
-- String TAG$
-- FirebaseFirestore db
-- CollectionReference userNotificationsRef
-+ NotificationRepository() NotificationRepository 
-+ getMyNotifications() LiveData~List~Notification~~ 
-+ markNotificationAsRead(String) void 
-+ sendNotificationToGroup(String,String,String,String) void 
-}
+class NotificationRepository 
 
-class Notification { 
-- String eventTitle
-- String notificationType
-- int image
-- Date timestamp
-- String notificationId
-- String userNotificationId
-- boolean readStatus
-+ Notification() Notification 
-+ getEventTitle() String 
-+ getNotificationType() String 
-+ isReadStatus() boolean 
-+ getImage() int 
-+ getTimestamp() Date 
-+ getNotificationId() String 
-+ getUserNotificationId() String 
-+ setReadStatus(boolean) void 
-+ setUserNotificationId(String) void 
-}
+class Notification 
 }
 
 namespace profile {
-class AccountSettingsFragment { 
-- MaterialButton backButton
-- TextInputEditText usernameField
-- MaterialSwitch notificationsEnabled
-- String uid
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-+ confirmAccountDelete() void 
-}
+class AccountSettingsFragment 
 
-class ProfileFragment { 
-- ImageButton accountSettingsButton
-- TextView profileName
-- ProfileModel currentUserProfile
-- RecyclerView myEventRecyclerView
-- EventAdapter adapter
-- MaterialButtonToggleGroup toggleGroup
-- List~Event~ allEvents
-- List~Event~ displayedEvents
-- EventRepository eventRepository
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-+ onViewCreated(View,Bundle) void 
-- setupToggleListener() void 
-- observeUserProfile() void 
-- observeEvents() void 
-- filterAndDisplayEvents() void 
-+ onEventClick(int) void 
-+ onResume() void 
-}
+class ProfileFragment 
 
-class ProfileRepository { 
-- String TAG$
-- FirebaseFirestore db
-+ ProfileRepository() ProfileRepository 
-+ readProfile(String,ReadCallback) void 
-+ writeProfile(ProfileModel,WriteCallback) void 
-+ deleteAccount(FirebaseUser,ProfileModel,WriteCallback) void 
-+ addEventIdToWaitlist(String,String,WriteCallback) void 
-+ addEventIdToMyEvent(String,String,WriteCallback) void 
-+ updateLastLogin(String) void 
-+ updateUserProfileLocation(String,GeoPoint) void 
-}
+class ProfileRepository 
 }
 
 namespace eventmanagement {
-class CreateEventActivity { 
-+ String TAG$
-~ ActivityCreateEventBinding binding
-~ CreateEventModel model
-~ EventRepository eventRepository
-- EventGeneralFragment eventGeneralFragment
-- EventDateTimeFragment eventDateTimeFragment
-- EventDeadlinesFragment eventDeadlinesFragment
-- EventLotteryFragment eventLotteryFragment
-- EventStyleFragment eventStyleFragment
-- Fragment fragment
-# onCreate(Bundle) void 
-- navigateToSection(Section) void 
-+ openCalendarBottomSheet(MutableLiveData~Optional~Date~~,View) void 
-+ openTimeBottomSheet(MutableLiveData~Optional~Time~~,View) void 
-+ onDestroy() void 
-}
+class CreateEventActivity 
 
-class DraftEventsFragment { 
-~ FragmentDraftEventsBinding binding
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-+ onViewCreated(View,Bundle) void 
-+ onDestroy() void 
-}
+class DraftEventsFragment 
 
-class EventLotteryFragment { 
-- String TAG$
-- ViewInputEventLotteryBinding binding
-- CreateEventModel model
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-+ onViewCreated(View,Bundle) void 
-- setupInputListeners() void 
-+ valid(InputFragment) boolean 
-+ extract(Event.Builder) Event.Builder 
-+ onDestroyView() void 
-}
+class EventLotteryFragment 
 
-class EventDeadlinesFragment { 
-- String TAG$
-- ViewInputEventDeadlinesBinding binding
-- CreateEventModel model
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-+ onViewCreated(View,Bundle) void 
-- setupDatePickers() void 
-+ valid(InputFragment) boolean 
-+ extract(Event.Builder) Event.Builder 
-+ onDestroyView() void 
-}
+class EventDeadlinesFragment 
 
-class EventDateTimeFragment { 
-- String TAG$
-- ViewInputEventDatetimeBinding binding
-- CreateEventModel model
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-+ onViewCreated(View,Bundle) void 
-- setupDateTimePickers() void 
-+ valid(InputFragment) boolean 
-+ extract(Event.Builder) Event.Builder 
-+ onDestroyView() void 
-}
+class EventDateTimeFragment 
 
-class EventGeneralFragment { 
-- ViewInputEventGeneralBinding binding
-- CreateEventModel model
-~ List~Integer~ categories
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-+ onViewCreated(View,Bundle) void 
-+ valid(InputFragment) boolean 
-+ extract(Event.Builder) Event.Builder 
-+ onDestroyView() void 
-}
+class EventGeneralFragment 
 
-class EventStyleFragment { 
-- String TAG$
-- ViewInputEventStyleBinding binding
-- CreateEventModel model
-- ActivityResultLauncher~PickVisualMediaRequest~ pickMedia
-+ onCreate(Bundle) void 
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-+ onViewCreated(View,Bundle) void 
-- setupStylePickers() void 
-+ valid(InputFragment) boolean 
-+ extract(Event.Builder) Event.Builder 
-+ onDestroyView() void 
-}
+class EventStyleFragment 
 }
 
 
-class EventRepository { 
-- String TAG$
-- FirebaseFirestore db
-- CollectionReference eventRef
-+ EventRepository() EventRepository 
-+ getAllEvents() LiveData~List~Event~~ 
-+ getWaitlistSize(Event,WaitlistSizeListener) void 
-+ createEvent(Event) String 
-+ addDummyDatatodb() void 
-+ addUserToWaitlist(Event,String,GeoPoint) void 
-+ removeUserFromWaitlist(Event,String) void 
-- loadDummyData() List~Event~ 
-+ getUserLocationFromWaitlist(String,String,UserLocationCallback) void 
-+ getWaitlistLocations(String,WaitlistLocationsCallback) void 
-+ getInvitedEntrants(String,InvitedEntrantsCallback) void 
-+ getUserLocationFromInvited(String,String,UserLocationFromInvitedCallback) void 
-+ getInvitedLocations(String,InvitedLocationsCallback) void 
-+ getCancelledEntrants(String,CancelledEntrantsCallback) void 
-+ getUserLocationFromCancelled(String,String,UserLocationFromCancelledCallback) void 
-+ getCancelledLocations(String,CancelledLocationsCallback) void 
-+ getSelectedEntrants(String,SelectedEntrantsCallback) void 
-+ getUserLocationFromSelected(String,String,UserLocationFromSelectedCallback) void 
-+ getSelectedLocations(String,SelectedLocationsCallback) void 
-}
+class EventRepository 
 
-class RadarDefaultViewFragment { 
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-}
+class RadarDefaultViewFragment 
 
 namespace events {
-class Event { 
-+ List~String~ allEventCategories$
-- String eventId
-~ String eventTitle
-~ String tagline
-~ String description
-~ SortedSet~String~ categories
-- Date eventStartDate
-- Optional~Date~ eventEndDate
-- Time eventStartTime
-- Time eventEndTime
-- Date registrationStartDate
-- Date registrationEndDate
-- Date selectionStartDate
-- Date selectionEndDate
-- Date finalSelectionDate
-- Optional~Integer~ waitlistCapacity
-- boolean requireLocation
-- int eventCapacity
-- Date lotteryDate
-- Time lotteryTime
-- Blob bannerImageBlob
-- Bitmap bannerImage
-- Color color
-~ ArrayList~String~ eventWaitlistIds
-~ ArrayList~String~ eventInvitedIds
-~ ArrayList~String~ eventAttendingIds
-~ ArrayList~String~ eventCancelledIds
-~ int image
-+ Event() Event 
-+ Event(String,Date,String,String,int) Event 
-+ getEventTitle() String 
-+ getEventStartDate() Date 
-+ getFormattedDate() String 
-+ getTagline() String 
-+ getEventId() String 
-+ setEventId(String) void 
-+ getColor() int 
-+ setColor(int) void 
-+ getLotteryTime() Time 
-+ setLotteryTime(Time) void 
-+ getLotteryDate() Date 
-+ setLotteryDate(Date) void 
-+ getEventCapacity() int 
-+ setEventCapacity(int) void 
-+ isRequireLocation() boolean 
-+ setRequireLocation(boolean) void 
-+ getWaitlistCapacity() Integer 
-+ setWaitlistCapacity(Integer) void 
-+ getFinalSelectionDate() Date 
-+ setFinalSelectionDate(Date) void 
-+ getSelectionEndDate() Date 
-+ setSelectionEndDate(Date) void 
-+ getSelectionStartDate() Date 
-+ setSelectionStartDate(Date) void 
-+ getRegistrationEndDate() Date 
-+ setRegistrationEndDate(Date) void 
-+ getRegistrationStartDate() Date 
-+ setRegistrationStartDate(Date) void 
-+ getEventEndTime() Time 
-+ setEventEndTime(Time) void 
-+ getEventStartTime() Time 
-+ setEventStartTime(Time) void 
-+ getEventEndDate() Date 
-+ setEventEndDate(Date) void 
-+ setEventStartDate(Date) void 
-+ getCategories() List~String~ 
-+ setCategories(List~String~) void 
-+ setTagline(String) void 
-+ setEventTitle(String) void 
-+ getImage() int 
-+ getDescription() String 
-+ setDescription(String) void 
-+ getBannerImageBitmap() Bitmap 
-+ getBannerImageBlob() Blob 
-+ setBannerImageBlob(Blob) void 
-- resizeBanner(Bitmap)$ Bitmap 
-+ getEventCancelledIds() ArrayList~String~ 
-+ setEventCancelledIds(ArrayList~String~) void 
-+ getEventAttendingIds() ArrayList~String~ 
-+ setEventAttendingIds(ArrayList~String~) void 
-+ getEventInvitedIds() ArrayList~String~ 
-+ setEventInvitedIds(ArrayList~String~) void 
-+ getEventWaitlistIds() ArrayList~String~ 
-+ setEventWaitlistIds(ArrayList~String~) void 
-}
+class Event 
 
-class EventViewFragment { 
-- String ARG_EVENT$
-- String ARG_IS_ORGANIZER$
-- Event event
-~ EventRepository repo
-- boolean isOrganizer
-+ EventViewFragment() EventViewFragment 
-+ newInstance(Event)$ EventViewFragment 
-+ newInstance(Event,boolean)$ EventViewFragment 
-+ onCreate(Bundle) void 
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-+ onViewCreated(View,Bundle) void 
-+ onResume() void 
-+ onStop() void
-- navigateBack() void 
-- handleJoinLeaveWaitlist() void 
-- updateWaitlistButton(Button,ProfileModel) void 
-- isOnWaitlist(ProfileModel) boolean 
-}
+class EventViewFragment 
 
-class EventListFragment { 
-- RecyclerView eventRecyclerView
-- EventAdapter adapter
-- List~Event~ displayedEvents
-- List~Event~ allEvents
-- EventRepository eventRepository
-- ProfileModel currentUserProfile
-- Button notificationButton
-- MaterialButtonToggleGroup toggleGroup
-- TextView notificationBadge
-- NotificationRepository notificationRepository
-+ EventListFragment EventListFragment()
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-+ onViewCreated(View,Bundle) void 
-- observeEvents() void 
-- observeUserProfile() void 
-- observeUnreadNotifications() void 
-- setupToggleListener() void 
-- filterAndDisplayEvents() void 
-+ onEventClick(int) void 
-+ onResume() void 
-}
+class EventListFragment 
 
-class OrganizerEntrantsFragment { 
-- String ARG_EVENT$
-- String TAG$
-- GoogleMap googleMap
-- BottomSheetBehavior~MaterialCardView~ bottomSheetBehavior
-- String TUPLE_NAME_KEY$
-- ListView entrantsListView
-- SimpleAdapter entrantsAdapter
-- ArrayList~Map~String,String~~ currentEntrants
-- Event event
-- EventRepository eventRepository
-- NotificationRepository notificationRepository
-- ProfileRepository profileRepository
-- LinearLayout waitlistActions
-- MaterialCardView sendNotificationDialog
-- View dialogScrim
-- EditText notificationTitleInput
-- TabLayout tabs
-- ArrayList~String~ allEntrantsList
-- ArrayList~String~ filteredEntrantsList
-- Map~String,Marker~ userMarkers
-- MaterialCardView bottomSheet
-+ OrganizerEntrantsFragment() OrganizerEntrantsFragment 
-+ newInstance(Event)$ OrganizerEntrantsFragment 
-+ onCreate(Bundle) void 
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-+ onViewCreated(View,Bundle) void 
-+ onResume() void 
-+ onStop() void 
-+ onMapReady(GoogleMap) void 
-- fetchAndDisplayWaitlistLocations() void 
-- filterAndDisplayEntrants(TabLayout.Tab) void 
-- updateEntrantName(String,String) void 
-- getStatusStringForTab(TabLayout.Tab) String 
-- onEntrantListItemClick(String) void 
-- setupBottomSheet(View) void 
-- setupActionBars() void 
-- setupTabs(View) void 
-- setupButtons(View) void 
-- updateActionButtons(TabLayout.Tab) void 
-- setupDialog(View) void 
-- showSendNotificationDialog(boolean) void 
-- getGroupFieldForCurrentTab() String 
-- getGroupForCurrentTab() String 
-}
+class OrganizerEntrantsFragment 
 }
 
 namespace login {
-class LoginStartScanningFragment { 
-- Button button_continue
-- String TAG$
-- String username
-- String email
-- String phoneNumber
-- String deviceId
-- String uid
-- FirebaseAuth mAuth
-- boolean isObserverInitialized
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-- setupUI(View) void 
-+ onResume() void 
-- updateOrCreateUser() void 
-- saveProfile(String) void 
-}
+class LoginStartScanningFragment 
 
-class LoginCriteriaFragment { 
-- ImageButton button_back
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-}
+class LoginCriteriaFragment 
 
-class LoginViewFragment { 
-~ FirebaseAuth mAuth
-- Button button_start_scanning
-- Button button_criteria
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-+ onViewCreated(View,Bundle) void 
-}
+class LoginViewFragment 
 }
 
 %% Main Fragment Navigation

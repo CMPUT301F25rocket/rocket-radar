@@ -5,127 +5,22 @@ config:
 ---
 classDiagram
 
-class ProfileViewModel { 
-- String TAG$
-- FirebaseFirestore db
-- FirebaseAuth auth
-- ProfileRepository profileRepository
-- ListenerRegistration profileListenerRegistration
-- MutableLiveData~ProfileModel~ profileLiveData
-- MutableLiveData~Boolean~ deleteSuccess
-+ ProfileViewModel() ProfileViewModel 
-+ getProfileLiveData() LiveData~ProfileModel~ 
-+ getDeleteSuccess() LiveData~Boolean~ 
-+ setUserIdForProfileListener(String) void 
-+ deleteProfile(ProfileModel) void 
-+ updateProfile(ProfileModel) void 
-+ getProfile(String) void 
-+ updateLastLogin(String) void 
-# onCleared() void 
-}
+class ProfileViewModel 
 
-class ProfileModel { 
-- String uid
-- String name
-- String phoneNumber
-- String email
-- Timestamp lastLogin
-- Boolean notificationsEnabled
-- ArrayList~String~ onWaitlistEventIds
-- ArrayList~String~ onMyEventIds
-- GeoPoint lastKnownLocation
-+ ProfileModel() ProfileModel 
-+ ProfileModel(String,String,String,String,Timestamp,boolean,boolean,boolean) ProfileModel 
-+ getLastKnownLocation() GeoPoint 
-+ setLastKnownLocation(GeoPoint) void 
-+ getUid() String 
-+ setUid(String) void 
-+ getName() String 
-+ setName(String) void 
-+ getEmail() String 
-+ setEmail(String) void 
-+ getPhoneNumber() String 
-+ setPhoneNumber(String) void 
-+ getLastLogin() Timestamp 
-+ setLastLogin(Timestamp) void 
-+ isAdmin() Boolean 
-+ setAdmin(Boolean) void 
-+ isGeolocationEnabled() Boolean 
-+ setGeolocationEnabled(Boolean) void 
-+ isNotificationsEnabled() Boolean 
-+ setNotificationsEnabled(Boolean) void 
-+ getOnWaitlistEventIds() ArrayList~String~ 
-+ getOnMyEventIds() ArrayList~String~ 
-+ setOnMyEventIds(ArrayList~String~) void 
-+ setOnWaitlistEventIds(ArrayList~String~) void 
-+ addOnWaitlistEventId(String) void 
-+ addOnMyEventId(String) void 
-+ removeOnWaitlistEventId(String) void 
-+ removeOnMyEventId(String) void 
-+ clearOnWaitlistEventIds() void 
-}
+class ProfileModel 
 
-class ProfileFragment { 
-- ImageButton accountSettingsButton
-- TextView profileName
-- ProfileViewModel profileViewModel
-- ProfileModel currentUserProfile
-- RecyclerView myEventRecyclerView
-- EventAdapter adapter
-- MaterialButtonToggleGroup toggleGroup
-- List~Event~ allEvents
-- List~Event~ displayedEvents
-- EventRepository eventRepository
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-+ onViewCreated(View,Bundle) void 
-- setupToggleListener() void 
-- observeUserProfile() void 
-- observeEvents() void 
-- filterAndDisplayEvents() void 
-+ onEventClick(int) void 
-+ onResume() void 
-}
+class ProfileFragment 
 
-class ProfileRepository { 
-- String TAG$
-- FirebaseFirestore db
-+ ProfileRepository() ProfileRepository 
-+ readProfile(String,ReadCallback) void 
-+ writeProfile(ProfileModel,WriteCallback) void 
-+ deleteAccount(FirebaseUser,ProfileModel,WriteCallback) void 
-+ addEventIdToWaitlist(String,String,WriteCallback) void 
-+ addEventIdToMyEvent(String,String,WriteCallback) void 
-+ updateLastLogin(String) void 
-+ updateUserProfileLocation(String,GeoPoint) void 
-}
+class ProfileRepository 
 
-class ProfileRepository_ReadCallback { 
-<<interface>>
-~ onProfileLoaded(ProfileModel) void 
-~ onError(Exception) void 
-}
+class ProfileRepository_ReadCallback 
 
-class ProfileRepository_WriteCallback { 
-<<interface>>
-~ onSuccess() void 
-~ onError(Exception) void 
-}
+class ProfileRepository_WriteCallback 
 
-class AccountSettingsFragment { 
-- MaterialButton backButton
-- TextInputEditText usernameField
-- MaterialSwitch notificationsEnabled
-- ProfileViewModel profileViewModel
-- String uid
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-+ confirmAccountDelete() void 
-}
+class AccountSettingsFragment 
 
-class InputValidator { 
-+ isValidEmail(String)$ boolean 
-+ isValidPhone(String)$ boolean 
-+ cleanText(TextInputEditText)$ String 
-}
+class InputValidator 
+
 ProfileViewModel "1" --> "1" ProfileRepository : uses
 
 ProfileViewModel "1" *-- "0..1" ProfileModel : observes/manages as live data
