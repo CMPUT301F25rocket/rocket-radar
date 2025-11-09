@@ -48,7 +48,7 @@ jobs:
 
 
       # HELP: https://github.com/sigoden/install-binary/tree/main
-      - uses: sigoden/install-binary
+      - uses: sigoden/install-binary@v1.2.0
         with:
           repo: CMPUT301F25rocket/umlink
           name: umlink
