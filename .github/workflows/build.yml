@@ -45,14 +45,11 @@ jobs:
           rm app/google-services.json
           echo "Build is Good"
 
-
-
       # HELP: https://github.com/sigoden/install-binary/tree/main
       - uses: sigoden/install-binary@v1.2.0
         with:
           repo: CMPUT301F25rocket/umlink
           name: umlink
-          tag: v0.1.0
 
       # This step... it took awhile to make it possible. Mostly via vibe slop.
       # NOTE: We don't glob uml recursively. I guess you could though. Not much reason to.
