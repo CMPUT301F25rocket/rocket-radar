@@ -1,0 +1,102 @@
+name: Compile Project and Mirror UML
+
+# We run anytime changes to the crc folder are pushed to main
+on:
+  push: 
+    branches:
+      - main
+      - dev
+    paths:
+      - 'doc/uml/**/*.mmd'
+      - 'src/**'
+
+  # Allow manual running
+  workflow_dispatch:
+
+
+# https://github.com/orgs/community/discussions/56893#discussioncomment-6054377
+# Turns out
+permissions:
+  contents: write
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          path: rocket-radar
+          sparse-checkout: |
+            src
+            doc
+
+      # We do the debug build because it's faster than release and has
+      # been configured to emit parameter names into the classfiles.
+      - name: Debug Build
+        shell: bash
+        env:
+          GOOGLE_SERVICES_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          cd $GITHUB_WORKSPACE/rocket-radar/src
+          echo "$GOOGLE_SERVICES_BASE64" | base64 --decode > app/google-services.json
+          ./gradlew assembleDebug
+          # Don't know how runner clearing works, but probably better destroy these now.
+          unset GOOGLE_SERVICES_BASE64
+          rm app/google-services.json
+          echo "Build is Good"
+
+
+
+      # HELP: https://github.com/sigoden/install-binary/tree/main
+      - uses: sigoden/install-binary@v3
+        with:
+          repo: CMPUT301F25rocket/umlink
+          name: umlink
+          tag: v0.1.0
+
+      # This step... it took awhile to make it possible. Mostly via vibe slop.
+      # NOTE: We don't glob uml recursively. I guess you could though. Not much reason to.
+      - name: Link UML
+        shell: bash
+        run: | 
+          mkdir ${GITHUB_WORKSPACE}/linked-uml
+          # There is a world without uml... and that world breaks this line.
+          umlink ${GITHUB_WORKSPACE}/rocket-radar/doc/uml/*.mmd \
+            --include ${GITHUB_WORKSPACE}/rocket-radar/src/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/rocket/radar \
+            --output ${GITHUB_WORKSPACE}/linked-uml \
+            --skip com.rocket.radar.SkipUml
+
+      - name: Install Mermaid Binary
+        shell: bash
+        run: |
+          echo "Started Mermaid Install"
+          npm install -g @mermaid-js/mermaid-cli
+          echo "Finished Mermaid Install"
+
+      # Clone the wiki into the $GITHUB_WORKSPACE/wiki (where $GITHUB_WORKSPACE is
+      # the default working directory for scripts.
+      - uses: actions/checkout@v5
+        with:
+          repository: ${{ github.repository }}.wiki
+          path: wiki
+
+      # Go through the linked diagrams and render them as svgs.
+      - name: Render Diagrams
+        shell: bash
+        run: |
+          # Sandbox workaround
+          echo "{ \"args\": [\"--no-sandbox\"] }" > puppeteer-config.json
+          for diagram in ${GITHUB_WORKSPACE}/linked-uml/*.mmd; do
+              # https://stackoverflow.com/a/125340
+              name="${diagram%.mmd}"
+              printf "Now generating ${name}.svg\n"
+              # NOTE: Temporarily write to test to avoid overwriting UML before
+              # TA can review.
+              mmdc -p puppeteer-config.json -i "${diagram}" -o "${GITHUB_WORKSPACE}/wiki/media/test-uml-${name}.svg"
+          done
+
+      # Deal with configuring dummy git user and email.
+      - uses: stefanzweifel/git-auto-commit-action@v6
+        with:
+          commit_message: "chore: mirror crc cards"
+          repository: wiki

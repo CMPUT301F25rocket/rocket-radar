@@ -34,6 +34,14 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Include parameter names in debug builds for better UML diagrams
+            tasks.withType<JavaCompile> {
+                if (name.contains("Debug")) {
+                    options.compilerArgs.add("-parameters")
+                }
+            }
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
