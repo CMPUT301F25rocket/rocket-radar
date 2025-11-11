@@ -54,7 +54,7 @@ jobs:
         shell: bash
         run: |
           echo "Started umlink Install"
-          wget -q -O /usr/local/bin/umlink "https://github.com/CMPUT301F25rocket/umlink/releases/download/v0.1.1/umlink"
+          wget -q -O /usr/local/bin/umlink "https://github.com/CMPUT301F25rocket/umlink/releases/download/v0.2.0/umlink"
           chmod +x /usr/local/bin/umlink
           echo "Finished umlink Install"
 
@@ -66,10 +66,17 @@ jobs:
         run: | 
           mkdir ${GITHUB_WORKSPACE}/linked-uml
           # There is a world without uml... and that world breaks this line.
-          /usr/local/bin/umlink ${GITHUB_WORKSPACE}/rocket-radar/doc/uml/*.mmd \
-            --include ${GITHUB_WORKSPACE}/rocket-radar/src/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/rocket/radar \
-            --output ${GITHUB_WORKSPACE}/linked-uml \
-            --skip com.rocket.radar.SkipUml
+          PREFIX=${GITHUB_WORKSPACE}/rocket-radar/src/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/rocket/radar
+          for source in ${GITHUB_WORKSPACE}/rocket-radar/doc/uml/*.mmd; do
+              /usr/local/bin/umlink --classfiles $PREFIX        \
+                  --output ${GITHUB_WORKSPACE}/linked-uml       \
+                  --skip com.rocket.radar.uml.UmlSkip           \
+                  --aggregate com.rocket.uml.radar.UmlAggregate \
+                  --compose com.rocket.radar.uml.UmlCompose     \
+                  --link com.rocket.radar.uml.UmlLink           \
+                  --navigate com.rocket.radar.uml.UmlNavigate   \
+                  "${source}"
+          done
 
       - name: Install Mermaid Binary
         shell: bash
