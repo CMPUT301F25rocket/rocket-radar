@@ -99,8 +99,7 @@ jobs:
           # Sandbox workaround
           echo "{ \"args\": [\"--no-sandbox\"] }" > puppeteer-config.json
           for diagram in ${GITHUB_WORKSPACE}/linked-uml/*.mmd; do
-              # https://stackoverflow.com/a/125340
-              name="${diagram%.mmd}"
+              name="$(basename ${diagram} .mmd)"
               printf "Now generating ${name}.svg\n"
               # NOTE: Temporarily write to test to avoid overwriting UML before
               # TA can review.
