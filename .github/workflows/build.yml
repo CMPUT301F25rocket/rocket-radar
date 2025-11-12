@@ -54,7 +54,7 @@ jobs:
         shell: bash
         run: |
           echo "Started umlink Install"
-          wget -q -O /usr/local/bin/umlink "https://github.com/CMPUT301F25rocket/umlink/releases/download/v0.3.0/umlink"
+          wget -q -O /usr/local/bin/umlink "https://github.com/CMPUT301F25rocket/umlink/releases/download/v0.4.0/umlink"
           chmod +x /usr/local/bin/umlink
           echo "Finished umlink Install"
 
