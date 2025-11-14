@@ -4,4 +4,5 @@
     <color name="white">#FFFFFFFF</color>
     <color name="button_background_color">#CCFFFFFF</color>
     <color name="button_delete">#FF0000</color>
+    <color name="button_admin">#3F51B5</color>
 </resources>

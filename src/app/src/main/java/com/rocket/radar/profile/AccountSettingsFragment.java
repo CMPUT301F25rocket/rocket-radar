@@ -26,7 +26,7 @@ import com.rocket.radar.R;
  */
 public class AccountSettingsFragment extends Fragment {
 
-    private MaterialButton backButton, saveButton, deleteButton;
+    private MaterialButton backButton, saveButton, deleteButton, adminButton;
     private TextInputEditText usernameField, emailField, phoneNumberField;
     private MaterialSwitch notificationsEnabled, geolocationEnabled;
     private ProfileViewModel profileViewModel;
@@ -54,6 +54,7 @@ public class AccountSettingsFragment extends Fragment {
         backButton = view.findViewById(R.id.back_button);
         saveButton = view.findViewById(R.id.save_button);
         deleteButton = view.findViewById(R.id.delete_button);
+        adminButton = view.findViewById(R.id.admin_button);
         usernameField = view.findViewById(R.id.usernameField);
         emailField = view.findViewById(R.id.emailField);
         phoneNumberField = view.findViewById(R.id.phoneField);
@@ -90,6 +91,12 @@ public class AccountSettingsFragment extends Fragment {
             // cite: the following two lines are from ChatGPT, "What is the safest way to check for a True Boolean in Java?", accessed: October 27, 2025
             notificationsEnabled.setChecked(Boolean.TRUE.equals(profile.isNotificationsEnabled()));
             geolocationEnabled.setChecked(Boolean.TRUE.equals(profile.isGeolocationEnabled()));
+
+            if (Boolean.TRUE.equals(profile.isAdmin())) {
+                adminButton.setVisibility(View.VISIBLE);
+            } else {
+                adminButton.setVisibility(View.GONE);
+            }
         });
 
         saveButton.setOnClickListener( v -> {
