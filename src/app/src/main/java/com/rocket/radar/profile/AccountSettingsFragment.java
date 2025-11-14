@@ -81,6 +81,7 @@ public class AccountSettingsFragment extends Fragment {
                 phoneNumberField.setText("");
                 notificationsEnabled.setChecked(false);
                 geolocationEnabled.setChecked(false);
+                adminButton.setVisibility(View.GONE);
                 uid = null;
                 return;
             }
@@ -91,6 +92,12 @@ public class AccountSettingsFragment extends Fragment {
             // cite: the following two lines are from ChatGPT, "What is the safest way to check for a True Boolean in Java?", accessed: October 27, 2025
             notificationsEnabled.setChecked(Boolean.TRUE.equals(profile.isNotificationsEnabled()));
             geolocationEnabled.setChecked(Boolean.TRUE.equals(profile.isGeolocationEnabled()));
+
+            if (profile.getRole() == ProfileModel.UserRole.ADMIN) {
+                adminButton.setVisibility(View.VISIBLE);
+            } else {
+                adminButton.setVisibility(View.GONE);
+            }
         });
 
         saveButton.setOnClickListener( v -> {
@@ -132,6 +139,7 @@ public class AccountSettingsFragment extends Fragment {
                 profile.setPhoneNumber(phone);
                 profile.setNotificationsEnabled(notificationsEnabled.isChecked());
                 profile.setGeolocationEnabled(geolocationEnabled.isChecked());
+                // profile.setRole(ProfileModel.UserRole.ADMIN); // debug line to make you admin
                 profileViewModel.updateProfile(profile);
             }
             Toast saveToast = Toast.makeText(this.getContext(), "Account settings saved!", Toast.LENGTH_SHORT);
