@@ -62,7 +62,7 @@ public class AccountSettingsFragment extends Fragment {
         phoneNumberField = view.findViewById(R.id.phoneField);
         notificationsEnabled = view.findViewById(R.id.notification_switch);
         geolocationEnabled = view.findViewById(R.id.geolocation_switch);
-        adminModeManager = new AdminModeManager(requireContext());
+        adminModeManager = AdminModeManager.getInstance(requireContext());
         backButton.setOnClickListener(v -> {
             NavHostFragment.findNavController(this).navigateUp();
         });

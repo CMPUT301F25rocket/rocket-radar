@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -28,6 +29,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.rocket.radar.admin.AdminModeManager;
 import com.rocket.radar.databinding.NavBarBinding;
 import com.rocket.radar.events.Event;
 import com.rocket.radar.events.EventRepository;
@@ -43,6 +45,7 @@ import com.rocket.radar.qr.QRDialog;
  */
 public class MainActivity extends AppCompatActivity {
     private NavBarBinding navBarBinding;
+    private AdminModeManager adminModeManager;
 
     private static final String TAG = "MainActivity";
     private FirebaseAuth mAuth;
@@ -105,6 +108,12 @@ public class MainActivity extends AppCompatActivity {
                 .findFragmentById(R.id.nav_host_fragment);
         navController = navHostFragment.getNavController();
         NavigationUI.setupWithNavController(navBarBinding.bottomNavigationView, navController);
+
+        adminModeManager = AdminModeManager.getInstance(this);
+
+        adminModeManager.getAdminModeLiveData().observe(this, isAdminMode -> {
+            updateBottomNavigation(isAdminMode);
+        });
 
         // Initialize location client
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -379,5 +388,18 @@ public class MainActivity extends AppCompatActivity {
         if (navBarBinding != null && navBarBinding.bottomNavigationView != null) {
             navBarBinding.bottomNavigationView.setVisibility(visibility);
         }
+    }
+
+    private void updateBottomNavigation(boolean isAdminMode) {
+        Menu menu = navBarBinding.bottomNavigationView.getMenu();
+        menu.clear();
+
+        if (isAdminMode) {
+            getMenuInflater().inflate(R.menu.main_navigation_items_admin, menu);
+        } else {
+            getMenuInflater().inflate(R.menu.main_navigation_items, menu);
+        }
+
+        NavigationUI.setupWithNavController(navBarBinding.bottomNavigationView, navController);
     }
 }

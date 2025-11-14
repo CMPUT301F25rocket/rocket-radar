@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/eventListFragment"
+        android:title="@string/menu_action_events_text"
+        android:icon="@drawable/ic_view_agenda_24dp" />
+
+    <item android:id="@+id/profileFragment"
+        android:title="@string/menu_action_profile_text"
+        android:icon="@drawable/ic_person_24dp" />
+</menu>
