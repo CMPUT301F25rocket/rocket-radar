@@ -23,7 +23,7 @@ public class ProfileTests {
     public void setUp() {
         // Initialize with a mock user profile before each test, matching the correct constructor.
         // The isAdmin flag is added at the end.
-        profile = new ProfileModel("testUser", "Test User", "test@example.com", "123-456-7890", Timestamp.now(), true, true, false);
+        profile = new ProfileModel("testUser", "Test User", "test@example.com", "123-456-7890", Timestamp.now(), true, true, ProfileModel.UserRole.ORGANIZER);
     }
 
     /**
