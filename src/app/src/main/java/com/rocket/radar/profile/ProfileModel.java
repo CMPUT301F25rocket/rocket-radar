@@ -28,6 +28,8 @@ public class ProfileModel {
     private ArrayList<String> onWaitlistEventIds;
     private ArrayList<String> onMyEventIds;
 
+    private String role;
+
     public GeoPoint getLastKnownLocation() {
         return lastKnownLocation;
     }
@@ -64,6 +66,39 @@ public class ProfileModel {
         this.notificationsEnabled = notificationsEnabled;
         this.geolocationEnabled = geolocationEnabled;
         this.isAdmin = isAdmin;
+    }
+
+    /**
+     * Represents the permissions a user has.
+     */
+    public enum UserRole {
+        ENTRANT,
+        ORGANIZER,
+        ADMIN
+    }
+
+    /**
+     * Gets the permissions of a user.
+     * @return the role the user has
+     */
+    public UserRole getRole() {
+        if (role == null) {
+            return UserRole.ORGANIZER; // default to org
+        }
+        try {
+            return UserRole.valueOf(role);
+        } catch (IllegalArgumentException e) {
+            return UserRole.ORGANIZER;
+        }
+    }
+
+    /**
+     * Sets the permissions of a user.
+     * @param role the role to set
+     */
+    public void setRole(UserRole role) {
+        if (role != null)
+            this.role = role.name();
     }
 
     /**
