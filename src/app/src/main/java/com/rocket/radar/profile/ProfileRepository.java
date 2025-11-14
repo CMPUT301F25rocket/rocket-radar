@@ -93,6 +93,7 @@ public class ProfileRepository {
         if (profile.getPhoneNumber() != null) userMap.put("phoneNumber", profile.getPhoneNumber());
         if (profile.isNotificationsEnabled() != null) userMap.put("notificationsEnabled", profile.isNotificationsEnabled());
         if (profile.isGeolocationEnabled() != null) userMap.put("geolocationEnabled", profile.isGeolocationEnabled());
+        if (profile.isAdmin() != null) userMap.put("isAdmin", profile.isAdmin());
         if (profile.getOnWaitlistEventIds() != null) {
             userMap.put("onWaitlistEventIds", profile.getOnWaitlistEventIds());
         }
