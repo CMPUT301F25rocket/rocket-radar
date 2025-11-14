@@ -5,6 +5,9 @@ import android.content.SharedPreferences;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+// cite: the following was first adapted from ChatGPT and then Claude, on how to manage UI specific
+// state for the admin mode. ChatGPT recommended using shared preferences and Claude later
+// recommended live data. 2025-11-14
 /**
  * This class manages if an Admin is currently in Admin mode or not using shared preferences.
  * Shared preferences persists across logins.
