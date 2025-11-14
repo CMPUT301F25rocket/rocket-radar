@@ -76,11 +76,14 @@ public class AccountSettingsFragment extends Fragment {
             return false;
         });
 
-        adminButton.setText(adminModeManager.isAdminModeOn() ? "SWITCH BACK TO NORMAL" : "SWITCH TO ADMINISTRATOR");
+        // cite: The following 11 lines are from Claude "If I change the manager to use live data, how should I refactor Account Settings?", 2025-11-14
+        adminModeManager.getAdminModeLiveData().observe(getViewLifecycleOwner(), isAdminMode -> {
+            adminButton.setText(isAdminMode ? "SWITCH BACK TO NORMAL" : "SWITCH TO ADMINISTRATOR");
+        });
+
         adminButton.setOnClickListener(v -> {
             boolean newState = !adminModeManager.isAdminModeOn();
             adminModeManager.setAdminModeOn(newState);
-            adminButton.setText(newState ? "SWITCH BACK TO NORMAL" : "SWITCH TO ADMINISTRATOR");
             Toast.makeText(getContext(),
                     "Admin mode " + (newState ? "enabled" : "disabled"),
                     Toast.LENGTH_SHORT).show();
