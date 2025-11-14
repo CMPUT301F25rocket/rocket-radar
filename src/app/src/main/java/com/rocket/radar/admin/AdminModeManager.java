@@ -27,6 +27,8 @@ public class AdminModeManager {
         adminModeLiveData = new MutableLiveData<>(isAdminModeOn());
     }
 
+    // synchronized is to prevent race conditions in multithreading, i.e. if two threads
+    // call get instance at the same time
     public static synchronized AdminModeManager getInstance(Context context) {
         if (instance == null) {
             instance = new AdminModeManager(context);
