@@ -16,6 +16,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.rocket.radar.R;
+import com.rocket.radar.admin.AdminModeManager;
 
 // cite: toast code for save button based on https://developer.android.com/guide/topics/ui/notifiers/toasts, accessed: November 3, 2025
 
@@ -30,6 +31,7 @@ public class AccountSettingsFragment extends Fragment {
     private TextInputEditText usernameField, emailField, phoneNumberField;
     private MaterialSwitch notificationsEnabled, geolocationEnabled;
     private ProfileViewModel profileViewModel;
+    private AdminModeManager adminModeManager;
 
     private String uid;
 
@@ -60,6 +62,7 @@ public class AccountSettingsFragment extends Fragment {
         phoneNumberField = view.findViewById(R.id.phoneField);
         notificationsEnabled = view.findViewById(R.id.notification_switch);
         geolocationEnabled = view.findViewById(R.id.geolocation_switch);
+        adminModeManager = new AdminModeManager(requireContext());
         backButton.setOnClickListener(v -> {
             NavHostFragment.findNavController(this).navigateUp();
         });
@@ -71,6 +74,16 @@ public class AccountSettingsFragment extends Fragment {
             emailField.clearFocus();
             phoneNumberField.clearFocus();
             return false;
+        });
+
+        adminButton.setText(adminModeManager.isAdminModeOn() ? "SWITCH BACK TO NORMAL" : "SWITCH TO ADMINISTRATOR");
+        adminButton.setOnClickListener(v -> {
+            boolean newState = !adminModeManager.isAdminModeOn();
+            adminModeManager.setAdminModeOn(newState);
+            adminButton.setText(newState ? "SWITCH BACK TO NORMAL" : "SWITCH TO ADMINISTRATOR");
+            Toast.makeText(getContext(),
+                    "Admin mode " + (newState ? "enabled" : "disabled"),
+                    Toast.LENGTH_SHORT).show();
         });
 
         profileViewModel = new ViewModelProvider(requireActivity()).get(ProfileViewModel.class);
