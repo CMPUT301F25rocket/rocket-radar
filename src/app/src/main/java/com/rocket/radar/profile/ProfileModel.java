@@ -4,10 +4,8 @@ import android.util.Log;
 
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.GeoPoint;
-import com.rocket.radar.events.Event;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Represents a user profile in the application.
@@ -23,7 +21,7 @@ public class ProfileModel {
     private String email;
     private Timestamp lastLogin;
 
-    private Boolean notificationsEnabled, geolocationEnabled, isAdmin;
+    private Boolean notificationsEnabled, geolocationEnabled;
 
     private ArrayList<String> onWaitlistEventIds;
     private ArrayList<String> onMyEventIds;
@@ -55,9 +53,18 @@ public class ProfileModel {
      * @param lastLogin last time they logged in
      * @param notificationsEnabled if notifications are on
      * @param geolocationEnabled if geolocation is on
-     * @param isAdmin if the profile is for the moderator (NOT IMPLEMENTED YET)
+     * @param role the role of the user
      */
-    public ProfileModel(String uid, String name, String email, String phoneNumber, Timestamp lastLogin, boolean notificationsEnabled, boolean geolocationEnabled, boolean isAdmin) {
+    public ProfileModel(
+            String uid,
+            String name,
+            String email,
+            String phoneNumber,
+            Timestamp lastLogin,
+            boolean notificationsEnabled,
+            boolean geolocationEnabled,
+            UserRole role
+    ) {
         this.uid = uid;
         this.name = name;
         this.email = email;
@@ -65,7 +72,7 @@ public class ProfileModel {
         this.lastLogin = lastLogin;
         this.notificationsEnabled = notificationsEnabled;
         this.geolocationEnabled = geolocationEnabled;
-        this.isAdmin = isAdmin;
+        this.role = (role != null) ? role.name() : UserRole.ORGANIZER.name();
     }
 
     /**
@@ -161,27 +168,6 @@ public class ProfileModel {
      * @param lastLogin the Timestamp to set for the last time the user logged in.
      */
     public void setLastLogin(Timestamp lastLogin) { this.lastLogin = lastLogin; }
-
-
-    /**
-     * Returns whether the user is an Admin/Moderator.
-     * @return Boolean, True if the user is an admin, false otherwise.
-     */
-    public Boolean isAdmin() {
-        // If the value from Firestore is null, default to a safe value (false).
-        if (isAdmin == null) {
-            return false;
-        }
-        return isAdmin;
-    }
-
-    /**
-     * Sets whether the user is an Admin/Moderator.
-     * @param admin the Boolean to set whether the user is an Admin/Moderator or not.
-     */
-    public void setAdmin(Boolean admin) {
-        isAdmin = admin;
-    }
 
     /**
      * Returns whether the user has geolocation enabled or not.
@@ -301,7 +287,5 @@ public class ProfileModel {
         if (this.onWaitlistEventIds == null) return;
         this.onWaitlistEventIds.clear();
     }
-
-
 }
 

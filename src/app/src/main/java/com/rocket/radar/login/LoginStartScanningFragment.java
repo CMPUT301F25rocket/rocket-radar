@@ -101,13 +101,13 @@ public class LoginStartScanningFragment extends Fragment {
             FirebaseUser user = mAuth.getCurrentUser();
             if (user != null && user.getUid() != null) {
                 String uid = user.getUid();
-                ProfileModel defaultProfile = new ProfileModel(uid, username, email, phoneNumber, null, true, true, false);
+                ProfileModel defaultProfile = new ProfileModel(uid, username, email, phoneNumber, null, true, true,ProfileModel.UserRole.ORGANIZER);
                 profileViewModel.updateProfile(defaultProfile);
             } else {
                 // fallback: force Firebase to reload or sign in again
                 mAuth.signInAnonymously().addOnSuccessListener(result -> {
                     String uid = result.getUser().getUid();
-                    ProfileModel defaultProfile = new ProfileModel(uid, username, email, phoneNumber, null, true, true, false);
+                    ProfileModel defaultProfile = new ProfileModel(uid, username, email, phoneNumber, null, true, true, ProfileModel.UserRole.ORGANIZER);
                     profileViewModel.updateProfile(defaultProfile);
                 });
             }
@@ -171,7 +171,7 @@ public class LoginStartScanningFragment extends Fragment {
      * Saves the user profile to the profileViewModel.
      */
     private void saveProfile(String uid) {
-        ProfileModel defaultProfile = new ProfileModel(uid, username, email, phoneNumber, null, true, true, false);
+        ProfileModel defaultProfile = new ProfileModel(uid, username, email, phoneNumber, null, true, true, ProfileModel.UserRole.ORGANIZER);
         profileViewModel.updateProfile(defaultProfile);
     }
 }
