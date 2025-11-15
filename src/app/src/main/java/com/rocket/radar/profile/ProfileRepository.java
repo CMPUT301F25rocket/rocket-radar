@@ -118,13 +118,32 @@ public class ProfileRepository {
             callback.onError(new Exception("No authenticated user."));
             return;
         }
-        // delete user firestore
+
+        String uid = profile.getUid();
+
         db.collection("users")
-                .document(profile.getUid())
-                .delete()
-                .addOnSuccessListener(aVoid -> {callback.onSuccess();;})
+                .document(uid)
+                .collection("notifications")
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    for (var document : querySnapshot.getDocuments()) { // delete notification docs
+                        document.getReference().delete();
+                    }
+                    db.collection("users") // delete user doc
+                            .document(uid)
+                            .delete()
+                            .addOnSuccessListener(aVoid -> {
+                                Log.d(TAG, "User and notifications deleted successfully");
+                                callback.onSuccess();
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Failed to delete Firestore user document", e);
+                                callback.onError(e);
+                            });
+
+                })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Failed to delete Firestore document", e);
+                    Log.e(TAG, "Failed to retrieve notifications for deletion", e);
                     callback.onError(e);
                 });
     }
