@@ -392,14 +392,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateBottomNavigation(boolean isAdminMode) {
         Menu menu = navBarBinding.bottomNavigationView.getMenu();
-        menu.clear();
 
-        if (isAdminMode) {
-            getMenuInflater().inflate(R.menu.main_navigation_items_admin, menu);
-        } else {
-            getMenuInflater().inflate(R.menu.main_navigation_items, menu);
-        }
-
-        NavigationUI.setupWithNavController(navBarBinding.bottomNavigationView, navController);
+        menu.findItem(R.id.draftEventsFragment).setVisible(!isAdminMode);
+        menu.findItem(R.id.imagesFragment).setVisible(isAdminMode);
+        menu.findItem(R.id.usersFragment).setVisible(isAdminMode);
     }
 }

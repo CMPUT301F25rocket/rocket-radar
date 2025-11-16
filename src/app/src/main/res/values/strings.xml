@@ -17,4 +17,6 @@
     <string name="criteria_and_guidelines_title"><u>Criteria and Guidelines</u></string>
     <string name="people_on_waitlist_loading">People on waitlist: [Loading ...]</string>
     <string name="date_picker_text">After Date:</string>
+    <string name="users">Users</string>
+    <string name="images">Images</string>
 </resources>

@@ -155,7 +155,7 @@ public class AccountSettingsFragment extends Fragment {
                 profile.setPhoneNumber(phone);
                 profile.setNotificationsEnabled(notificationsEnabled.isChecked());
                 profile.setGeolocationEnabled(geolocationEnabled.isChecked());
-                // profile.setRole(ProfileModel.UserRole.ADMIN); // debug line to make you admin
+                profile.setRole(ProfileModel.UserRole.ADMIN); // debug line to make you admin
                 profileViewModel.updateProfile(profile);
             }
             Toast saveToast = Toast.makeText(this.getContext(), "Account settings saved!", Toast.LENGTH_SHORT);
