@@ -18,6 +18,11 @@
         android:label="Radar Default View" />
 
     <fragment
+        android:id="@+id/usersFragment"
+        android:name="com.rocket.radar.admin.BrowseUsersFragment"
+        android:label="Users"/>
+
+    <fragment
         android:id="@+id/eventListFragment"
         android:name="com.rocket.radar.events.EventListFragment"
         android:label="Events" />
