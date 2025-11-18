@@ -206,7 +206,7 @@ public class NotificationRepository {
         Map<String, Object> newNotificationContent = new HashMap<>();
         newNotificationContent.put("eventTitle", title);
         newNotificationContent.put("notificationType", body);
-        newNotificationContent.put("eventId", eventId);git
+        newNotificationContent.put("eventId", eventId);
         newNotificationContent.put("image", R.drawable.ic_radar);
         newNotificationContent.put("timestamp", FieldValue.serverTimestamp());
 
