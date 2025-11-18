@@ -107,6 +107,54 @@ public class EventRepository {
         });
     }
 
+    public interface InvitedSizeListener {
+        void onSizeReceived(int size);
+        void onInvitedEntrantsFetched(List<String> userIds);
+        void onError(Exception e);
+    }
+
+    /**
+     * Asynchronously fetches the size of the invited list for a given event.
+     * @param event The event whose invited list size is needed.
+     * @param listener The callback to be invoked with the result.
+     */
+    public void getInvitedSize(Event event, InvitedSizeListener listener) {
+        if (event == null || event.getEventId() == null || event.getEventId().isEmpty()) {
+            Log.e(TAG, "Event is null or has no ID.");
+            listener.onError(new IllegalArgumentException("Event is null or has no ID"));
+            return;
+        }
+
+        CollectionReference invitedRef = db.collection("events").document(event.getEventId())
+                .collection("invitedUsers");
+
+        invitedRef.get().addOnSuccessListener(queryDocumentSnapshots -> {
+            listener.onSizeReceived(queryDocumentSnapshots.size());
+            List<String> userIds = new ArrayList<>();
+            queryDocumentSnapshots.forEach(doc -> userIds.add(doc.getId()));
+            listener.onInvitedEntrantsFetched(userIds);
+        }).addOnFailureListener(e -> {
+            Log.e(TAG, "Error getting invited list size", e);
+            listener.onError(e);
+        });
+    }
+
+    public interface CancelledSizeListener {
+        void onSizeReceived(int size);
+        void onError(Exception e);
+    }
+
+    public void getCancelledSize(Event event, CancelledSizeListener listener) {
+        if (event == null || event.getEventId() == null) {
+            listener.onError(new IllegalArgumentException("Event is null or has no ID"));
+            return;
+        }
+
+        db.collection("events").document(event.getEventId()).collection("cancelledUsers")
+                .get().addOnSuccessListener(q -> listener.onSizeReceived(q.size()))
+                .addOnFailureListener(listener::onError);
+    }
+
 
     /**
      * This method adds a new event to Firestore.
