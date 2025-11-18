@@ -35,4 +35,40 @@ public class AdminRepository {
     public interface OnCompleteListener<T> {
         void onComplete(T result);
     }
+
+    public void deleteUser(ProfileModel profile, DeleteCallback callback) {
+        String uid = profile.getUid();
+
+        db.collection("users")
+                .document(uid)
+                .collection("notifications")
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    for (var document : querySnapshot.getDocuments()) {
+                        document.getReference().delete();
+                    }
+                    db.collection("users")
+                            .document(uid)
+                            .delete()
+                            .addOnSuccessListener(aVoid -> {
+                                Log.d("AdminRepository", "User deleted successfully: " + uid);
+                                callback.onSuccess();
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e("AdminRepository", "Failed to delete user doc", e);
+                                callback.onError(e);
+                            });
+
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("AdminRepository", "Failed to fetch notifications", e);
+                    callback.onError(e);
+                });
+    }
+
+    public interface DeleteCallback {
+        void onSuccess();
+        void onError(Exception e);
+    }
+
 }

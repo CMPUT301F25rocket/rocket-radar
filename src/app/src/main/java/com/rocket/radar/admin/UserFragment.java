@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -18,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.button.MaterialButtonToggleGroup;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
 import com.rocket.radar.events.Event;
@@ -34,6 +36,7 @@ import java.util.stream.Collectors;
 public class UserFragment extends Fragment  implements EventAdapter.OnEventListener {
     private static final String USER_PROFILE = "userProfile";
     private ProfileModel userProfile;
+    private AdminRepository adminRepository;
     public static UserFragment newInstance(ProfileModel profile) {
         UserFragment fragment = new UserFragment();
         Bundle args = new Bundle();
@@ -51,7 +54,7 @@ public class UserFragment extends Fragment  implements EventAdapter.OnEventListe
         }
     }
 
-    private ImageButton accountSettingsButton;
+    private ImageButton deleteButton;
 
     private MaterialButton backButton;
     private TextView profileName;
@@ -84,10 +87,29 @@ public class UserFragment extends Fragment  implements EventAdapter.OnEventListe
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view =  inflater.inflate(R.layout.fragment_user, container, false);
         profileName = view.findViewById(R.id.profile_name);
-        accountSettingsButton = view.findViewById(R.id.account_settings_button);
-        accountSettingsButton.setOnClickListener(v -> {
-            NavHostFragment.findNavController(this)
-                    .navigate(R.id.action_profile_to_accountSettings);
+        deleteButton = view.findViewById(R.id.delete_button);
+        deleteButton.setOnClickListener(v -> {
+            String currentUserUid = profileViewModel.getProfileLiveData().getValue().getUid();
+            String viewedUserUid = userProfile.getUid();
+
+            if (currentUserUid.equals(viewedUserUid)) { // prevent self-deletion
+                new MaterialAlertDialogBuilder(requireContext())
+                        .setTitle("Action not allowed")
+                        .setMessage("You cannot delete your own account from the admin panel. Go to Account Settings instead.")
+                        .setPositiveButton("OK", null)
+                        .show();
+                return;
+            }
+            new MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("Delete this user?")
+                    .setMessage("This will permanently remove this profile and all associated data. This action cannot be undone.")
+                    .setNegativeButton("Cancel", (dialog, which) -> {
+                        dialog.dismiss();
+                    })
+                    .setPositiveButton("Delete User", (dialog, which) -> {
+                        confirmAccountDelete();
+                    })
+                    .show();
         });
 
         myEventRecyclerView = view.findViewById(R.id.my_event_recycler_view);
@@ -95,7 +117,8 @@ public class UserFragment extends Fragment  implements EventAdapter.OnEventListe
 
         backButton = view.findViewById(R.id.back_button);
         backButton.setOnClickListener(v -> {
-            NavHostFragment.findNavController(this).popBackStack();
+            NavHostFragment.findNavController(this)
+                    .navigate(R.id.action_user_to_browse_users);
         });
         return view;
     }
@@ -121,6 +144,7 @@ public class UserFragment extends Fragment  implements EventAdapter.OnEventListe
 
         currentUserProfile = userProfile;
         profileName.setText(currentUserProfile.getName());
+        adminRepository = new AdminRepository();
         filterAndDisplayEvents();
 
         setupToggleListener();
@@ -225,5 +249,28 @@ public class UserFragment extends Fragment  implements EventAdapter.OnEventListe
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).setBottomNavigationVisibility(View.VISIBLE);
         }
+    }
+
+    /**
+     * This function handles the logic for when the user presses "Delete Account" on the dialog.
+     * It calls deleteProfile on the ProfileViewModel, and then if that succeeds, it navigates back to the login.
+     * A toast is also displayed for success and error.
+     */
+    public void confirmAccountDelete() {
+        ProfileModel profileToDelete = userProfile;
+
+        adminRepository.deleteUser(profileToDelete, new AdminRepository.DeleteCallback() {
+            @Override
+            public void onSuccess() {
+                Toast.makeText(getContext(), "User deleted", Toast.LENGTH_SHORT).show();
+                NavHostFragment.findNavController(UserFragment.this)
+                        .navigate(R.id.action_user_to_browse_users);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Toast.makeText(getContext(), "Failed to delete user: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

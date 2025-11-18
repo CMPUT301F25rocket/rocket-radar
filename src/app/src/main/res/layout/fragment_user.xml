@@ -18,13 +18,22 @@
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:backgroundTint="@color/button_background_color"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingStart="6dp"
+            android:paddingEnd="6dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
             android:text="Back"
+            android:textSize="12sp"
+            android:backgroundTint="@color/button_background_color"
             android:textColor="@android:color/black"
             app:icon="@drawable/ic_arrow_back_24dp"
-            app:iconPadding="4dp"
+            app:iconSize="16dp"
+            app:iconPadding="2dp"
             app:iconTint="@android:color/black"
             app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+
 
         <ImageView
             android:id="@+id/profile_image"
@@ -46,7 +55,7 @@
             android:textSize="20sp" />
 
         <ImageButton
-            android:id="@+id/account_settings_button"
+            android:id="@+id/delete_button"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_alignParentTop="true"
@@ -54,7 +63,7 @@
             android:layout_marginTop="12dp"
             android:layout_marginEnd="19dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/settings_24dp" />
+            android:src="@drawable/delete_24dp" />
 
     </RelativeLayout>
 
