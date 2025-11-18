@@ -395,6 +395,6 @@ public class MainActivity extends AppCompatActivity {
 
         menu.findItem(R.id.draftEventsFragment).setVisible(!isAdminMode);
         menu.findItem(R.id.imagesFragment).setVisible(isAdminMode);
-        menu.findItem(R.id.usersFragment).setVisible(isAdminMode);
+        menu.findItem(R.id.browseUsersFragment).setVisible(isAdminMode);
     }
 }

@@ -18,9 +18,14 @@
         android:label="Radar Default View" />
 
     <fragment
-        android:id="@+id/usersFragment"
+        android:id="@+id/browseUsersFragment"
         android:name="com.rocket.radar.admin.BrowseUsersFragment"
-        android:label="Users"/>
+        android:label="Users">
+        <action
+            android:id="@+id/action_browse_users_to_user"
+            app:destination="@+id/userFragment"
+        />
+    </fragment>
 
     <fragment
         android:id="@+id/eventListFragment"
@@ -79,6 +84,15 @@
         <action
             android:id="@+id/action_profile_to_accountSettings"
             app:destination="@id/accountSettingsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/userFragment"
+        android:name="com.rocket.radar.admin.UserFragment"
+        android:label="User">
+        <action
+            android:id="@+id/action_user_to_browse_users"
+            app:destination="@id/browseUsersFragment" />
     </fragment>
 
 </navigation>

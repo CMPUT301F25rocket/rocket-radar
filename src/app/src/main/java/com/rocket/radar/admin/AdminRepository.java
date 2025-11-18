@@ -19,7 +19,10 @@ public class AdminRepository {
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<ProfileModel> profiles = new ArrayList<>();
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        profiles.add(doc.toObject(ProfileModel.class));
+                        ProfileModel profile = doc.toObject(ProfileModel.class);
+                        profile.setUid(doc.getId());
+                        profiles.add(profile);
+                        Log.d("AdminRepository", "Loaded user: " + profile.getName() + ", UID: " + profile.getUid());
                     }
                     listener.onComplete(profiles);
                 })

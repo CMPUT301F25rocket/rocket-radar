@@ -15,7 +15,7 @@
         android:icon="@drawable/ic_image_24dp" />
 
     <item
-        android:id="@+id/usersFragment"
+        android:id="@+id/browseUsersFragment"
         android:title="@string/users"
         android:icon="@drawable/ic_patient_list_24dp" />
 

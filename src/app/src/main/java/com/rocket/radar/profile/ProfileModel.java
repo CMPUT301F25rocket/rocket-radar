@@ -5,6 +5,7 @@ import android.util.Log;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.GeoPoint;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
@@ -14,12 +15,12 @@ import java.util.ArrayList;
  * It is designed to be easily serialized and deserialized, for example,
  * when interacting with a Firestore database.
  */
-public class ProfileModel {
+public class ProfileModel implements Serializable {
     private String uid;
     private String name;
     private String phoneNumber;
     private String email;
-    private Timestamp lastLogin;
+    private transient Timestamp lastLogin;
 
     private Boolean notificationsEnabled, geolocationEnabled;
 
@@ -36,7 +37,7 @@ public class ProfileModel {
         this.lastKnownLocation = lastKnownLocation;
     }
 
-    private GeoPoint lastKnownLocation;
+    private transient GeoPoint lastKnownLocation;
 
 
     /**
