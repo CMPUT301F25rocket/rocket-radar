@@ -255,6 +255,34 @@ public class EventRepository {
                 .addOnFailureListener(callback::onError);
     }
 
+    public void setInvitedUserIds(Event event, ArrayList<String> userIds) {
+        if (event == null || event.getEventId() == null) {
+            Log.e(TAG, "Event is null or has no ID.");
+            return;
+        }
+        else {
+            for (String userId : userIds) {
+                // 1. Get the correct path: events -> {event-id} -> waitlistedUsers -> {user-id}
+                DocumentReference invitedRef = db.collection("events").document(event.getEventId())
+                        .collection("invitedUsers").document(userId);
+                // 2. Create a map to hold some data, like a timestamp.
+                // Firestore documents cannot be completely empty.
+
+                Map<String, Object> invitedData = new HashMap<>();
+                invitedData.put("timestamp", FieldValue.serverTimestamp());
+
+                // 3. Set the data. If the document already exists, this overwrites it but
+                // that's fine. If it doesn't exist, it is created.
+                invitedRef.set(invitedData)
+                        .addOnSuccessListener(aVoid -> Log.d(TAG, "User " + userId + " successfully added to invited users for event " + event.getEventId()))
+                        .addOnFailureListener(e -> Log.e(TAG, "Error adding user to invited users", e));
+            }
+
+
+        }
+
+    }
+
 
     /**
      * Callback interface for fetching waitlist locations.

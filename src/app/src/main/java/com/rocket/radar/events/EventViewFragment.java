@@ -202,8 +202,8 @@ public class EventViewFragment extends Fragment {
 
             // 2. Repurpose the other button as "Edit"
             joinAndLeaveWaitlistButton.setVisibility(View.VISIBLE); // Make sure it is VISIBLE
-            joinAndLeaveWaitlistButton.setText("Edit");
-            // joinAndLeaveWaitlistButton.setOnClickListener(v -> handleEditEvent()); // Add your edit logic here
+            joinAndLeaveWaitlistButton.setText("Run Lottery");
+            joinAndLeaveWaitlistButton.setOnClickListener(v -> handleRunLottery()); // Add your edit logic here
 
             // 3. Allow organizer to click banner image to change it
             eventImageView.setClickable(true);
@@ -231,6 +231,26 @@ public class EventViewFragment extends Fragment {
         // Setup listeners
         backButton.setOnClickListener(v -> navigateBack());
         // REMOVED redundant listeners from here as they are now correctly placed inside the if/else block
+    }
+
+    private void handleRunLottery() {
+        // samples a subset of Waitlisted users (which is the size of event capacity)
+        // and adds them to invitedUsers by calling event repository
+        ArrayList<String> waitlistedUsers = new ArrayList<>();
+        waitlistedUsers = event.getEventWaitlistIds();
+        // randomly select 10 waitlisted users to be invited users
+        int numInvited = event.getEventCapacity();
+        ArrayList<String> invitedUsers = new ArrayList<>();
+        for (int i = 0; i < numInvited; i++) {
+            int randomIndex = (int) (Math.random() * waitlistedUsers.size());
+            invitedUsers.add(waitlistedUsers.get(randomIndex));
+            waitlistedUsers.remove(randomIndex);
+            repo.removeUserFromWaitlist(event, waitlistedUsers.get(i));
+        }
+        repo.setInvitedUserIds(event, invitedUsers);
+
+
+
     }
 
     /**
