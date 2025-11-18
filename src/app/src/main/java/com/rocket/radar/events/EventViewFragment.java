@@ -189,7 +189,11 @@ public class EventViewFragment extends Fragment {
 
         ProfileModel currentProfile = profileViewModel.getProfileLiveData().getValue();
         boolean isOnWaitlist = isOnWaitlist(currentProfile);
-        boolean isInvited = currentProfile.getOnInvitedEventIds().contains(event.getEventId());
+        ArrayList<String> onInvitedEventIds = currentProfile.getOnInvitedEventIds();
+        Log.d(TAG, "onInvitedEventIds: " + onInvitedEventIds);
+        boolean isInvited = onInvitedEventIds.contains(event.getEventId());
+        Log.d(TAG, "isInvited: " + isInvited);
+
 
 
         // 5. THE LOGIC BLOCK CAN NOW USE THE DEFINED VARIABLES
@@ -222,8 +226,23 @@ public class EventViewFragment extends Fragment {
                 );
             });
 
-        } else if (isOnWaitlist) {
-            // waitlisted User View
+        } else if (isInvited) {
+            // invited user view
+            manageEntrantsButton.setVisibility(View.VISIBLE);
+            manageEntrantsButton.setText("Accept Invitation");
+            manageEntrantsButton.setOnClickListener(v -> {
+                // TODO: Implement accept invitation
+                Toast.makeText(getContext(), "Invitation accepted (not implemented)", Toast.LENGTH_SHORT).show();
+            });
+
+            joinAndLeaveWaitlistButton.setVisibility(View.VISIBLE);
+            joinAndLeaveWaitlistButton.setText("Reject Invitation");
+            joinAndLeaveWaitlistButton.setOnClickListener(v -> {
+                // TODO: Implement reject invitation
+                Toast.makeText(getContext(), "Invitation rejected (not implemented)", Toast.LENGTH_SHORT).show();
+            });
+        } else {
+            // regular (non invited/waitlisted) User View
 
             // Hide the organizer button
             manageEntrantsButton.setVisibility(View.GONE);
@@ -234,11 +253,6 @@ public class EventViewFragment extends Fragment {
             profileViewModel.getProfileLiveData().observe(getViewLifecycleOwner(), profile -> {
                 updateWaitlistButton(joinAndLeaveWaitlistButton, profile);
             });
-        } else if (isInvited) {
-            // invited user view
-            manageEntrantsButton.setVisibility(View.VISIBLE);
-            manageEntrantsButton.setText("Accept Invitation");
-            joinAndLeaveWaitlistButton.setText("Reject Invitation");
         }
 
         // Setup listeners
