@@ -236,56 +236,54 @@ public class EventViewFragment extends Fragment {
     private void handleRunLottery() {
         // samples a subset of Waitlisted users (which is the size of event capacity)
         // and adds them to invitedUsers by calling event repository
+        Log.d(TAG, "Running Lottery!");
 
         ArrayList<String> waitlistedUsers = new ArrayList<>();
-        final int[] numOnWaitlist = {0};
 
 
         repo.getWaitlistSize(event, new EventRepository.WaitlistSizeListener() {
             @Override
             public void onSizeReceived(int size) {
-
-                numOnWaitlist[0] = size;
+                Log.d(TAG, "Waitlist size received: " + size);
             }
 
             @Override
             public void onWaitlistEntrantsFetched(List<String> userIds) {
+                Log.d(TAG, "Waitlist entrants fetched: " + userIds);
                 waitlistedUsers.addAll(userIds);
+                ArrayList<String> invitedUsers = new ArrayList<>();
+
+
+
+                if (waitlistedUsers.size() < event.getEventCapacity()) {
+                    // add everyone on waitlist to invited
+                    Log.d(TAG, "Waitlist size is less than event capacity, Everyone is invited!");
+                    for (String userId : waitlistedUsers) {
+                        invitedUsers.add(userId);
+                        repo.removeUserFromWaitlist(event, userId);
+                    }
+
+                } else {
+                    Log.d(TAG, "Waitlist size is greater than event capacity, Lottery started!");
+                    int numInvited = event.getEventCapacity();
+                    for (int i = 0; i < numInvited; i++) {
+                        int randomIndex = (int) (Math.random() * waitlistedUsers.size());
+                        invitedUsers.add(waitlistedUsers.get(randomIndex));
+                        waitlistedUsers.remove(randomIndex);
+                        repo.removeUserFromWaitlist(event, waitlistedUsers.get(i));
+                    }
+
+                }
+                repo.setInvitedUserIds(event, invitedUsers);
+                Log.d(TAG, "Added invited users" + invitedUsers + "to event " + event.getEventTitle() + "!");
             }
 
             @Override
             public void onError(Exception e) {
 
             }
+
         });
-
-
-        // randomly select 10 waitlisted users to be invited users
-
-        // first check if waitlist size is less than event capacity
-        ArrayList<String> invitedUsers = new ArrayList<>();
-
-
-
-        if (numOnWaitlist[0] < event.getEventCapacity()) {
-            // add everyone on waitlist to invited
-            for (String userId : waitlistedUsers) {
-                invitedUsers.add(userId);
-                repo.removeUserFromWaitlist(event, userId);
-            }
-
-        } else {
-            int numInvited = event.getEventCapacity();
-            for (int i = 0; i < numInvited; i++) {
-                int randomIndex = (int) (Math.random() * waitlistedUsers.size());
-                invitedUsers.add(waitlistedUsers.get(randomIndex));
-                waitlistedUsers.remove(randomIndex);
-                repo.removeUserFromWaitlist(event, waitlistedUsers.get(i));
-            }
-            repo.setInvitedUserIds(event, invitedUsers);
-        }
-
-
     }
 
     /**
