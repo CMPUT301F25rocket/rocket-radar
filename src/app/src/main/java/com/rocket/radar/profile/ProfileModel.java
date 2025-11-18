@@ -6,6 +6,7 @@ import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.GeoPoint;
 
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 /**
@@ -26,6 +27,7 @@ public class ProfileModel implements Serializable {
 
     private ArrayList<String> onWaitlistEventIds;
     private ArrayList<String> onMyEventIds;
+    private ArrayList<String> onInvitedEventIds;
 
     private String role;
 
@@ -74,6 +76,28 @@ public class ProfileModel implements Serializable {
         this.notificationsEnabled = notificationsEnabled;
         this.geolocationEnabled = geolocationEnabled;
         this.role = (role != null) ? role.name() : UserRole.ORGANIZER.name();
+    }
+
+    /**
+     * Returns an ArrayList of event IDs to which the user is invited.
+     * @return an ArrayList of invited event IDs
+     */
+    public ArrayList<String> getOnInvitedEventIds() {
+        if (this.onInvitedEventIds == null) this.onInvitedEventIds = new ArrayList<>();
+        return onInvitedEventIds;
+    }
+
+    /**
+     * Sets the ArrayList of event IDs to which the user is invited.
+     * @param onInvitedEventIds the new ArrayList to set for invited event IDs
+     */
+    public void setOnInvitedEventIds(ArrayList<String> onInvitedEventIds) {
+        this.onInvitedEventIds = onInvitedEventIds;
+    }
+
+    public void addOnInvitedEventId(String eventId) {
+        if (this.onInvitedEventIds == null) this.onInvitedEventIds = new ArrayList<>();
+        this.onInvitedEventIds.add(eventId);
     }
 
     /**

@@ -100,6 +100,10 @@ public class ProfileRepository {
         if (profile.getOnMyEventIds() != null) {
             userMap.put("onMyEventIds", profile.getOnMyEventIds());
         }
+        if (profile.getOnInvitedEventIds() != null) {
+            userMap.put("onInvitedEventIds", profile.getOnInvitedEventIds());
+        }
+
         db.collection("users")
                 .document(profile.getUid())
                 .set(userMap, SetOptions.merge()) // omitted fields remain untouched
