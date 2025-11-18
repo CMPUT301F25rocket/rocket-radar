@@ -238,9 +238,23 @@ public class EventViewFragment extends Fragment {
         // and adds them to invitedUsers by calling event repository
         ArrayList<String> waitlistedUsers = new ArrayList<>();
         waitlistedUsers = event.getEventWaitlistIds();
+        int numOnWaitlist = waitlistedUsers.size();
         // randomly select 10 waitlisted users to be invited users
-        int numInvited = event.getEventCapacity();
+
+        // first check if waitlist size is less than event capacity
         ArrayList<String> invitedUsers = new ArrayList<>();
+
+
+
+        if (numOnWaitlist < event.getEventCapacity()) {
+            // add everyone on waitlist to invited
+            for (String userId : waitlistedUsers) {
+                invitedUsers.add(userId);
+                repo.removeUserFromWaitlist(event, userId);
+            }
+
+        }
+        int numInvited = event.getEventCapacity();
         for (int i = 0; i < numInvited; i++) {
             int randomIndex = (int) (Math.random() * waitlistedUsers.size());
             invitedUsers.add(waitlistedUsers.get(randomIndex));
