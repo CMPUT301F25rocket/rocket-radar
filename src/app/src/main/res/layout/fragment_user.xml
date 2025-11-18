@@ -87,6 +87,28 @@
             android:textSize="14sp"
             android:textColor="@android:color/darker_gray" />
 
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/role_dropdown_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/profile_phone"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="12dp"
+            android:paddingStart="32dp"
+            android:paddingEnd="32dp"
+            android:hint="Select Role"
+            app:endIconMode="dropdown_menu">
+
+            <AutoCompleteTextView
+                android:id="@+id/role_dropdown"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none"
+                android:focusable="false"
+                android:clickable="true"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
     </RelativeLayout>
 
     <com.google.android.material.button.MaterialButtonToggleGroup
