@@ -18,6 +18,7 @@ public class Notification {
     // This is the main title or message of the event.
     private String eventTitle;
     private String notificationType;
+    private String eventId;
     private int image;
     @ServerTimestamp // Firestore will automatically populate this on the server
     private Date timestamp;
@@ -36,6 +37,14 @@ public class Notification {
     }
 
     // Getters
+    /**
+     * Gets the ID of the event associated with the notification.
+     * @return The event ID string.
+     */
+    public String getEventId() {
+        return eventId;
+    }
+
     /**
      * Gets the main title of the notification.
      * @return The notification title string.
