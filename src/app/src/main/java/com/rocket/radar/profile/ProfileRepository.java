@@ -210,4 +210,12 @@ public class ProfileRepository {
                 .addOnSuccessListener(aVoid -> Log.d("ProfileViewModel", "User location successfully updated for UID: " + uid))
                 .addOnFailureListener(e -> Log.e("ProfileViewModel", "Error updating user location for UID: " + uid, e));
     }
+
+    public void updateUserInvitedList(String uid, String eventId) {
+        db.collection("users")
+                .document(uid)
+                .update("onInvitedEventIds", FieldValue.arrayUnion(eventId))
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Userside invited events successfully updated for UID: " + uid))
+                .addOnFailureListener(e -> Log.e(TAG, "Error updating Userside invited events for UID: " + uid, e));
+    }
 }

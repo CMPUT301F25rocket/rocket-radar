@@ -28,6 +28,7 @@ import com.google.firebase.firestore.GeoPoint;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
 import com.rocket.radar.profile.ProfileModel;
+import com.rocket.radar.profile.ProfileRepository;
 import com.rocket.radar.profile.ProfileViewModel;
 
 import java.io.ByteArrayOutputStream;
@@ -50,7 +51,8 @@ public class EventViewFragment extends Fragment {
     private static final String ARG_IS_ORGANIZER = "is_organizer";
     private Event event;
     private ProfileViewModel profileViewModel;
-    EventRepository repo = new EventRepository();
+    private EventRepository repo = new EventRepository();
+    private ProfileRepository profileRepository = new ProfileRepository();
 
 
     // 2. ADD isOrganizer aS A MEMBER VARIABLE
@@ -259,8 +261,7 @@ public class EventViewFragment extends Fragment {
                     // add everyone on waitlist to invited
                     Log.d(TAG, "Waitlist size is less than event capacity, Everyone is invited!");
                     for (String userId : waitlistedUsers) {
-                        invitedUsers.add(userId);
-                        repo.removeUserFromWaitlist(event, userId);
+                        moveUserToInvited(userId, invitedUsers);
                     }
 
                 } else {
@@ -268,9 +269,10 @@ public class EventViewFragment extends Fragment {
                     int numInvited = event.getEventCapacity();
                     for (int i = 0; i < numInvited; i++) {
                         int randomIndex = (int) (Math.random() * waitlistedUsers.size());
-                        invitedUsers.add(waitlistedUsers.get(randomIndex));
+                        String chosenUserId = waitlistedUsers.get(randomIndex);
+                        Log.d(TAG, "Chosen user ID: " + chosenUserId);
 
-                        repo.removeUserFromWaitlist(event, waitlistedUsers.get(randomIndex));
+                        moveUserToInvited(chosenUserId, invitedUsers);
                         waitlistedUsers.remove(randomIndex);
                     }
 
@@ -287,6 +289,17 @@ public class EventViewFragment extends Fragment {
         });
     }
 
+    /**
+     * Moves a user from the waitlist to the invited list.
+     * This helper method updates the database for both the event and the user's profile.
+     * @param userId The ID of the user to move.
+     * @param invitedUsers The list of invited user IDs to which the user will be added.
+     */
+    private void moveUserToInvited(String userId, List<String> invitedUsers) {
+        invitedUsers.add(userId);
+        repo.removeUserFromWaitlist(event, userId);
+        profileRepository.updateUserInvitedList(userId, event.getEventId());
+    }
     /**
      * Hides the main activity's bottom navigation bar when the fragment is resumed.
      */
