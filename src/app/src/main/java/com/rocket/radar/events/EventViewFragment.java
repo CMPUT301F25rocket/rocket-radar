@@ -270,7 +270,7 @@ public class EventViewFragment extends Fragment {
                         int randomIndex = (int) (Math.random() * waitlistedUsers.size());
                         invitedUsers.add(waitlistedUsers.get(randomIndex));
                         waitlistedUsers.remove(randomIndex);
-                        repo.removeUserFromWaitlist(event, waitlistedUsers.get(i));
+                        repo.removeUserFromWaitlist(event, waitlistedUsers.get(randomIndex));
                     }
 
                 }
