@@ -11,6 +11,11 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.rocket.radar.R;
 import java.util.List;
+import com.rocket.radar.MainActivity;
+import com.rocket.radar.events.Event;
+import com.rocket.radar.events.EventRepository;
+import com.rocket.radar.events.EventViewFragment;
+
 
 /**
  * Adapter for the RecyclerView in the notifications screen.
@@ -31,6 +36,8 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private final Context context;
     private final List<Notification> notificationList;
     private final NotificationRepository repository;
+    private final EventRepository eventRepository;
+
 
     private int separatorIndex = -1;
 
@@ -41,10 +48,14 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
      * @param notificationList The list of notifications to be displayed.
      * @param repository The repository to handle data operations, like marking notifications as read.
      */
-    public NotificationAdapter(Context context, List<Notification> notificationList, NotificationRepository repository) {
+    public NotificationAdapter(Context context,
+                               List<Notification> notificationList,
+                               NotificationRepository repository,
+                               EventRepository eventRepository) {
         this.context = context;
         this.notificationList = notificationList;
         this.repository = repository;
+        this.eventRepository = eventRepository;
     }
 
     /**
@@ -162,7 +173,45 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                     if (!notification.isReadStatus()) {
                         repository.markNotificationAsRead(notification.getUserNotificationId());
                     }
+
+                    String eventId = notification.getEventId();
+                    if (eventId == null || eventId.isEmpty()) {
+                        Log.e("NotificationAdapter", "Notification has no eventId; cannot open EventViewFragment");
+                        return;
+                    }
+
+                    // Fetch the Event from Firestore, then navigate
+                    eventRepository.getEventById(eventId, new EventRepository.SingleEventListener() {
+                        @Override
+                        public void onEventLoaded(Event event) {
+                            if (event == null) {
+                                Log.e("NotificationAdapter", "Event loaded is null for id: " + eventId);
+                                return;
+                            }
+
+                            if (!(context instanceof MainActivity)) {
+                                Log.e("NotificationAdapter", "Context is not MainActivity; cannot open fragment");
+                                return;
+                            }
+
+                            MainActivity activity = (MainActivity) context;
+
+                            EventViewFragment fragment = EventViewFragment.newInstance(event);
+
+                            activity.getSupportFragmentManager()
+                                    .beginTransaction()
+                                    .replace(R.id.nav_host_fragment, fragment)
+                                    .addToBackStack(null)
+                                    .commit();
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            Log.e("NotificationAdapter", "Failed to load event for id: " + eventId, e);
+                        }
+                    });
                 });
+
                 break;
         }
     }

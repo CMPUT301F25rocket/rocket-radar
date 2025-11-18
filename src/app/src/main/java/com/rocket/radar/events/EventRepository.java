@@ -602,4 +602,38 @@ public class EventRepository {
                 })
                 .addOnFailureListener(callback::onError);
     }
+    public interface SingleEventListener {
+        void onEventLoaded(Event event);
+        void onError(Exception e);
+    }
+
+    public void getEventById(String eventId, SingleEventListener listener) {
+        if (eventId == null || eventId.isEmpty()) {
+            if (listener != null) {
+                listener.onError(new IllegalArgumentException("eventId is null or empty"));
+            }
+            return;
+        }
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("events").document(eventId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        Event event = doc.toObject(Event.class);
+                        if (listener != null) {
+                            listener.onEventLoaded(event);
+                        }
+                    } else {
+                        if (listener != null) {
+                            listener.onError(new Exception("Event not found for id: " + eventId));
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (listener != null) {
+                        listener.onError(e);
+                    }
+                });
+    }
 }

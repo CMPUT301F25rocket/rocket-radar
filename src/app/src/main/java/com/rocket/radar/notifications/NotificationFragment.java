@@ -24,6 +24,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
+import com.rocket.radar.events.EventRepository;
+
 import java.util.ArrayList;
 
 public class NotificationFragment extends Fragment {
@@ -81,10 +83,21 @@ public class NotificationFragment extends Fragment {
      * adapter's data set and toggle the visibility of the empty state view.
      */
     private void setupRecyclerView() {
-        // Use the original adapter that does NOT handle the empty state
-        adapter = new NotificationAdapter(getContext(), new ArrayList<>(), notificationRepository);
+        EventRepository eventRepository = new EventRepository();
+
+        adapter = new NotificationAdapter(
+                getContext(),
+                new ArrayList<>(),
+                notificationRepository,
+                eventRepository
+        );
+
         notificationRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         notificationRecyclerView.setAdapter(adapter);
+
+        // ... rest of your observer code stays the same
+
+
 
         // Create an observer that will react to any changes in the adapter's data.
         adapterObserver = new RecyclerView.AdapterDataObserver() {
