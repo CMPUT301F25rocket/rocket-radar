@@ -236,9 +236,30 @@ public class EventViewFragment extends Fragment {
     private void handleRunLottery() {
         // samples a subset of Waitlisted users (which is the size of event capacity)
         // and adds them to invitedUsers by calling event repository
+
         ArrayList<String> waitlistedUsers = new ArrayList<>();
-        waitlistedUsers = event.getEventWaitlistIds();
-        int numOnWaitlist = waitlistedUsers.size();
+        final int[] numOnWaitlist = {0};
+
+
+        repo.getWaitlistSize(event, new EventRepository.WaitlistSizeListener() {
+            @Override
+            public void onSizeReceived(int size) {
+
+                numOnWaitlist[0] = size;
+            }
+
+            @Override
+            public void onWaitlistEntrantsFetched(List<String> userIds) {
+                waitlistedUsers.addAll(userIds);
+            }
+
+            @Override
+            public void onError(Exception e) {
+
+            }
+        });
+
+
         // randomly select 10 waitlisted users to be invited users
 
         // first check if waitlist size is less than event capacity
@@ -246,7 +267,7 @@ public class EventViewFragment extends Fragment {
 
 
 
-        if (numOnWaitlist < event.getEventCapacity()) {
+        if (numOnWaitlist[0] < event.getEventCapacity()) {
             // add everyone on waitlist to invited
             for (String userId : waitlistedUsers) {
                 invitedUsers.add(userId);
