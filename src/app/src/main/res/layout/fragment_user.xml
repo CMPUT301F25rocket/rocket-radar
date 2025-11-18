@@ -65,6 +65,28 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/delete_24dp" />
 
+        <TextView
+            android:id="@+id/profile_email"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/profile_image"
+            android:layout_marginStart="16dp"
+            android:layout_below="@id/profile_name"
+            android:text="email@example.com"
+            android:textSize="14sp"
+            android:textColor="@android:color/darker_gray" />
+
+        <TextView
+            android:id="@+id/profile_phone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/profile_image"
+            android:layout_marginStart="16dp"
+            android:layout_below="@id/profile_email"
+            android:text="(000) 000-0000"
+            android:textSize="14sp"
+            android:textColor="@android:color/darker_gray" />
+
     </RelativeLayout>
 
     <com.google.android.material.button.MaterialButtonToggleGroup

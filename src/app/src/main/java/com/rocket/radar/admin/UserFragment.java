@@ -57,8 +57,7 @@ public class UserFragment extends Fragment  implements EventAdapter.OnEventListe
     private ImageButton deleteButton;
 
     private MaterialButton backButton;
-    private TextView profileName;
-
+    private TextView profileName, profilePhone, profileEmail;
     private ProfileViewModel profileViewModel;
     private ProfileModel currentUserProfile;
     private RecyclerView myEventRecyclerView;
@@ -88,6 +87,8 @@ public class UserFragment extends Fragment  implements EventAdapter.OnEventListe
         View view =  inflater.inflate(R.layout.fragment_user, container, false);
         profileName = view.findViewById(R.id.profile_name);
         deleteButton = view.findViewById(R.id.delete_button);
+        profilePhone = view.findViewById(R.id.profile_phone);
+        profileEmail = view.findViewById(R.id.profile_email);
         deleteButton.setOnClickListener(v -> {
             String currentUserUid = profileViewModel.getProfileLiveData().getValue().getUid();
             String viewedUserUid = userProfile.getUid();
@@ -144,6 +145,8 @@ public class UserFragment extends Fragment  implements EventAdapter.OnEventListe
 
         currentUserProfile = userProfile;
         profileName.setText(currentUserProfile.getName());
+        profileEmail.setText(currentUserProfile.getEmail());
+        profilePhone.setText(currentUserProfile.getPhoneNumber());
         adminRepository = new AdminRepository();
         filterAndDisplayEvents();
 
