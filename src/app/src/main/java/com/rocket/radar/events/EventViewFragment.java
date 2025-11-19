@@ -338,6 +338,7 @@ public class EventViewFragment extends Fragment {
                     }
                 }
                 repo.setInvitedUserIds(event, invitedUsers);
+                Log.d(TAG, "Added invited users" + invitedUsers + "to event " + event.getEventTitle() + "!");
 
                 // send notification to users that won the lottery
                 String title = event.getEventTitle();
@@ -345,15 +346,15 @@ public class EventViewFragment extends Fragment {
                 String eventId = event.getEventId();
                 String groupCollection = "invitedUsers";
                 notificationRepository.sendNotificationToGroup(title, body, eventId, groupCollection);
+                Log.d(TAG, "WIN Notification sent to invited users" + invitedUsers + "to event " + event.getEventTitle() + "!");
 
                 // send notification to users that lost the lottery
                 String body2 = "You lost the lottery!";
                 String groupCollection2 = "waitlistedUsers";
                 notificationRepository.sendNotificationToGroup(title, body2, eventId, groupCollection2);
+                Log.d(TAG, "LOST Notification sent to waitlisted users" + waitlistedUsers + "to event " + event.getEventTitle() + "!");
 
 
-
-                Log.d(TAG, "Added invited users" + invitedUsers + "to event " + event.getEventTitle() + "!");
             }
 
             @Override
