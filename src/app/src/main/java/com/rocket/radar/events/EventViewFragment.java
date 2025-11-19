@@ -232,13 +232,32 @@ public class EventViewFragment extends Fragment {
             manageEntrantsButton.setText("Accept Invitation");
             manageEntrantsButton.setOnClickListener(v -> {
                 // TODO: Implement accept invitation
-                Toast.makeText(getContext(), "Invitation accepted (not implemented)", Toast.LENGTH_SHORT).show();
+
+                // event side attending list
+                // call to event repo
+                repo.addUserToAttending(event, currentProfile.getUid());
+
+                // client side list of attending events
+                // call to profile model
+                // Logic for joining a waitlist
+                currentProfile.addAttendingEventId(event.getEventId());
+                currentProfile.removeInvitedEventId(event.getEventId());
+                // 2. Pass the user ID and location to the repository method.
+
+
+                navigateBack();
+
+                Toast.makeText(getContext(), "Invitation accepted", Toast.LENGTH_SHORT).show();
             });
 
             joinAndLeaveWaitlistButton.setVisibility(View.VISIBLE);
             joinAndLeaveWaitlistButton.setText("Reject Invitation");
             joinAndLeaveWaitlistButton.setOnClickListener(v -> {
                 // TODO: Implement reject invitation
+                currentProfile.addCancelledEventId(event.getEventId());
+                repo.addUserToCancelled(event, currentProfile.getUid());
+                currentProfile.removeInvitedEventId(event.getEventId());
+                navigateBack();
                 Toast.makeText(getContext(), "Invitation rejected (not implemented)", Toast.LENGTH_SHORT).show();
             });
         } else {
@@ -380,11 +399,6 @@ public class EventViewFragment extends Fragment {
             repo.removeUserFromWaitlist(event, currentProfile.getUid());
             navigateBack();
             Toast.makeText(getContext(), "Removed from waitlist!", Toast.LENGTH_SHORT).show();
-        } else if (isInvited) {
-            //updateInviteButton(joinAndLeaveWaitlistButton, currentProfile);
-            // TODO: change button logic to reject invitiation
-            // TODO: other button for accept
-            // TODO: do for client side and organizer side and backend
         } else {
             // Logic for joining a waitlist
             currentProfile.addOnWaitlistEventId(event.getEventId());

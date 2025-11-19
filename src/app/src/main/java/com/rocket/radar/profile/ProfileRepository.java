@@ -103,6 +103,9 @@ public class ProfileRepository {
         if (profile.getOnInvitedEventIds() != null) {
             userMap.put("onInvitedEventIds", profile.getOnInvitedEventIds());
         }
+        if (profile.getAttendingEventIds() != null) {
+            userMap.put("attendingEventIds", profile.getAttendingEventIds());
+        }
 
         db.collection("users")
                 .document(profile.getUid())

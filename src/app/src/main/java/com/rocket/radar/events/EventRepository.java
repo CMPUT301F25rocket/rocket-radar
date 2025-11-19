@@ -71,6 +71,54 @@ public class EventRepository {
         return eventRef.document(eventId).get();
     }
 
+    public void addUserToAttending(Event event, String uid) {
+        if (event == null || event.getEventId() == null) {
+            Log.e(TAG, "Event is null or has no ID.");
+            return;
+        }
+        else {
+            // 1. Get the correct path: events -> {event-id} -> waitlistedUsers -> {user-id}
+            DocumentReference attendingRef = db.collection("events").document(event.getEventId())
+                    .collection("attendingUsers").document(uid);
+
+            // 2. Create a map to hold some data, like a timestamp.
+            // Firestore documents cannot be completely empty.
+
+            Map<String, Object> attendingData = new HashMap<>();
+            attendingData.put("timestamp", FieldValue.serverTimestamp());
+
+            // 3. Set the data. If the document already exists, this overwrites it but
+            // that's fine. If it doesn't exist, it is created.
+            attendingRef.set(attendingData)
+                    .addOnSuccessListener(aVoid -> Log.d(TAG, "User " + uid + " successfully added to attending users for event " + event.getEventId()))
+                    .addOnFailureListener(e -> Log.e(TAG, "Error adding user to attending users ", e));
+        }
+    }
+
+    public void addUserToCancelled(Event event, String uid) {
+        if (event == null || event.getEventId() == null) {
+            Log.e(TAG, "Event is null or has no ID.");
+            return;
+        }
+        else {
+            // 1. Get the correct path: events -> {event-id} -> waitlistedUsers -> {user-id}
+            DocumentReference cancelledRef = db.collection("events").document(event.getEventId())
+                    .collection("cancelledUsers").document(uid);
+
+            // 2. Create a map to hold some data, like a timestamp.
+            // Firestore documents cannot be completely empty.
+
+            Map<String, Object> cancelledData = new HashMap<>();
+            cancelledData.put("timestamp", FieldValue.serverTimestamp());
+
+            // 3. Set the data. If the document already exists, this overwrites it but
+            // that's fine. If it doesn't exist, it is created.
+            cancelledRef.set(cancelledData)
+                    .addOnSuccessListener(aVoid -> Log.d(TAG, "User " + uid + " successfully added to cancelled users for event " + event.getEventId()))
+                    .addOnFailureListener(e -> Log.e(TAG, "Error adding user to cancelled users ", e));
+        }
+    }
+
     public interface WaitlistSizeListener {
         void onSizeReceived(int size);
 
