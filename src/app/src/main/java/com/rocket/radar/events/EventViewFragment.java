@@ -28,6 +28,7 @@ import com.google.firebase.firestore.Blob;
 import com.google.firebase.firestore.GeoPoint;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
+import com.rocket.radar.notifications.NotificationRepository;
 import com.rocket.radar.profile.ProfileModel;
 import com.rocket.radar.profile.ProfileRepository;
 import com.rocket.radar.profile.ProfileViewModel;
@@ -54,7 +55,7 @@ public class EventViewFragment extends Fragment {
     private ProfileViewModel profileViewModel;
     private EventRepository repo = new EventRepository();
     private ProfileRepository profileRepository = new ProfileRepository();
-
+    private NotificationRepository notificationRepository = new NotificationRepository();
 
     // 2. ADD isOrganizer aS A MEMBER VARIABLE
     private boolean isOrganizer;
@@ -335,9 +336,23 @@ public class EventViewFragment extends Fragment {
                         moveUserToInvited(chosenUserId, invitedUsers);
                         waitlistedUsers.remove(randomIndex);
                     }
-
                 }
                 repo.setInvitedUserIds(event, invitedUsers);
+
+                // send notification to users that won the lottery
+                String title = event.getEventTitle();
+                String body = "You won the lottery!";
+                String eventId = event.getEventId();
+                String groupCollection = "invitedUsers";
+                notificationRepository.sendNotificationToGroup(title, body, eventId, groupCollection);
+
+                // send notification to users that lost the lottery
+                String body2 = "You lost the lottery!";
+                String groupCollection2 = "waitlistedUsers";
+                notificationRepository.sendNotificationToGroup(title, body2, eventId, groupCollection2);
+
+
+
                 Log.d(TAG, "Added invited users" + invitedUsers + "to event " + event.getEventTitle() + "!");
             }
 
