@@ -614,25 +614,25 @@ public class EventRepository {
     /**
      * Callback interface for fetching selected entrants.
      */
-    public interface SelectedEntrantsCallback {
-        void onSelectedEntrantsFetched(List<String> userIds);
+    public interface AttendingEntrantsCallback {
+        void AttendingEntrantsFetched(List<String> userIds);
         void onError(Exception e);
     }
 
     /**
      * Asynchronously fetches the list of user IDs from the selected list of a specific event.
      */
-    public void getSelectedEntrants(String eventId, SelectedEntrantsCallback callback) {
+    public void getAttendingEntrants(String eventId, AttendingEntrantsCallback callback) {
         if (eventId == null || eventId.isEmpty()) {
             callback.onError(new IllegalArgumentException("Event ID cannot be null or empty."));
             return;
         }
-        db.collection("events").document(eventId).collection("selectedUsers")
+        db.collection("events").document(eventId).collection("attendingUsers")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<String> userIds = new ArrayList<>();
                     queryDocumentSnapshots.forEach(doc -> userIds.add(doc.getId()));
-                    callback.onSelectedEntrantsFetched(userIds);
+                    callback.AttendingEntrantsFetched(userIds);
                 })
                 .addOnFailureListener(callback::onError);
     }

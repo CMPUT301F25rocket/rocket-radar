@@ -346,7 +346,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                     });
                     break;
 
-                case "selected":
+                case "attending":
                     if (event == null || event.getEventId() == null) {
                         Log.e(TAG, "Event or Event ID is null. Cannot fetch selected entrants.");
                         Toast.makeText(getContext(), "Event data is missing.", Toast.LENGTH_SHORT).show();
@@ -354,9 +354,9 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                         return;
                     }
 
-                    eventRepository.getSelectedEntrants(event.getEventId(), new EventRepository.SelectedEntrantsCallback() {
+                    eventRepository.getAttendingEntrants(event.getEventId(), new EventRepository.AttendingEntrantsCallback() {
                         @Override
-                        public void onSelectedEntrantsFetched(List<String> userIds) {
+                        public void AttendingEntrantsFetched(List<String> userIds) {
                             Log.d(TAG, "Fetched " + userIds.size() + " selected entrants.");
                             if (userIds.isEmpty()) {
                                 entrantsAdapter.notifyDataSetChanged();
@@ -483,8 +483,8 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                 return "waitlisted";
             case "Invited":
                 return "invited";
-            case "Selected":
-                return "selected";
+            case "Attending":
+                return "attending";
             case "Cancelled":
                 return "cancelled";
             default:
@@ -552,14 +552,13 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                 @Override
                 public void onTabSelected(TabLayout.Tab tab) {
                     updateActionButtons(tab);
-                    // --- START OF CHANGE: Re-filter the list when a new tab is selected ---
+
                     filterAndDisplayEntrants(tab);
 
                     if (tab.getText() != null && tab.getText().toString().equals("On Waitlist")) {
                         fetchAndDisplayWaitlistLocations();
                     }
 
-                    // --- END OF CHANGE ---
                 }
                 @Override public void onTabUnselected(TabLayout.Tab tab) { /* No-op */ }
                 @Override public void onTabReselected(TabLayout.Tab tab) { /* No-op */ }
@@ -657,7 +656,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         if (tab == null || tab.getText() == null) return null;
         switch (tab.getText().toString()) {
             case "On Waitlist": return "onWaitlistEventIds";
-            case "Selected": return "attendees";
+            case "Attending": return "attendees";
             case "Invited": return "invited";
             case "Cancelled": return "cancelled";
             default: return null;
