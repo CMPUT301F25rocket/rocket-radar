@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.textfield.TextInputLayout;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
 import com.rocket.radar.events.Event;
@@ -38,6 +40,8 @@ public class UserFragment extends Fragment  implements EventAdapter.OnEventListe
     private static final String USER_PROFILE = "userProfile";
     private ProfileModel userProfile;
     private AdminRepository adminRepository;
+    private AutoCompleteTextView roleDropdown;
+    private TextInputLayout roleDropdownLayout;
     public static UserFragment newInstance(ProfileModel profile) {
         UserFragment fragment = new UserFragment();
         Bundle args = new Bundle();
@@ -153,6 +157,27 @@ public class UserFragment extends Fragment  implements EventAdapter.OnEventListe
 
         setupToggleListener();
         observeEvents();
+
+        roleDropdownLayout = view.findViewById(R.id.role_dropdown_layout);
+        roleDropdown = view.findViewById(R.id.role_dropdown);
+
+        String[] roles = new String[ProfileModel.UserRole.values().length];
+        int i = 0;
+        for (ProfileModel.UserRole role : ProfileModel.UserRole.values()) {
+            roles[i++] = role.name();
+        }
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                requireContext(),
+                android.R.layout.simple_dropdown_item_1line,
+                roles
+        );
+        roleDropdown.setAdapter(adapter);
+        roleDropdown.setText(userProfile.getRole().name(), false);
+        roleDropdown.setOnItemClickListener((parent, view1, position, id) -> {
+            String selected = (String) parent.getItemAtPosition(position);
+            userProfile.setRole(ProfileModel.UserRole.valueOf(selected));
+        });
     }
 
     /**

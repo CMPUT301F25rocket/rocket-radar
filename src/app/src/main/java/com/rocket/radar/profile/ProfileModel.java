@@ -1,7 +1,9 @@
 package com.rocket.radar.profile;
 
 import android.util.Log;
+import android.widget.AutoCompleteTextView;
 
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.GeoPoint;
 
@@ -21,12 +23,10 @@ public class ProfileModel implements Serializable {
     private String phoneNumber;
     private String email;
     private transient Timestamp lastLogin;
-
     private Boolean notificationsEnabled, geolocationEnabled;
 
     private ArrayList<String> onWaitlistEventIds;
     private ArrayList<String> onMyEventIds;
-
     private String role;
 
     public GeoPoint getLastKnownLocation() {
