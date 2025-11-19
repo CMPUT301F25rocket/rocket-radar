@@ -119,6 +119,24 @@ public class EventRepository {
         }
     }
 
+    public void removeUserFromInvited(Event event, String uid) {
+        if (event == null || event.getEventId() == null) {
+            Log.e(TAG, "Event is null or has no ID. Cannot remove user from waitlist.");
+            return;
+        }
+        if (uid == null || uid.isEmpty()) {
+            Log.e(TAG, "User ID is null or empty. Cannot remove user from waitlist.");
+            return;
+        }
+        DocumentReference userDocumentInWaitlist = db.collection("events").document(event.getEventId())
+                .collection("invitedUsers").document(uid);
+
+        // 2. Call .delete() on that specific document reference.
+        userDocumentInWaitlist.delete()
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "User " + uid + " successfully removed from invited users for event " + event.getEventId()))
+                .addOnFailureListener(e -> Log.e(TAG, "Error removing user " + uid + " from invited users", e));
+    }
+
     public interface WaitlistSizeListener {
         void onSizeReceived(int size);
 

@@ -236,6 +236,7 @@ public class EventViewFragment extends Fragment {
                 // event side attending list
                 // call to event repo
                 repo.addUserToAttending(event, currentProfile.getUid());
+                repo.removeUserFromInvited(event, currentProfile.getUid());
 
                 // client side list of attending events
                 // call to profile model
@@ -254,8 +255,12 @@ public class EventViewFragment extends Fragment {
             joinAndLeaveWaitlistButton.setText("Reject Invitation");
             joinAndLeaveWaitlistButton.setOnClickListener(v -> {
                 // TODO: Implement reject invitation
-                currentProfile.addCancelledEventId(event.getEventId());
+                // deal with backend stuff
                 repo.addUserToCancelled(event, currentProfile.getUid());
+                repo.removeUserFromInvited(event, currentProfile.getUid());
+
+                // deal with client side logic
+                currentProfile.addCancelledEventId(event.getEventId());
                 currentProfile.removeInvitedEventId(event.getEventId());
                 navigateBack();
                 Toast.makeText(getContext(), "Invitation rejected (not implemented)", Toast.LENGTH_SHORT).show();
