@@ -50,7 +50,7 @@ public class EventViewFragment extends Fragment {
     private static final String ARG_IS_ORGANIZER = "is_organizer";
     private Event event;
     private ProfileViewModel profileViewModel;
-    EventRepository repo = new EventRepository();
+    EventRepository repo = EventRepository.getInstance();
 
 
     // 2. ADD isOrganizer aS A MEMBER VARIABLE

@@ -107,7 +107,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         }
         notificationRepository = new NotificationRepository();
         profileRepository = new ProfileRepository();
-        eventRepository = new EventRepository();
+        eventRepository = EventRepository.getInstance();
 
         currentEntrants = new ArrayList<>();
     }

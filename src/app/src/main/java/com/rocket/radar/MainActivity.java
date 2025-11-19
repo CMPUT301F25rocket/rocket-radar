@@ -189,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
                 dialog.show();
                 return;
             }
-            EventRepository eventRepository = new EventRepository();
+            EventRepository eventRepository = EventRepository.getInstance();
             eventRepository.getEvent(id)
                     .addOnSuccessListener(documentSnapshot -> {
                         Event event = documentSnapshot.toObject(Event.class);

@@ -65,7 +65,7 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        eventRepository = new EventRepository();
+        eventRepository = EventRepository.getInstance();
 
         // These three lines took way too long to write. ʕノ•ᴥ•ʔノ ︵ ┻━┻
         // WARN: Make sure when you create variables you call setMyVarName(...) on the binding.

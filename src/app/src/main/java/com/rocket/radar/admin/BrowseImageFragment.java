@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.rocket.radar.databinding.FragmentBrowseImagesBinding;
+import com.rocket.radar.events.EventRepository;
 
 import java.util.ArrayList;
 
@@ -28,6 +29,5 @@ public class BrowseImageFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         binding.fullImageList.setLayoutManager(new GridLayoutManager(getContext(), 3));
         binding.fullImageList.setAdapter(new ImageAdapter(new ArrayList<>()));
-
     }
 }

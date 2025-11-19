@@ -19,20 +19,26 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
-// FIXME: This is functionally a singleton we should store the global instance in a static and return
-// that instead of creating many of these objects.
+/**
+ * Event fetching, management and control.
+ */
 public class EventRepository {
 
     private static final String TAG = "EventRepository";
-    private final FirebaseFirestore db;
-    private final CollectionReference eventRef;
+    private final CollectionReference events;
+    private static EventRepository instance = null;
 
     // This constructor now correctly initializes Firestore.
-    public EventRepository() {
-        this.db = FirebaseFirestore.getInstance();
-        this.eventRef = db.collection("events"); // Use "events" collection
+    private EventRepository() {
+        this.events = FirebaseFirestore.getInstance().collection("events"); // Use "events" collection
+    }
+
+    public static EventRepository getInstance() {
+        if (instance == null) {
+            instance = new EventRepository();
+        }
+        return instance;
     }
 
     /**
@@ -46,7 +52,7 @@ public class EventRepository {
     // But that's hard and annoying so part 4 it is.
     public LiveData<List<Event>> getAllEvents() {
         MutableLiveData<List<Event>> eventsLiveData = new MutableLiveData<>();
-        eventRef.addSnapshotListener((value, error) -> {
+        events.addSnapshotListener((value, error) -> {
             if (error != null) {
                 Log.e(TAG, "Listen failed.", error);
                 return;
@@ -68,7 +74,7 @@ public class EventRepository {
      * @return Task yielding a {@code DocumentSnapshot} which can be converted into an {@code Event}
      */
     public Task<DocumentSnapshot> getEvent(String eventId) {
-        return eventRef.document(eventId).get();
+        return events.document(eventId).get();
     }
 
     public interface WaitlistSizeListener {
@@ -91,7 +97,7 @@ public class EventRepository {
         }
 
         // CORRECT PATH: events -> {event-id} -> waitlistedUsers
-        CollectionReference waitlistRef = db.collection("events").document(event.getEventId())
+        CollectionReference waitlistRef = events.document(event.getEventId())
                 .collection("waitlistedUsers");
 
         waitlistRef.get().addOnSuccessListener(queryDocumentSnapshots -> {
@@ -114,18 +120,10 @@ public class EventRepository {
      */
     public String createEvent(Event event) {
         // Use the event's title as the document ID for simplicity, or use .add() for auto-ID
-        eventRef.document(event.getEventId()).set(event)
+        events.document(event.getEventId()).set(event)
                 .addOnSuccessListener(aVoid -> Log.d(TAG, "Event successfully written: " + event.getEventTitle()))
                 .addOnFailureListener(e -> Log.e(TAG, "Error writing event", e));
         return event.getEventId();
-    }
-
-    // Helper to add all the dummy data to Firestore
-    public void addDummyDatatodb() {
-        List<Event> dummyEvents = loadDummyData();
-        for (Event event : dummyEvents) {
-            createEvent(event);
-        }
     }
 
     public void addUserToWaitlist(Event event, String userId, GeoPoint location){
@@ -135,7 +133,7 @@ public class EventRepository {
         }
         else {
             // 1. Get the correct path: events -> {event-id} -> waitlistedUsers -> {user-id}
-            DocumentReference waitlistRef = db.collection("events").document(event.getEventId())
+            DocumentReference waitlistRef = events.document(event.getEventId())
                     .collection("waitlistedUsers").document(userId);
 
             // 2. Create a map to hold some data, like a timestamp.
@@ -167,7 +165,7 @@ public class EventRepository {
             Log.e(TAG, "User ID is null or empty. Cannot remove user from waitlist.");
             return;
         }
-        DocumentReference userDocumentInWaitlist = db.collection("events").document(event.getEventId())
+        DocumentReference userDocumentInWaitlist = events.document(event.getEventId())
                 .collection("waitlistedUsers").document(userId);
 
         // 2. Call .delete() on that specific document reference.
@@ -175,32 +173,6 @@ public class EventRepository {
                 .addOnSuccessListener(aVoid -> Log.d(TAG, "User " + userId + " successfully removed from waitlist for event " + event.getEventId()))
                 .addOnFailureListener(e -> Log.e(TAG, "Error removing user " + userId + " from waitlist", e));
     }
-
-    // This method just prepares the local list of dummy data.
-    private List<Event> loadDummyData() {
-        List<Event> eventList = new java.util.ArrayList<>();
-
-        // Using Calendar to create Date objects for the current year
-        Calendar cal = Calendar.getInstance();
-        int currentYear = cal.get(Calendar.YEAR);
-
-        cal.set(currentYear, Calendar.SEPTEMBER, 30);
-        eventList.add(new Event("Watch Party for Oilers", cal.getTime(), "Fun for fanatics", "Join us for an exciting watch party as the Oilers take on their rivals. Great food, great company, and a thrilling game await. Don't miss out on the action!", R.drawable.rogers_image));
-
-        cal.set(currentYear, Calendar.NOVEMBER, 12);
-        eventList.add(new Event("BBQ Event", cal.getTime(), "Mushroom bros who listen to bangers", "A chill BBQ event for everyone who enjoys good music and even better food. We'll be grilling up a storm and spinning some bangers. Come hang out!", R.drawable.mushroom_in_headphones_amidst_nature));
-        cal.set(currentYear, Calendar.DECEMBER, 18);
-        eventList.add(new Event("Ski Trip", cal.getTime(), "The slopes are calling", "Hit the slopes with us for a weekend of skiing and snowboarding. All skill levels are welcome. Get ready for some fresh powder and stunning mountain views.", R.drawable.ski_trip_banner));
-        cal.set(currentYear + 1, Calendar.JANUARY, 5); // Next year for January
-        eventList.add(new Event("Tech Conference", cal.getTime(), "Innovations in AI", "Discover the latest breakthroughs in Artificial Intelligence at our annual Tech Conference. Featuring keynote speakers from leading tech companies and interactive workshops.", R.drawable.rogers_image));
-        cal.set(currentYear, Calendar.JULY, 22);
-        eventList.add(new Event("Summer Music Festival", cal.getTime(), "Live bands and good vibes", "Experience the best of summer with our annual music festival. Featuring a lineup of incredible live bands, food trucks, and a vibrant atmosphere. Let the good times roll!", R.drawable.mushroom_in_headphones_amidst_nature));
-        cal.set(currentYear, Calendar.AUGUST, 14);
-        eventList.add(new Event("Mountain Hike", cal.getTime(), "Explore scenic trails", "Join our guided hike through breathtaking mountain trails. This is a great opportunity to connect with nature, get some exercise, and enjoy panoramic views.", R.drawable.ski_trip_banner));
-
-        return eventList;
-    }
-
 
     /**
      * Callback interface for fetching waitlist entrants.
@@ -242,7 +214,7 @@ public class EventRepository {
         }
 
         // The path is events -> {eventId} -> waitlistedUsers -> {userId}
-        db.collection("events").document(eventId).collection("waitlistedUsers").document(userId)
+        events.document(eventId).collection("waitlistedUsers").document(userId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
@@ -286,7 +258,7 @@ public class EventRepository {
         }
 
         // The path is events -> {eventId} -> waitlistedUsers
-        db.collection("events").document(eventId).collection("waitlistedUsers")
+        events.document(eventId).collection("waitlistedUsers")
             .get()
             .addOnSuccessListener(queryDocumentSnapshots -> {
                 List<GeoPoint> locations = new ArrayList<>();
@@ -322,7 +294,7 @@ public class EventRepository {
             callback.onError(new IllegalArgumentException("Event ID cannot be null or empty."));
             return;
         }
-        db.collection("events").document(eventId).collection("invitedUsers")
+        events.document(eventId).collection("invitedUsers")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<String> userIds = new ArrayList<>();
@@ -348,7 +320,7 @@ public class EventRepository {
             callback.onError(new IllegalArgumentException("Event ID and User ID cannot be null or empty."));
             return;
         }
-        db.collection("events").document(eventId).collection("invitedUsers").document(userId)
+        events.document(eventId).collection("invitedUsers").document(userId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
@@ -377,7 +349,7 @@ public class EventRepository {
             callback.onError(new IllegalArgumentException("Event ID cannot be null or empty."));
             return;
         }
-        db.collection("events").document(eventId).collection("invitedUsers")
+        events.document(eventId).collection("invitedUsers")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<GeoPoint> locations = new ArrayList<>();
@@ -397,7 +369,6 @@ public class EventRepository {
     // --- END OF INVITED ENTRANTS METHODS ---
 
     // --- START OF CANCELLED ENTRANTS METHODS ---
-
     /**
      * Callback interface for fetching cancelled entrants.
      */
@@ -414,7 +385,7 @@ public class EventRepository {
             callback.onError(new IllegalArgumentException("Event ID cannot be null or empty."));
             return;
         }
-        db.collection("events").document(eventId).collection("cancelledUsers")
+        events.document(eventId).collection("cancelledUsers")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<String> userIds = new ArrayList<>();
@@ -440,7 +411,7 @@ public class EventRepository {
             callback.onError(new IllegalArgumentException("Event ID and User ID cannot be null or empty."));
             return;
         }
-        db.collection("events").document(eventId).collection("cancelledUsers").document(userId)
+        events.document(eventId).collection("cancelledUsers").document(userId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
@@ -469,7 +440,7 @@ public class EventRepository {
             callback.onError(new IllegalArgumentException("Event ID cannot be null or empty."));
             return;
         }
-        db.collection("events").document(eventId).collection("cancelledUsers")
+        events.document(eventId).collection("cancelledUsers")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<GeoPoint> locations = new ArrayList<>();
@@ -503,7 +474,7 @@ public class EventRepository {
             callback.onError(new IllegalArgumentException("Event ID cannot be null or empty."));
             return;
         }
-        db.collection("events").document(eventId).collection("selectedUsers")
+        events.document(eventId).collection("selectedUsers")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<String> userIds = new ArrayList<>();
@@ -529,7 +500,7 @@ public class EventRepository {
             callback.onError(new IllegalArgumentException("Event ID and User ID cannot be null or empty."));
             return;
         }
-        db.collection("events").document(eventId).collection("selectedUsers").document(userId)
+        events.document(eventId).collection("selectedUsers").document(userId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
@@ -558,7 +529,7 @@ public class EventRepository {
             callback.onError(new IllegalArgumentException("Event ID cannot be null or empty."));
             return;
         }
-        db.collection("events").document(eventId).collection("selectedUsers")
+        events.document(eventId).collection("selectedUsers")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<GeoPoint> locations = new ArrayList<>();

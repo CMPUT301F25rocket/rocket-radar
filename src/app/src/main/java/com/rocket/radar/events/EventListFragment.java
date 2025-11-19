@@ -95,7 +95,7 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         super.onViewCreated(view, savedInstanceState);
 
         // Initialization
-        eventRepository = new EventRepository();
+        eventRepository = EventRepository.getInstance();
         profileViewModel = new ViewModelProvider(requireActivity()).get(ProfileViewModel.class);
         allEvents = new ArrayList<>();
         displayedEvents = new ArrayList<>();

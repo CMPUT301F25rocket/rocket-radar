@@ -100,7 +100,7 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        eventRepository = new EventRepository();
+        eventRepository = EventRepository.getInstance();
         profileViewModel = new ViewModelProvider(requireActivity()).get(ProfileViewModel.class);
         allEvents = new ArrayList<>();
         displayedEvents = new ArrayList<>();
