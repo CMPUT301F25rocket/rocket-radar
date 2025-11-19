@@ -1,4 +1,3 @@
-// C:/Users/bwood/Cmput301/rocket-radar/src/app/src/main/java/com/rocket/radar/events/EventViewFragment.java
 package com.rocket.radar.events;
 
 import android.annotation.SuppressLint;
