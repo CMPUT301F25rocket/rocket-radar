@@ -193,6 +193,10 @@ public class EventViewFragment extends Fragment {
         Log.d(TAG, "onInvitedEventIds: " + onInvitedEventIds);
         boolean isInvited = onInvitedEventIds.contains(event.getEventId());
         Log.d(TAG, "isInvited: " + isInvited);
+        ArrayList<String> onAttendingEventIds = currentProfile.getAttendingEventIds();
+        boolean isAttending = onAttendingEventIds.contains(event.getEventId());
+        Log.d(TAG, "isAttending: " + isAttending);
+
 
 
 
@@ -225,6 +229,13 @@ public class EventViewFragment extends Fragment {
                         .build()
                 );
             });
+
+        } else if (isAttending) {
+            // user is attending event, hide manage entrants button, and set joinandleavebutton to a message
+            manageEntrantsButton.setVisibility(View.GONE);
+            joinAndLeaveWaitlistButton.setText("We'll see you there!");
+            // joinandlaave button should be unclickable
+            joinAndLeaveWaitlistButton.setClickable(false);
 
         } else if (isInvited) {
             // invited user view

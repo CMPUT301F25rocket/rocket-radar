@@ -6,9 +6,7 @@ import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.GeoPoint;
 
 import java.io.Serializable;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.HashSet;
 
 /**
  * Represents a user profile in the application.
@@ -131,8 +129,21 @@ public class ProfileModel implements Serializable {
 
     }
 
+    public ArrayList<String> getCancelledEventIds() {
+        if (this.cancelledEventIds == null) this.cancelledEventIds = new ArrayList<>();
+        return cancelledEventIds;
+    }
+
+    /**
+     * Sets the ArrayList of event IDs to which the user is invited.
+     * @param cancelledEventIds the new ArrayList to set for invited event IDs
+     */
+    public void setCancelledEventIds(ArrayList<String> cancelledEventIds) {
+        this.cancelledEventIds = cancelledEventIds;
+    }
+
     public void addCancelledEventId(String eventId) {
-        if (this.onInvitedEventIds == null) this.onInvitedEventIds = new ArrayList<>();
+        if (this.cancelledEventIds == null) this.cancelledEventIds = new ArrayList<>();
         this.cancelledEventIds.add(eventId);
     }
 
