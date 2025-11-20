@@ -43,6 +43,7 @@ jobs:
         env:
           GOOGLE_SERVICES_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: |
+          npm install -g firebase-tools
           cd $GITHUB_WORKSPACE/src
           echo "$GOOGLE_SERVICES_BASE64" | base64 --decode > app/google-services.json
           ./gradlew test
