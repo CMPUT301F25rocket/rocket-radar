@@ -81,11 +81,10 @@ android {
             startFirebaseEmulation.get().emulatorProcess?.destroy()
         }
     }
-    tasks.withType<Test>() {
+    // Only start Firebase emulator for instrumented tests (connectedAndroidTest, deviceAndroidTest)
+    tasks.matching { it.name.contains("AndroidTest") }.configureEach {
         dependsOn("startFirebaseEmulation")
         finalizedBy("stopFirebaseEmulation")
-        environment("FIRESTORE_EMULATOR_HOST", "127.0.0.1:8080")
-        environment("FIREBASE_AUTH_EMULATOR_HOST", "127.0.0.1:9099")
     }
 
     buildTypes {
