@@ -29,7 +29,6 @@ public class EventRepository {
     private final CollectionReference events;
     private static EventRepository instance = null;
 
-    // This constructor now correctly initializes Firestore.
     private EventRepository() {
         this.events = FirebaseFirestore.getInstance().collection("events"); // Use "events" collection
     }

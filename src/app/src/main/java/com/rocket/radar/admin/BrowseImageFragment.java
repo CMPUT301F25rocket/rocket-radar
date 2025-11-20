@@ -1,6 +1,8 @@
 package com.rocket.radar.admin;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,12 +13,15 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.rocket.radar.databinding.FragmentBrowseImagesBinding;
+import com.rocket.radar.events.Event;
 import com.rocket.radar.events.EventRepository;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class BrowseImageFragment extends Fragment {
     private FragmentBrowseImagesBinding binding;
+    public final static String TAG = BrowseImageFragment.class.getSimpleName();
 
     @Nullable
     @Override
@@ -28,6 +33,15 @@ public class BrowseImageFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         binding.fullImageList.setLayoutManager(new GridLayoutManager(getContext(), 3));
-        binding.fullImageList.setAdapter(new ImageAdapter(new ArrayList<>()));
+        List<Event> events = EventRepository.getInstance().getAllEvents().getValue();
+        if (events == null) {
+            Log.e(TAG, "Failed to fetch Events from EventRepository");
+            return;
+        }
+        ArrayList<Bitmap> images = new ArrayList<>();
+        for (var event : events) {
+            images.add(event.getBannerImageBitmap());
+        }
+        binding.fullImageList.setAdapter(new ImageAdapter(images));
     }
 }

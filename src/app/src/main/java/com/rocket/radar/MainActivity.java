@@ -93,10 +93,10 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
-    @Override
     /**
      * Initializes the activity, sets up navigation, and requests necessary permissions.
      */
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         mAuth = FirebaseAuth.getInstance();
         profileViewModel = new ViewModelProvider(this).get(ProfileViewModel.class);
@@ -130,6 +130,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "FCM Registration Token: " + token);
                 });
     }
+
     /**
      * Requests notification permission for Android 13 and above.
      */

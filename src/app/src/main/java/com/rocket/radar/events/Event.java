@@ -3,6 +3,7 @@ package com.rocket.radar.events;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.time.format.TextStyle;
@@ -524,15 +525,8 @@ public class Event implements Serializable {
      */
     public void setBannerImageBlob(Blob data) { this.bannerImageBlob = data; }
 
-    private static Bitmap resizeBanner(Bitmap image)
+    public static Bitmap resizeBanner(Bitmap image, final int targetWidth, final int targetHeight)
     throws Exception {
-        // IMPORTANT: Make sure these are kept up to date.
-        // These are the dimensions in DP for the image on the event view page. This may result
-        // in blurriness on HDPI screens (not really sure) but we're covering it with a gradient
-        // anyways so we should be good.
-        final int targetWidth = 420;
-        final int targetHeight = 350;
-
         int w = image.getWidth();
         int h = image.getHeight();
         if (w < targetWidth || h < targetHeight)
@@ -710,7 +704,7 @@ public class Event implements Serializable {
          * @param categories
          * @return
          */
-        public Builder categories(ArrayList<String> categories) {
+        public Builder categories(Collection<String> categories) {
             event.categories.addAll(categories);
             return this;
         }
@@ -792,7 +786,11 @@ public class Event implements Serializable {
         }
 
         public Builder bannerImage(Bitmap image) throws Exception {
-            Bitmap resized = resizeBanner(image);
+            // IMPORTANT: Make sure these are kept up to date.
+            // These are the dimensions in DP for the image on the event view page. This may result
+            // in blurriness on HDPI screens (not really sure) but we're covering it with a gradient
+            // anyways so we should be good.
+            Bitmap resized = resizeBanner(image, 420, 350);
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             resized.compress(Bitmap.CompressFormat.JPEG, 70, outputStream);
             event.bannerImageBlob = Blob.fromBytes(outputStream.toByteArray());
