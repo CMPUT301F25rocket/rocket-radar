@@ -1,3 +1,5 @@
+import java.io.IOException
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.google.gms.google.services)
@@ -31,6 +33,50 @@ android {
     testOptions {
         execution = "ANDROIDX_TEST_ORCHESTRATOR"
         animationsDisabled = true
+    }
+
+    // Complains about final when not abstract. It's magic. It's a feature. It's a magic feature.
+    abstract class StartFirebaseEmulation : DefaultTask() {
+        @Internal
+        var emulatorProcess: Process? = null
+
+        @TaskAction
+        fun startEmulators() {
+            try {
+                val process = ProcessBuilder("firebase", "emulators:start")
+                    .redirectErrorStream(true)
+                    .start()
+                val lines = process.inputStream.bufferedReader().lines()
+                for (line in lines) {
+                    logger.lifecycle(line)
+                    if (line.contains("All emulators ready!", ignoreCase = true)) break;
+                }
+                // Hmm yes, java rust.
+                emulatorProcess = if (process.isAlive) process else null
+            } catch (e: IOException) {
+                logger.error("Dear Bozo, you don't have `firebase` installed. You can install it with `npm install -g firebase-tools`. Yours sincerly, Gradle.")
+                logger.error(e.toString())
+            }
+        }
+    }
+
+    // The alternative to the gradle task was running all the test through terminal wrapping with
+    // firebase emulators:exec ..., but I that's annoying and I didn't want to overwrite the builtin
+    // test tasks.
+    //
+    tasks.register<StartFirebaseEmulation>("startFirebaseEmulation")
+    tasks.register("stopFirebaseEmulation") {
+        val startFirebaseEmulation = tasks.named<StartFirebaseEmulation>("startFirebaseEmulation")
+        mustRunAfter(startFirebaseEmulation)
+        doLast {
+            startFirebaseEmulation.get().emulatorProcess?.destroy()
+        }
+    }
+    tasks.withType<Test>() {
+        dependsOn("startFirebaseEmulation")
+        finalizedBy("stopFirebaseEmulation")
+        environment("FIRESTORE_EMULATOR_HOST", "127.0.0.1:8080")
+        environment("FIREBASE_AUTH_EMULATOR_HOST", "127.0.0.1:9099")
     }
 
     buildTypes {
