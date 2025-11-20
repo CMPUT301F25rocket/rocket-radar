@@ -109,5 +109,27 @@ public class EventCreationInstrumentedTest {
         assertEquals(sample.getEventTitle(), updated.get(0).getEventTitle());
     }
 
+    @Test
+    public void testAddUserToWaitlist() throws Exception {
+        Event e = EventTestUtils.sampleEvent();
+        repo.createEvent(e);
+        Thread.sleep(300);
+
+        GeoPoint gp = new GeoPoint(53.5, -113.5);
+        repo.addUserToWaitlist(e, "user123", gp);
+        Thread.sleep(300);
+
+        DocumentSnapshot snap = Tasks.await(
+                db.collection("events")
+                        .document(e.getEventId())
+                        .collection("waitlistedUsers")
+                        .document("user123")
+                        .get()
+        );
+
+        assertTrue(snap.exists());
+        assertEquals(gp, snap.getGeoPoint("signupLocation"));
+    }
+
 
 }
