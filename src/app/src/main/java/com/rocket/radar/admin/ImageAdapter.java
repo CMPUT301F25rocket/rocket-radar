@@ -36,6 +36,9 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // https://stackoverflow.com/questions/6180802/show-imageview-programmatically
         ImageView imageView = new ImageView(parent.getContext());
+        int size = parent.getWidth() / 3;
+        imageView.setLayoutParams(new ViewGroup.LayoutParams(size, size));
+        imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
         return new ViewHolder(imageView);
     }
 
