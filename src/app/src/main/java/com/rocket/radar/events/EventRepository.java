@@ -118,12 +118,28 @@ public class EventRepository {
      * @return The UUID of the created event.
      */
     public String createEvent(Event event) {
-        // Use the event's title as the document ID for simplicity, or use .add() for auto-ID
-        events.document(event.getEventId()).set(event)
-                .addOnSuccessListener(aVoid -> Log.d(TAG, "Event successfully written: " + event.getEventTitle()))
-                .addOnFailureListener(e -> Log.e(TAG, "Error writing event", e));
+        // Decide which document reference to use
+        DocumentReference docRef;
+
+        if (event.getEventId() == null || event.getEventId().isEmpty()) {
+            // No ID yet? Let Firestore generate one.
+            docRef = events.document();               // auto-ID
+            event.setEventId(docRef.getId());         // store it on the Event
+        } else {
+            // ID already present (e.g., app code set it)
+            docRef = events.document(event.getEventId());
+        }
+
+        docRef.set(event)
+                .addOnSuccessListener(aVoid ->
+                        Log.d(TAG, "Event successfully written: " + event.getEventTitle()))
+                .addOnFailureListener(e ->
+                        Log.e(TAG, "Error writing event", e));
+
+        // You still return the event ID as before
         return event.getEventId();
     }
+
 
     public void addUserToWaitlist(Event event, String userId, GeoPoint location){
         if (event == null || event.getEventId() == null) {

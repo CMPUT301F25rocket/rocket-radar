@@ -1,5 +1,5 @@
 [versions]
-agp = "8.13.0"
+agp = "8.13.1"
 calendar = "2.3.1"
 firebaseBom = "34.4.0"
 junit = "4.13.2"
