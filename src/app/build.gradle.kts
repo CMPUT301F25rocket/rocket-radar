@@ -9,6 +9,15 @@ android {
     namespace = "com.rocket.radar"
     compileSdk = 36
 
+    sourceSets {
+        getByName("test") {
+            java.srcDir("src/testShared/java")
+        }
+        getByName("androidTest") {
+            java.srcDir("src/testShared/java")
+        }
+    }
+
     buildFeatures {
         // This enables the generation of classes that basically contain all elements of a view by
         // id so that findViewById only needs to be called rarely.
@@ -110,6 +119,7 @@ dependencies {
     //Unit Testing
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.mockito:mockito-core:4.11.0")
+    testImplementation("org.robolectric:robolectric:4.11.1")
 
     //Android Testing
     androidTestImplementation("org.mockito:mockito-android:4.11.0")

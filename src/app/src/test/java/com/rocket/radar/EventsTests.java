@@ -20,13 +20,19 @@ import com.rocket.radar.events.Event;
 import com.rocket.radar.events.EventRepository;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = 28)
 public class EventsTests {
+
     // This method just prepares the local list of dummy data.
     private List<Event> loadDummyData() {
         List<Event> eventList = new java.util.ArrayList<>();
@@ -75,8 +81,8 @@ public class EventsTests {
      */
     public float bitmapAbsoluteError(Bitmap measuredBitmap, Bitmap trueBitmap) {
         float error = 0;
-        for (int row = 0; row < trueBitmap.getWidth(); ++row) {
-            for (int col = 0; col < trueBitmap.getHeight(); ++col)  {
+        for (int row = 0; row < trueBitmap.getHeight(); ++row) {
+            for (int col = 0; col < trueBitmap.getWidth(); ++col)  {
                 Color measuredPixel = Color.valueOf(measuredBitmap.getPixel(col, row));
                 Color truePixel = Color.valueOf(trueBitmap.getPixel(col, row));
                 float[] measuredComponents = measuredPixel.getComponents();
@@ -113,71 +119,11 @@ public class EventsTests {
         assertTrue("Error is not within tolerance: " + error, error < 1e-7);
     }
 
-    public Event sampleEvent() throws Exception {
-        Calendar cal = Calendar.getInstance();
-        int currentYear = cal.get(Calendar.YEAR);
-
-        Event event = new Event();
-        event.setEventTitle("BBQ Event");
-
-        cal.set(currentYear, Calendar.OCTOBER, 20);
-        event.setEventStartDate(cal.getTime());
-
-        cal.set(currentYear, Calendar.OCTOBER, 24);
-        event.setEventEndDate(cal.getTime());
-
-        event.setTagline("Mushroom bros who listen to bangers");
-
-        ArrayList<String> cats = new ArrayList<>();
-        cats.add(Event.allEventCategories.get(2));
-        cats.add(Event.allEventCategories.get(4));
-        event.setCategories(cats);
-
-        event.setDescription("A chill BBQ event for everyone who enjoys good music and even better food. We'll be grilling up a storm and spinning some bangers. Come hang out!");
-
-        event.setEventStartTime(new Time(2, 30));
-        event.setEventEndTime(new Time(4, 40));
-
-        cal.set(currentYear, Calendar.SEPTEMBER, 2);
-        event.setRegistrationStartDate(cal.getTime());
-        cal.set(currentYear, Calendar.SEPTEMBER, 5);
-        event.setRegistrationEndDate(cal.getTime());
-
-        cal.set(currentYear, Calendar.SEPTEMBER, 6);
-        event.setSelectionStartDate(cal.getTime());
-        cal.set(currentYear, Calendar.SEPTEMBER, 8);
-        event.setSelectionEndDate(cal.getTime());
-        cal.set(currentYear, Calendar.SEPTEMBER, 14);
-        event.setFinalSelectionDate(cal.getTime());
-
-        event.setWaitlistCapacity(30);
-        event.setRequireLocation(true);
-        cal.set(currentYear, Calendar.SEPTEMBER, 10);
-        event.setLotteryDate(cal.getTime());
-        event.setLotteryTime(new Time(12, 0));
-        
-        Bitmap bitmap = Bitmap.createBitmap(500, 880, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        canvas.drawColor(Color.WHITE);
-        drawSampleImage(canvas);
-
-        return new Event.Builder(event)
-                .bannerImage(bitmap)
-                .build();
-    }
-
-    public void assertEventEquals(@NonNull Event expected, @Nullable Event actual) {
-        assertNotNull("Actual event is null", actual);
-        assertEquals("Mismatch title", expected.getEventTitle(), actual.getEventTitle());
-        assertEquals("Mismatch event start date", expected.getEventStartDate(), actual.getEventStartDate());
-        assertEquals("Mismatch event end date", expected.getEventEndDate(), actual.getEventEndDate());
-    }
-
     @Test
     public void testEventBuilder()
     throws Exception
     {
-        Event sample = sampleEvent();
+        Event sample = EventTestUtils.sampleEvent();
         List<String> categories = sample.getCategories();
         String first = categories.removeFirst();
         String last = categories.removeLast();
@@ -206,22 +152,6 @@ public class EventsTests {
                 .bannerImage(sample.getBannerImageBitmap())
                 .color(Color.valueOf(sample.getColor()))
                 .build();
-        assertEventEquals(sample, copy);
-    }
-
-    @Test
-    public void testEventCreation()
-    throws Exception
-    {
-        EventRepository repository = EventRepository.getInstance();
-        Event sample = sampleEvent();
-        repository.createEvent(sample);
-        Event remoteEvent = FirebaseFirestore.getInstance()
-                .collection("events")
-                .document(sample.getEventId())
-                .get()
-                .getResult()
-                .toObject(Event.class);
-        assertEventEquals(sample, remoteEvent);
+        EventTestUtils.assertEventEquals(sample, copy);
     }
 }
