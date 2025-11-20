@@ -161,6 +161,17 @@ public class UserFragment extends Fragment  implements EventAdapter.OnEventListe
         roleDropdownLayout = view.findViewById(R.id.role_dropdown_layout);
         roleDropdown = view.findViewById(R.id.role_dropdown);
 
+        String currentUserUid = profileViewModel.getProfileLiveData().getValue().getUid();
+        String viewedUserUid = userProfile.getUid();
+
+        if (currentUserUid.equals(viewedUserUid)) {
+            roleDropdownLayout.setEnabled(false);
+            roleDropdownLayout.setVisibility(View.GONE);
+        } else {
+            roleDropdownLayout.setVisibility(View.VISIBLE);
+            roleDropdownLayout.setEnabled(true);
+        }
+
         String[] roles = new String[ProfileModel.UserRole.values().length];
         int i = 0;
         for (ProfileModel.UserRole role : ProfileModel.UserRole.values()) {
