@@ -71,4 +71,23 @@ public class AdminRepository {
         void onError(Exception e);
     }
 
+
+    public void updateUserRole(ProfileModel profile, ProfileModel.UserRole role, updateCallback callback) {
+        String uid = profile.getUid();
+        db.collection("users")
+                .document(uid)
+                .update("role", role)
+                .addOnSuccessListener(aVoid -> {
+                    callback.onSuccess();
+                })
+                .addOnFailureListener( e -> {
+                    Log.e("AdminRepository", "Failed to fetch notifications", e);
+                    callback.onError(e);
+                });
+    }
+
+    public interface updateCallback {
+        void onSuccess();
+        void onError(Exception e);
+    }
 }

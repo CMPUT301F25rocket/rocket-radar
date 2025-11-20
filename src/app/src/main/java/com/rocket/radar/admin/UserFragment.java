@@ -177,6 +177,17 @@ public class UserFragment extends Fragment  implements EventAdapter.OnEventListe
         roleDropdown.setOnItemClickListener((parent, view1, position, id) -> {
             String selected = (String) parent.getItemAtPosition(position);
             userProfile.setRole(ProfileModel.UserRole.valueOf(selected));
+            adminRepository.updateUserRole(currentUserProfile, userProfile.getRole(), new AdminRepository.updateCallback() {
+                @Override
+                public void onSuccess() {
+                    Toast.makeText(getContext(), "User role updated", Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    Toast.makeText(getContext(), "Failed to update user role: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
         });
     }
 
