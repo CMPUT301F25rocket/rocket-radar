@@ -52,6 +52,18 @@ public class NotificationRepository {
         }
     }
 
+    // FOR TESTING ONLY
+    // DO NOT USE
+    public NotificationRepository(String userId) {
+        if (userId != null && !userId.isEmpty()) {
+            this.userNotificationsRef = db.collection("users")
+                    .document(userId)
+                    .collection("notifications");
+        } else {
+            Log.e(TAG, "Provided userId is null or empty. userNotificationsRef will be null.");
+        }
+    }
+
     /**
      * Fetches the notifications for the currently logged-in user in real-time.
      * It listens to the user's notification sub-collection, resolves the notification
