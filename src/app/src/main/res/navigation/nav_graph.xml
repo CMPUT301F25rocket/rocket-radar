@@ -38,6 +38,11 @@
         android:label="Draft Events" />
 
     <fragment
+        android:id="@+id/imagesFragment"
+        android:name="com.rocket.radar.admin.BrowseImageFragment"
+        android:label="Images Fragment" />
+
+    <fragment
         android:id="@+id/loginStartScanningFragment"
         android:name="com.rocket.radar.login.LoginStartScanningFragment"
         android:label="Login Start Scanning">
@@ -64,6 +69,7 @@
             android:id="@+id/action_login_main_to_login_start_scanning"
             app:destination="@id/loginStartScanningFragment"/>
     </fragment>
+
 
     <fragment
         android:id="@+id/accountSettingsFragment"

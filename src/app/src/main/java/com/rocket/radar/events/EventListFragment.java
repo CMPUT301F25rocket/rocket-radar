@@ -105,7 +105,6 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
 
         notificationRepository = new NotificationRepository();
 
-
         notificationButton.setOnClickListener(v -> {
             NotificationFragment notificationFragment = new NotificationFragment();
             if (getActivity() instanceof MainActivity) {

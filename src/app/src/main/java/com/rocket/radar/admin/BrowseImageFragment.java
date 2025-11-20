@@ -1,6 +1,7 @@
 package com.rocket.radar.admin;
 
 import android.graphics.Bitmap;
+import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.rocket.radar.databinding.FragmentBrowseImagesBinding;
 import com.rocket.radar.events.Event;
@@ -34,14 +36,22 @@ public class BrowseImageFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         binding.fullImageList.setLayoutManager(new GridLayoutManager(getContext(), 3));
         List<Event> events = EventRepository.getInstance().getAllEvents().getValue();
-        if (events == null) {
-            Log.e(TAG, "Failed to fetch Events from EventRepository");
-            return;
-        }
         ArrayList<Bitmap> images = new ArrayList<>();
-        for (var event : events) {
-            images.add(event.getBannerImageBitmap());
+        if (events == null) {
+            Log.w(TAG, "Failed to fetch Events from EventRepository");
+        } else {
+            for (var event : events) {
+                images.add(event.getBannerImageBitmap());
+            }
         }
-        binding.fullImageList.setAdapter(new ImageAdapter(images));
+        ImageAdapter adapter = new ImageAdapter(images);
+        binding.fullImageList.setAdapter(adapter);
+        EventRepository.getInstance().getAllEvents().observe(getViewLifecycleOwner(), newEvents -> {
+            images.clear();
+            for (var event : newEvents) {
+                images.add(event.getBannerImageBitmap());
+            }
+            adapter.notifyDataSetChanged();
+        });
     }
 }
