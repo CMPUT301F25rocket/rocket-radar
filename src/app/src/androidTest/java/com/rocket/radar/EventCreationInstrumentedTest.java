@@ -152,4 +152,37 @@ public class EventCreationInstrumentedTest {
         assertNull(snap.getGeoPoint("signupLocation"));
     }
 
+    @Test
+    public void testGetWaitlistSize() throws Exception {
+        Event e = EventTestUtils.sampleEvent();
+        repo.createEvent(e);
+        Thread.sleep(300);
+
+        // Seed manually
+        db.collection("events").document(e.getEventId())
+                .collection("waitlistedUsers")
+                .document("user1")
+                .set(new HashMap<>());
+
+        db.collection("events").document(e.getEventId())
+                .collection("waitlistedUsers")
+                .document("user2")
+                .set(new HashMap<>());
+
+        Thread.sleep(300);
+
+        repo.getWaitlistSize(e, new EventRepository.WaitlistSizeListener() {
+            @Override public void onSizeReceived(int size) {
+                assertEquals(2, size);
+            }
+            @Override public void onWaitlistEntrantsFetched(List<String> ids) {
+                assertTrue(ids.contains("user1"));
+                assertTrue(ids.contains("user2"));
+            }
+            @Override public void onError(Exception e) {
+                fail("Error callback not expected");
+            }
+        });
+    }
+
 }
