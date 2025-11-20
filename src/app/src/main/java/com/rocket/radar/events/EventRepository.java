@@ -26,11 +26,15 @@ import java.util.Map;
 public class EventRepository {
 
     private static final String TAG = "EventRepository";
+
+    // 🔹 This is now the source of truth for Firestore
+    private static FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+
     private final CollectionReference events;
     private static EventRepository instance = null;
 
     private EventRepository() {
-        this.events = FirebaseFirestore.getInstance().collection("events"); // Use "events" collection
+        this.events = firestore.collection("events");
     }
 
     public static EventRepository getInstance() {
@@ -38,6 +42,12 @@ public class EventRepository {
             instance = new EventRepository();
         }
         return instance;
+    }
+
+    // 🔹 Test-only hook: replace Firestore and reset singleton
+    public static void useFirestoreForTesting(FirebaseFirestore testFirestore) {
+        firestore = testFirestore;
+        instance = null; // force re-creation with the new db
     }
 
     /**

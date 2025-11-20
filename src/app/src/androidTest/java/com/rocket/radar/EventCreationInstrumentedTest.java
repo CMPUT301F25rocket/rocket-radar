@@ -12,11 +12,13 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.GeoPoint;
 import com.rocket.radar.events.Event;
 import com.rocket.radar.events.EventRepository;
 
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,16 +35,21 @@ public class EventCreationInstrumentedTest {
 
     @Before
     public void setUp() {
-        // Configure Firestore to use emulator
-        // 10.0.2.2 is the special IP address to connect to the 'localhost' of
-        // the host computer from an Android emulator.
-        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
-        firestore.useEmulator("10.0.2.2", 8080);
+        // 1. Get default instance
+        db = FirebaseFirestore.getInstance();
+
+        // 2. Point it at emulator
+        db.useEmulator("10.0.2.2", 8080);
 
         FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
                 .setPersistenceEnabled(false)
                 .build();
-        firestore.setFirestoreSettings(settings);
+        db.setFirestoreSettings(settings);
+
+        // 3. Inject into EventRepository and reset singleton
+        EventRepository.useFirestoreForTesting(db);
+
+        // 4. Now this repo is guaranteed to talk to the emulator
         repo = EventRepository.getInstance();
     }
 
@@ -81,5 +88,26 @@ public class EventCreationInstrumentedTest {
         Event remote = snapshot.toObject(Event.class);
         EventTestUtils.assertEventEquals(sample, remote);
     }
+
+    @Test
+    public void testGetAllEventsStream() throws Exception {
+
+        Tasks.await(db.collection("events").limit(1).get());
+
+        // Now attach LiveData observers
+        LiveData<List<Event>> liveData = repo.getAllEvents();
+        List<Event> initial = LiveDataTestUtil.getOrAwaitValue(liveData);
+        assertEquals(0, initial.size());
+
+        // Insert event
+        Event sample = EventTestUtils.sampleEvent();
+        repo.createEvent(sample);
+        Thread.sleep(500);
+
+        List<Event> updated = LiveDataTestUtil.getOrAwaitValue(liveData);
+        assertEquals(1, updated.size());
+        assertEquals(sample.getEventTitle(), updated.get(0).getEventTitle());
+    }
+
 
 }
