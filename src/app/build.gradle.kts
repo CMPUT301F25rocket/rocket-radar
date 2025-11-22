@@ -79,6 +79,8 @@ dependencies {
     androidTestUtil("androidx.test:orchestrator:1.4.2")
     androidTestImplementation("androidx.fragment:fragment-testing:1.6.2")
 
+    implementation("androidx.annotation:annotation:1.7.0")
+
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

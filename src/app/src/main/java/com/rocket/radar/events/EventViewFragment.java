@@ -27,6 +27,7 @@ import com.google.firebase.firestore.Blob;
 import com.google.firebase.firestore.GeoPoint;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
+import com.rocket.radar.lottery.LotteryLogic;
 import com.rocket.radar.notifications.NotificationRepository;
 import com.rocket.radar.profile.ProfileModel;
 import com.rocket.radar.profile.ProfileRepository;
@@ -53,8 +54,8 @@ public class EventViewFragment extends Fragment {
     private Event event;
     private ProfileViewModel profileViewModel;
     private EventRepository repo = new EventRepository();
-    private ProfileRepository profileRepository = new ProfileRepository();
-    private NotificationRepository notificationRepository = new NotificationRepository();
+    private LotteryLogic lottery;
+
 
     // 2. ADD isOrganizer aS A MEMBER VARIABLE
     private boolean isOrganizer;
@@ -141,6 +142,7 @@ public class EventViewFragment extends Fragment {
 
         // Populate static event data
         if (event != null) {
+            lottery = new LotteryLogic(event);
             eventTitle.setText(event.getEventTitle());
             if (event.getEventStartDate() != null) { // Check event.getDate() for null
                 String FormattedDate = DateFormat.getDateInstance(DateFormat.FULL).format(event.getEventStartDate());
@@ -219,7 +221,7 @@ public class EventViewFragment extends Fragment {
             // 2. Repurpose the other button as "Edit"
             joinAndLeaveWaitlistButton.setVisibility(View.VISIBLE); // Make sure it is VISIBLE
             joinAndLeaveWaitlistButton.setText("Run Lottery");
-            joinAndLeaveWaitlistButton.setOnClickListener(v -> handleRunLottery()); // Add your edit logic here
+            joinAndLeaveWaitlistButton.setOnClickListener(v -> lottery.handleRunLottery(event));
 
             // 3. Allow organizer to click banner image to change it
             eventImageView.setClickable(true);
@@ -273,6 +275,10 @@ public class EventViewFragment extends Fragment {
                 // deal with client side logic
                 currentProfile.addCancelledEventId(event.getEventId());
                 currentProfile.removeInvitedEventId(event.getEventId());
+
+                // automatically re-run the lottery for 1 person
+                lottery.handleRunLottery(event, 1);
+
                 navigateBack();
                 Toast.makeText(getContext(), "Invitation rejected (not implemented)", Toast.LENGTH_SHORT).show();
             });
@@ -295,86 +301,6 @@ public class EventViewFragment extends Fragment {
         // REMOVED redundant listeners from here as they are now correctly placed inside the if/else block
     }
 
-    private void handleRunLottery() {
-        // samples a subset of Waitlisted users (which is the size of event capacity)
-        // and adds them to invitedUsers by calling event repository
-        Log.d(TAG, "Running Lottery!");
-
-        ArrayList<String> waitlistedUsers = new ArrayList<>();
-
-
-        repo.getWaitlistSize(event, new EventRepository.WaitlistSizeListener() {
-            @Override
-            public void onSizeReceived(int size) {
-                Log.d(TAG, "Waitlist size received: " + size);
-            }
-
-            @Override
-            public void onWaitlistEntrantsFetched(List<String> userIds) {
-                Log.d(TAG, "Waitlist entrants fetched: " + userIds);
-                waitlistedUsers.addAll(userIds);
-                ArrayList<String> invitedUsers = new ArrayList<>();
-
-
-
-                if (waitlistedUsers.size() < event.getEventCapacity()) {
-                    // add everyone on waitlist to invited
-                    Log.d(TAG, "Waitlist size is less than event capacity, Everyone is invited!");
-                    for (String userId : waitlistedUsers) {
-                        moveUserToInvited(userId, invitedUsers);
-                    }
-
-                } else {
-                    Log.d(TAG, "Waitlist size is greater than event capacity, Lottery started!");
-                    int numInvited = event.getEventCapacity();
-                    for (int i = 0; i < numInvited; i++) {
-                        int randomIndex = (int) (Math.random() * waitlistedUsers.size());
-                        String chosenUserId = waitlistedUsers.get(randomIndex);
-                        Log.d(TAG, "Chosen user ID: " + chosenUserId);
-
-                        moveUserToInvited(chosenUserId, invitedUsers);
-                        waitlistedUsers.remove(randomIndex);
-                    }
-                }
-                repo.setInvitedUserIds(event, invitedUsers);
-                Log.d(TAG, "Added invited users" + invitedUsers + "to event " + event.getEventTitle() + "!");
-
-                // send notification to users that won the lottery
-                String title = event.getEventTitle();
-                String body = "You won the lottery!";
-                String eventId = event.getEventId();
-                String groupCollection = "invitedUsers";
-                notificationRepository.sendNotificationToGroup(title, body, eventId, groupCollection);
-                Log.d(TAG, "WIN Notification sent to invited users" + invitedUsers + "to event " + event.getEventTitle() + "!");
-
-                // send notification to users that lost the lottery
-                String body2 = "You lost the lottery!";
-                String groupCollection2 = "waitlistedUsers";
-                notificationRepository.sendNotificationToGroup(title, body2, eventId, groupCollection2);
-                Log.d(TAG, "LOST Notification sent to waitlisted users" + waitlistedUsers + "to event " + event.getEventTitle() + "!");
-
-
-            }
-
-            @Override
-            public void onError(Exception e) {
-
-            }
-
-        });
-    }
-
-    /**
-     * Moves a user from the waitlist to the invited list.
-     * This helper method updates the database for both the event and the user's profile.
-     * @param userId The ID of the user to move.
-     * @param invitedUsers The list of invited user IDs to which the user will be added.
-     */
-    private void moveUserToInvited(String userId, List<String> invitedUsers) {
-        invitedUsers.add(userId);
-        repo.removeUserFromWaitlist(event, userId);
-        profileRepository.updateUserInvitedList(userId, event.getEventId());
-    }
     /**
      * Hides the main activity's bottom navigation bar when the fragment is resumed.
      */
