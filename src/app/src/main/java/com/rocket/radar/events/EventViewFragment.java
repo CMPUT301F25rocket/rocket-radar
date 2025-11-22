@@ -1,6 +1,6 @@
-// C:/Users/bwood/Cmput301/rocket-radar/src/app/src/main/java/com/rocket/radar/events/EventViewFragment.java
 package com.rocket.radar.events;
 
+import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -27,7 +27,10 @@ import com.google.firebase.firestore.Blob;
 import com.google.firebase.firestore.GeoPoint;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
+import com.rocket.radar.lottery.LotteryLogic;
+import com.rocket.radar.notifications.NotificationRepository;
 import com.rocket.radar.profile.ProfileModel;
+import com.rocket.radar.profile.ProfileRepository;
 import com.rocket.radar.profile.ProfileViewModel;
 
 import java.io.ByteArrayOutputStream;
@@ -50,7 +53,8 @@ public class EventViewFragment extends Fragment {
     private static final String ARG_IS_ORGANIZER = "is_organizer";
     private Event event;
     private ProfileViewModel profileViewModel;
-    EventRepository repo = EventRepository.getInstance();
+    private EventRepository repo = new EventRepository();
+    private LotteryLogic lottery;
 
 
     // 2. ADD isOrganizer aS A MEMBER VARIABLE
@@ -138,6 +142,7 @@ public class EventViewFragment extends Fragment {
 
         // Populate static event data
         if (event != null) {
+            lottery = new LotteryLogic(event);
             eventTitle.setText(event.getEventTitle());
             if (event.getEventStartDate() != null) { // Check event.getDate() for null
                 String FormattedDate = DateFormat.getDateInstance(DateFormat.FULL).format(event.getEventStartDate());
@@ -184,6 +189,19 @@ public class EventViewFragment extends Fragment {
             return;
         }
 
+        ProfileModel currentProfile = profileViewModel.getProfileLiveData().getValue();
+        boolean isOnWaitlist = isOnWaitlist(currentProfile);
+        ArrayList<String> onInvitedEventIds = currentProfile.getOnInvitedEventIds();
+        Log.d(TAG, "onInvitedEventIds: " + onInvitedEventIds);
+        boolean isInvited = onInvitedEventIds.contains(event.getEventId());
+        Log.d(TAG, "isInvited: " + isInvited);
+        ArrayList<String> onAttendingEventIds = currentProfile.getAttendingEventIds();
+        boolean isAttending = onAttendingEventIds.contains(event.getEventId());
+        Log.d(TAG, "isAttending: " + isAttending);
+
+
+
+
         // 5. THE LOGIC BLOCK CAN NOW USE THE DEFINED VARIABLES
         if (isOrganizer) {
             // Organizer View
@@ -202,8 +220,8 @@ public class EventViewFragment extends Fragment {
 
             // 2. Repurpose the other button as "Edit"
             joinAndLeaveWaitlistButton.setVisibility(View.VISIBLE); // Make sure it is VISIBLE
-            joinAndLeaveWaitlistButton.setText("Edit");
-            // joinAndLeaveWaitlistButton.setOnClickListener(v -> handleEditEvent()); // Add your edit logic here
+            joinAndLeaveWaitlistButton.setText("Run Lottery");
+            joinAndLeaveWaitlistButton.setOnClickListener(v -> lottery.handleRunLottery(event));
 
             // 3. Allow organizer to click banner image to change it
             eventImageView.setClickable(true);
@@ -214,8 +232,58 @@ public class EventViewFragment extends Fragment {
                 );
             });
 
+        } else if (isAttending) {
+            // user is attending event, hide manage entrants button, and set joinandleavebutton to a message
+            manageEntrantsButton.setVisibility(View.GONE);
+            joinAndLeaveWaitlistButton.setText("We'll see you there!");
+            // joinandlaave button should be unclickable
+            joinAndLeaveWaitlistButton.setClickable(false);
+
+        } else if (isInvited) {
+            // invited user view
+            manageEntrantsButton.setVisibility(View.VISIBLE);
+            manageEntrantsButton.setText("Accept Invitation");
+            manageEntrantsButton.setOnClickListener(v -> {
+                // TODO: Implement accept invitation
+
+                // event side attending list
+                // call to event repo
+                repo.addUserToAttending(event, currentProfile.getUid());
+                repo.removeUserFromInvited(event, currentProfile.getUid());
+
+                // client side list of attending events
+                // call to profile model
+                // Logic for joining a waitlist
+                currentProfile.addAttendingEventId(event.getEventId());
+                currentProfile.removeInvitedEventId(event.getEventId());
+                // 2. Pass the user ID and location to the repository method.
+
+
+                navigateBack();
+
+                Toast.makeText(getContext(), "Invitation accepted", Toast.LENGTH_SHORT).show();
+            });
+
+            joinAndLeaveWaitlistButton.setVisibility(View.VISIBLE);
+            joinAndLeaveWaitlistButton.setText("Reject Invitation");
+            joinAndLeaveWaitlistButton.setOnClickListener(v -> {
+                // TODO: Implement reject invitation
+                // deal with backend stuff
+                repo.addUserToCancelled(event, currentProfile.getUid());
+                repo.removeUserFromInvited(event, currentProfile.getUid());
+
+                // deal with client side logic
+                currentProfile.addCancelledEventId(event.getEventId());
+                currentProfile.removeInvitedEventId(event.getEventId());
+
+                // automatically re-run the lottery for 1 person
+                lottery.handleRunLottery(event, 1);
+
+                navigateBack();
+                Toast.makeText(getContext(), "Invitation rejected (not implemented)", Toast.LENGTH_SHORT).show();
+            });
         } else {
-            // Regular User View
+            // regular (non invited/waitlisted) User View
 
             // Hide the organizer button
             manageEntrantsButton.setVisibility(View.GONE);
@@ -277,6 +345,7 @@ public class EventViewFragment extends Fragment {
         }
 
         boolean onWaitlist = isOnWaitlist(currentProfile);
+        boolean isInvited = currentProfile.getOnInvitedEventIds().contains(event.getEventId());
 
         if (onWaitlist) {
             // Logic for leaving a waitlist (remains unchanged)
@@ -318,6 +387,15 @@ public class EventViewFragment extends Fragment {
         button.setText(onWaitlist ? "Leave Waitlist" : "Join Waitlist");
         button.setEnabled(true);
     }
+
+//    private void updateInviteButton(Button button, ProfileModel profile){
+//        if (event == null || profile == null) {
+//            button.setEnabled(false);
+//            return;
+//        }
+//        button.setText("Reject Invitiation");
+//        button.setEnabled(true);
+//    }
 
     /**
      * Checks if the current user is on the waitlist for the event.

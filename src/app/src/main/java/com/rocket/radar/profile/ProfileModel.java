@@ -27,7 +27,11 @@ public class ProfileModel implements Serializable {
 
     private ArrayList<String> onWaitlistEventIds;
     private ArrayList<String> onMyEventIds;
+    private ArrayList<String> onInvitedEventIds;
+
     private String role;
+    private ArrayList<String> attendingEventIds;
+    private ArrayList<String> cancelledEventIds;
 
     public GeoPoint getLastKnownLocation() {
         return lastKnownLocation;
@@ -75,6 +79,76 @@ public class ProfileModel implements Serializable {
         this.geolocationEnabled = geolocationEnabled;
         this.role = (role != null) ? role.name() : UserRole.ORGANIZER.name();
     }
+
+    /**
+     * Returns an ArrayList of event IDs to which the user is invited.
+     * @return an ArrayList of invited event IDs
+     */
+    public ArrayList<String> getOnInvitedEventIds() {
+        if (this.onInvitedEventIds == null) this.onInvitedEventIds = new ArrayList<>();
+        return onInvitedEventIds;
+    }
+
+    /**
+     * Sets the ArrayList of event IDs to which the user is invited.
+     * @param onInvitedEventIds the new ArrayList to set for invited event IDs
+     */
+    public void setOnInvitedEventIds(ArrayList<String> onInvitedEventIds) {
+        this.onInvitedEventIds = onInvitedEventIds;
+    }
+
+    public void addOnInvitedEventId(String eventId) {
+        if (this.onInvitedEventIds == null) this.onInvitedEventIds = new ArrayList<>();
+        this.onInvitedEventIds.add(eventId);
+    }
+
+    /**
+     * Returns an ArrayList of event IDs to which the user is invited.
+     * @return an ArrayList of invited event IDs
+     */
+    public ArrayList<String> getAttendingEventIds() {
+        if (this.attendingEventIds == null) this.attendingEventIds = new ArrayList<>();
+        return attendingEventIds;
+    }
+
+    /**
+     * Sets the ArrayList of event IDs to which the user is invited.
+     * @param attendingEventIds the new ArrayList to set for invited event IDs
+     */
+    public void setAttendingEventIds(ArrayList<String> attendingEventIds) {
+        this.attendingEventIds = attendingEventIds;
+    }
+
+    public void addAttendingEventId(String eventId) {
+        if (this.attendingEventIds == null) this.attendingEventIds = new ArrayList<>();
+        this.attendingEventIds.add(eventId);
+    }
+
+    public void removeInvitedEventId(String eventId) {
+        if (this.onInvitedEventIds == null) return;
+        this.onInvitedEventIds.remove(eventId);
+
+    }
+
+    public ArrayList<String> getCancelledEventIds() {
+        if (this.cancelledEventIds == null) this.cancelledEventIds = new ArrayList<>();
+        return cancelledEventIds;
+    }
+
+    /**
+     * Sets the ArrayList of event IDs to which the user is invited.
+     * @param cancelledEventIds the new ArrayList to set for invited event IDs
+     */
+    public void setCancelledEventIds(ArrayList<String> cancelledEventIds) {
+        this.cancelledEventIds = cancelledEventIds;
+    }
+
+    public void addCancelledEventId(String eventId) {
+        if (this.cancelledEventIds == null) this.cancelledEventIds = new ArrayList<>();
+        this.cancelledEventIds.add(eventId);
+    }
+
+
 
     /**
      * Represents the permissions a user has.

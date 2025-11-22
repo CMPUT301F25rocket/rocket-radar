@@ -204,7 +204,7 @@ public class NotificationRepository {
                         Log.d(TAG, "Preparing to send notification to " + usersToNotify.size() + " enabled users.");
 
                         // 5. Create and fan out the notification ONLY to the filtered list.
-                        createAndFanOutNotification(title, body, usersToNotify);
+                        createAndFanOutNotification(title, body, eventId, usersToNotify);
 
                     }).addOnFailureListener(e -> Log.e(TAG, "Failed to fetch one or more user profiles.", e));
 
@@ -214,10 +214,11 @@ public class NotificationRepository {
     /**
      * Helper method to create the main notification content and fan it out to the specified users.
      */
-    private void createAndFanOutNotification(String title, String body, List<String> usersToNotify) {
+    private void createAndFanOutNotification(String title, String body, String eventId, List<String> usersToNotify) {
         Map<String, Object> newNotificationContent = new HashMap<>();
         newNotificationContent.put("eventTitle", title);
         newNotificationContent.put("notificationType", body);
+        newNotificationContent.put("eventId", eventId);
         newNotificationContent.put("image", R.drawable.ic_radar);
         newNotificationContent.put("timestamp", FieldValue.serverTimestamp());
 

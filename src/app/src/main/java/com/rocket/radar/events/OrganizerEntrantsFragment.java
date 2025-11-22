@@ -32,6 +32,7 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.firestore.GeoPoint;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
+import com.rocket.radar.lottery.LotteryLogic;
 import com.rocket.radar.notifications.NotificationRepository;
 import com.rocket.radar.profile.ProfileModel;
 import com.rocket.radar.profile.ProfileRepository;
@@ -346,7 +347,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                     });
                     break;
 
-                case "selected":
+                case "attending":
                     if (event == null || event.getEventId() == null) {
                         Log.e(TAG, "Event or Event ID is null. Cannot fetch selected entrants.");
                         Toast.makeText(getContext(), "Event data is missing.", Toast.LENGTH_SHORT).show();
@@ -354,9 +355,9 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                         return;
                     }
 
-                    eventRepository.getSelectedEntrants(event.getEventId(), new EventRepository.SelectedEntrantsCallback() {
+                    eventRepository.getAttendingEntrants(event.getEventId(), new EventRepository.AttendingEntrantsCallback() {
                         @Override
-                        public void onSelectedEntrantsFetched(List<String> userIds) {
+                        public void AttendingEntrantsFetched(List<String> userIds) {
                             Log.d(TAG, "Fetched " + userIds.size() + " selected entrants.");
                             if (userIds.isEmpty()) {
                                 entrantsAdapter.notifyDataSetChanged();
@@ -483,8 +484,8 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                 return "waitlisted";
             case "Invited":
                 return "invited";
-            case "Selected":
-                return "selected";
+            case "Attending":
+                return "attending";
             case "Cancelled":
                 return "cancelled";
             default:
@@ -552,14 +553,13 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
                 @Override
                 public void onTabSelected(TabLayout.Tab tab) {
                     updateActionButtons(tab);
-                    // --- START OF CHANGE: Re-filter the list when a new tab is selected ---
+
                     filterAndDisplayEntrants(tab);
 
                     if (tab.getText() != null && tab.getText().toString().equals("On Waitlist")) {
                         fetchAndDisplayWaitlistLocations();
                     }
 
-                    // --- END OF CHANGE ---
                 }
                 @Override public void onTabUnselected(TabLayout.Tab tab) { /* No-op */ }
                 @Override public void onTabReselected(TabLayout.Tab tab) { /* No-op */ }
@@ -579,6 +579,59 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         bottomSheet.findViewById(R.id.invited_send_notification_button).setOnClickListener(openDialogListener);
         bottomSheet.findViewById(R.id.attending_send_notification_button).setOnClickListener(openDialogListener); // ID remains attending_...
         bottomSheet.findViewById(R.id.cancelled_send_notification_button).setOnClickListener(openDialogListener);
+
+        view.findViewById(R.id.invited_cancel_button).setOnClickListener(v -> {
+            // 1. Get the list of currently invited users (unresponded entrants)
+            // We need to fetch them first to know who to cancel.
+            eventRepository.getInvitedEntrants(event.getEventId(), new EventRepository.InvitedEntrantsCallback() {
+                @Override
+                public void onInvitedEntrantsFetched(List<String> userIds) {
+                    if (userIds.isEmpty()) {
+                        Toast.makeText(getContext(), "No invited users to cancel.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    // 2. Iterate through the list and cancel each one
+                    for (String userId : userIds) {
+                        // A. Move from Invited -> Cancelled in Firestore (Event side)
+                        eventRepository.addUserToCancelled(event, userId);
+                        eventRepository.removeUserFromInvited(event, userId);
+
+                        // B. Update the User's Profile (Client side logic)
+                        // We need to update the specific user's profile to reflect the change
+                        profileRepository.readProfile(userId, new ProfileRepository.ReadCallback() {
+                            @Override
+                            public void onProfileLoaded(ProfileModel userProfile) {
+                                userProfile.addCancelledEventId(event.getEventId());
+                                userProfile.removeInvitedEventId(event.getEventId());
+                            }
+
+                            @Override
+                            public void onError(Exception e) {
+                                Log.e(TAG, "Error updating profile for user: " + userId, e);
+                            }
+                        });
+                    }
+
+                    // 3. Automatically re-run the lottery to fill the spots
+                    // We re-run for exactly the number of people we just cancelled
+                    int spotsFreed = userIds.size();
+                    new LotteryLogic(event).handleRunLottery(event, spotsFreed);
+
+                    Toast.makeText(getContext(), "Cancelled " + spotsFreed + " entrants. Lottery re-run.", Toast.LENGTH_SHORT).show();
+
+                    // Refresh the list view
+                    filterAndDisplayEntrants(tabs.getTabAt(tabs.getSelectedTabPosition()));
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    Log.e(TAG, "Error fetching invited entrants for bulk cancellation", e);
+                    Toast.makeText(getContext(), "Failed to fetch entrants.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+
     }
 
     private void updateActionButtons(TabLayout.Tab tab) {
@@ -657,7 +710,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         if (tab == null || tab.getText() == null) return null;
         switch (tab.getText().toString()) {
             case "On Waitlist": return "onWaitlistEventIds";
-            case "Selected": return "attendees";
+            case "Attending": return "attendees";
             case "Invited": return "invited";
             case "Cancelled": return "cancelled";
             default: return null;

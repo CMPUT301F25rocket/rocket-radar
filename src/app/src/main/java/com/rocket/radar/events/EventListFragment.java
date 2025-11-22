@@ -277,7 +277,10 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
                 }
             } else {
                 chipGroup.setVisibility(View.GONE);
-                filteredList = allEvents;
+                ArrayList<String> finalUserWaitlistEventIds3 = userWaitlistEventIds;
+                filteredList = allEvents.stream()
+                        .filter(event -> !finalUserWaitlistEventIds3.contains(event.getEventId()))
+                        .collect(Collectors.toList());
             }
         } else if (checkedId == R.id.waitlist_filter_button) {
             ArrayList<String> finalUserWaitlistEventIds1 = userWaitlistEventIds;
