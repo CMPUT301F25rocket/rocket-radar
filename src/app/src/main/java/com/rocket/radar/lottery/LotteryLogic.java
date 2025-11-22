@@ -90,7 +90,7 @@ public class LotteryLogic {
                 waitlistedUsers.addAll(userIds);
                 ArrayList<String> invitedUsers = new ArrayList<>();
 
-                if (sampleNum != null && sampleNum > waitlistedUsers.size()){
+                if (sampleNum != null && sampleNum < waitlistedUsers.size()){
                     for (int i = 0; i < sampleNum; i++) {
                         int randomIndex = (int) (Math.random() * waitlistedUsers.size());
                         String chosenUserId = waitlistedUsers.get(randomIndex);
