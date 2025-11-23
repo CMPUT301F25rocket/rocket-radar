@@ -107,7 +107,6 @@ jobs:
           disable-animations: true
           script: |
             echo "$GOOGLE_SERVICES_BASE64" | base64 --decode > src/app/google-services.json
-            ./src/gradlew connectedDebugAndroidTest --stacktrace --info
-            unset GOOGLE_SERVICES_BASE64
+            cd src && ./gradlew connectedDebugAndroidTest --stacktrace --info
             rm src/app/google-services.json
 
