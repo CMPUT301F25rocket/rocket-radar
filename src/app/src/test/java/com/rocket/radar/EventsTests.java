@@ -157,5 +157,4 @@ public class EventsTests {
 
         EventTestUtils.assertEventEquals(sample, copy);
     }
-
 }
