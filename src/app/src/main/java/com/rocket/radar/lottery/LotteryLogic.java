@@ -77,7 +77,6 @@ public class LotteryLogic {
 
         ArrayList<String> waitlistedUsers = new ArrayList<>();
 
-
         eventRepository.getWaitlistSize(this.event, new EventRepository.WaitlistSizeListener() {
             @Override
             public void onSizeReceived(int size) {
