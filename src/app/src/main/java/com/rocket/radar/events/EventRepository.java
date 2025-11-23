@@ -33,7 +33,7 @@ public class EventRepository {
     private final CollectionReference events;
     private static EventRepository instance = null;
 
-    private EventRepository() {
+    public EventRepository() {
         this.events = firestore.collection("events");
     }
 
@@ -83,7 +83,7 @@ public class EventRepository {
      * @return Task yielding a {@code DocumentSnapshot} which can be converted into an {@code Event}
      */
     public Task<DocumentSnapshot> getEvent(String eventId) {
-        return eventRef.document(eventId).get();
+        return events.document(eventId).get();
     }
 
     public void addUserToAttending(Event event, String uid) {
@@ -93,7 +93,7 @@ public class EventRepository {
         }
         else {
             // 1. Get the correct path: events -> {event-id} -> waitlistedUsers -> {user-id}
-            DocumentReference attendingRef = db.collection("events").document(event.getEventId())
+            DocumentReference attendingRef = events.document(event.getEventId())
                     .collection("attendingUsers").document(uid);
 
             // 2. Create a map to hold some data, like a timestamp.
@@ -117,7 +117,7 @@ public class EventRepository {
         }
         else {
             // 1. Get the correct path: events -> {event-id} -> waitlistedUsers -> {user-id}
-            DocumentReference cancelledRef = db.collection("events").document(event.getEventId())
+            DocumentReference cancelledRef = events.document(event.getEventId())
                     .collection("cancelledUsers").document(uid);
 
             // 2. Create a map to hold some data, like a timestamp.
@@ -143,7 +143,7 @@ public class EventRepository {
             Log.e(TAG, "User ID is null or empty. Cannot remove user from waitlist.");
             return;
         }
-        DocumentReference userDocumentInWaitlist = db.collection("events").document(event.getEventId())
+        DocumentReference userDocumentInWaitlist = events.document(event.getEventId())
                 .collection("invitedUsers").document(uid);
 
         // 2. Call .delete() on that specific document reference.
@@ -206,7 +206,7 @@ public class EventRepository {
             return;
         }
 
-        CollectionReference invitedRef = db.collection("events").document(event.getEventId())
+        CollectionReference invitedRef = events.document(event.getEventId())
                 .collection("invitedUsers");
 
         invitedRef.get().addOnSuccessListener(queryDocumentSnapshots -> {
@@ -231,7 +231,7 @@ public class EventRepository {
             return;
         }
 
-        db.collection("events").document(event.getEventId()).collection("cancelledUsers")
+        events.document(event.getEventId()).collection("cancelledUsers")
                 .get().addOnSuccessListener(q -> listener.onSizeReceived(q.size()))
                 .addOnFailureListener(listener::onError);
     }
@@ -374,7 +374,7 @@ public class EventRepository {
         else {
             for (String userId : userIds) {
                 // 1. Get the correct path: events -> {event-id} -> waitlistedUsers -> {user-id}
-                DocumentReference invitedRef = db.collection("events").document(event.getEventId())
+                DocumentReference invitedRef = events.document(event.getEventId())
                         .collection("invitedUsers").document(userId);
                 // 2. Create a map to hold some data, like a timestamp.
                 // Firestore documents cannot be completely empty.
@@ -641,7 +641,7 @@ public class EventRepository {
             callback.onError(new IllegalArgumentException("Event ID cannot be null or empty."));
             return;
         }
-        db.collection("events").document(eventId).collection("attendingUsers")
+        events.document(eventId).collection("attendingUsers")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<String> userIds = new ArrayList<>();
@@ -726,7 +726,7 @@ public class EventRepository {
         }
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("events").document(eventId)
+        events.document(eventId)
                 .get()
                 .addOnSuccessListener(doc -> {
                     if (doc.exists()) {
