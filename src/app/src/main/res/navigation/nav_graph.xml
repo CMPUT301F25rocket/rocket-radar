@@ -90,6 +90,9 @@
         <action
             android:id="@+id/action_profile_to_accountSettings"
             app:destination="@id/accountSettingsFragment" />
+        <action
+            android:id="@+id/action_profile_to_criteria"
+            app:destination="@id/loginCriteriaFragment" />
     </fragment>
 
     <fragment
