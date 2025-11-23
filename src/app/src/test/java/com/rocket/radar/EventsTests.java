@@ -120,13 +120,15 @@ public class EventsTests {
     }
 
     @Test
-    public void testEventBuilder()
-    throws Exception
-    {
+    public void testEventBuilder() throws Exception {
         Event sample = EventTestUtils.sampleEvent();
-        List<String> categories = sample.getCategories();
-        String first = categories.removeFirst();
-        String last = categories.removeLast();
+
+        // Make a *mutable copy* so we don't accidentally mutate the original list
+        List<String> categories = new ArrayList<>(sample.getCategories());
+
+        // Grab and remove first + last using indices
+        String first = categories.remove(0);
+        String last = categories.remove(categories.size() - 1);
 
         Event copy = new Event.Builder()
                 .title(sample.getEventTitle())
@@ -152,6 +154,8 @@ public class EventsTests {
                 .bannerImage(sample.getBannerImageBitmap())
                 .color(Color.valueOf(sample.getColor()))
                 .build();
+
         EventTestUtils.assertEventEquals(sample, copy);
     }
+
 }
