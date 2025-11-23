@@ -106,8 +106,10 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           script: |
-            cd $GITHUB_WORKSPACE/src
-            echo "$GOOGLE_SERVICES_BASE64" | base64 --decode > app/google-services.json
+            cd "$GITHUB_WORKSPACE"
+            echo "$GOOGLE_SERVICES_BASE64" | base64 --decode > src/app/google-services.json
+            cd src
             ./gradlew connectedDebugAndroidTest
             unset GOOGLE_SERVICES_BASE64
-            rm app/google-services.json
+            rm src/app/google-services.json
+
