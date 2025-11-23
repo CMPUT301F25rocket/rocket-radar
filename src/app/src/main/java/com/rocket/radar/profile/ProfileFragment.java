@@ -17,6 +17,7 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
@@ -39,6 +40,7 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
 
 
     private ImageButton accountSettingsButton;
+    private MaterialButton criteriaButton;
     private TextView profileName;
 
     private ProfileViewModel profileViewModel;
@@ -73,6 +75,12 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
         accountSettingsButton.setOnClickListener(v -> {
             NavHostFragment.findNavController(this)
                     .navigate(R.id.action_profile_to_accountSettings);
+        });
+
+        criteriaButton = view.findViewById(R.id.app_criteria_button);
+        criteriaButton.setOnClickListener(v -> {
+            NavHostFragment.findNavController(this)
+                    .navigate(R.id.action_profile_to_criteria);
         });
 
         profileViewModel = new ViewModelProvider(requireActivity()).get(ProfileViewModel.class);

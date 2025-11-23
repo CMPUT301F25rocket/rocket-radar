@@ -110,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(navBarBinding.bottomNavigationView, navController);
 
         adminModeManager = AdminModeManager.getInstance(this);
+        adminModeManager.setNavController(navController);
 
         adminModeManager.getAdminModeLiveData().observe(this, isAdminMode -> {
             updateBottomNavigation(isAdminMode);
@@ -328,6 +329,7 @@ public class MainActivity extends AppCompatActivity {
                     } else {
                         Log.d(TAG, "Profile data received for user: " + profile.getUid());
                         checkGeolocationPermission(profile);
+                        adminModeManager.startMonitoringAdminStatus();
                     }
                 }
             });

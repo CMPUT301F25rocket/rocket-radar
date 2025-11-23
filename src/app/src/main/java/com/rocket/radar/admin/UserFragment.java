@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 
 public class UserFragment extends Fragment  implements EventAdapter.OnEventListener {
     private static final String USER_PROFILE = "userProfile";
+    private static final String FIRST_ADMIN = "aKCDdxvbKmgAnhE0elNxMTTKlck1";
     private ProfileModel userProfile;
     private AdminRepository adminRepository;
     private AutoCompleteTextView roleDropdown;
@@ -98,7 +99,7 @@ public class UserFragment extends Fragment  implements EventAdapter.OnEventListe
             String currentUserUid = profileViewModel.getProfileLiveData().getValue().getUid();
             String viewedUserUid = userProfile.getUid();
 
-            if (currentUserUid.equals(viewedUserUid)) { // prevent self-deletion
+            if (currentUserUid.equals(viewedUserUid) || viewedUserUid.equals(FIRST_ADMIN)) { // prevent self-deletion or deleting first admin
                 new MaterialAlertDialogBuilder(requireContext())
                         .setTitle("Action not allowed")
                         .setMessage("You cannot delete your own account from the admin panel. Go to Account Settings instead.")
@@ -164,7 +165,7 @@ public class UserFragment extends Fragment  implements EventAdapter.OnEventListe
         String currentUserUid = profileViewModel.getProfileLiveData().getValue().getUid();
         String viewedUserUid = userProfile.getUid();
 
-        if (currentUserUid.equals(viewedUserUid)) {
+        if (currentUserUid.equals(viewedUserUid) || viewedUserUid.equals(FIRST_ADMIN)) {
             roleDropdownLayout.setEnabled(false);
             roleDropdownLayout.setVisibility(View.GONE);
         } else {
