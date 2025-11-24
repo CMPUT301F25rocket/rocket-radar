@@ -307,27 +307,34 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d(TAG, "User signed in with UID: " + uid + ". Updating last login time.");
 
-        // WARN: This is new. May cause a bug. But without it caused a bug.
-        // Activities started that went back to main activity without starting a new main activity
-        // would crash the fragments that made them. The slop machine told me so.
-        if (navController.getCurrentDestination() != null
-            && navController.getCurrentDestination().getId() == R.id.radarDefaultViewFragment) {
-            navController.navigate(R.id.action_returning_user_event_list);
-        }
-
         profileViewModel.updateLastLogin(uid);
-
         profileViewModel.setUserIdForProfileListener(uid);
 
         if (!isObserverInitialized) {
             profileViewModel.getProfileLiveData().observe(this, new Observer<ProfileModel>() {
                 @Override
                 public void onChanged(ProfileModel profile) {
+
+                    // 1. Create NavOptions to clear the back stack
+                    // This says: "Pop everything up to the nav graph root (including the login screen) and include the root itself."
+                    androidx.navigation.NavOptions navOptions = new androidx.navigation.NavOptions.Builder()
+                            .setPopUpTo(R.id.nav_graph, true)
+                            .build();
+
                     if (profile == null) {
-                        navController.navigate(R.id.action_first_time_login_main);
+                        // 2. Apply navOptions here for first-time login
+                        navController.navigate(R.id.action_first_time_login_main, null, navOptions);
                         Log.d(TAG, "First-time user detected. Creating default profile for UID: " + uid);
                     } else {
                         Log.d(TAG, "Profile data received for user: " + profile.getUid());
+
+                        // 3. Add explicit navigation to Home for returning users
+                        // Only navigate if we are currently on the login/loading screen to avoid loop
+                        if (navController.getCurrentDestination() != null
+                                && navController.getCurrentDestination().getId() == R.id.radarDefaultViewFragment) {
+                            navController.navigate(R.id.action_returning_user_event_list, null, navOptions);
+                        }
+
                         checkGeolocationPermission(profile);
                         adminModeManager.startMonitoringAdminStatus();
                     }
@@ -336,6 +343,7 @@ public class MainActivity extends AppCompatActivity {
             isObserverInitialized = true;
         }
     }
+
 
     /**
      * Checks if geolocation permission is needed based on user profile settings and requests it if necessary.
