@@ -48,4 +48,9 @@
         app:layout_constraintTop_toBottomOf="@+id/imageView"
         app:layout_constraintVertical_bias="0.13" />
 
+    <include
+        android:id="@+id/loading_overlay_include"
+        layout="@layout/layout_loading_radar" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

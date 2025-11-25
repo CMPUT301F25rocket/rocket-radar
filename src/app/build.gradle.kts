@@ -114,6 +114,7 @@ dependencies {
     //implementation(files("C:/Users/bwood/AppData/Local/Android/Sdk/platforms/android-36/android.jar"))
     //Phone number authentication
     implementation("com.googlecode.libphonenumber:libphonenumber:8.13.27")
+    implementation(libs.core.splashscreen)
 
     //Unit Testing
     testImplementation("junit:junit:4.13.2")

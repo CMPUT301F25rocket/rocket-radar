@@ -20,6 +20,7 @@ playServicesMaps = "19.2.0"
 transportApi = "4.0.0"
 firebaseFirestore = "26.0.2"
 firebaseMessaging = "25.0.1"
+coreSplashscreen = "1.2.0"
 
 [libraries]
 calendar = { module = "com.maxkeppeler.sheets:calendar", version.ref = "calendar" }
@@ -46,6 +47,7 @@ play-services-maps = { group = "com.google.android.gms", name = "play-services-m
 transport-api = { group = "com.google.android.datatransport", name = "transport-api", version.ref = "transportApi" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
 google-firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
+core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

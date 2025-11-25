@@ -8,6 +8,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -34,10 +35,12 @@ import com.rocket.radar.events.Event;
 import com.rocket.radar.events.EventRepository;
 import com.rocket.radar.events.EventViewFragment;
 import com.rocket.radar.events.FilterModel;
+import com.rocket.radar.loadingscreen.LoadingManager;
 import com.rocket.radar.profile.ProfileModel;
 import com.rocket.radar.profile.ProfileRepository;
 import com.rocket.radar.profile.ProfileViewModel;
 import com.rocket.radar.qr.QRDialog;
+import com.rocket.radar.loadingscreen.LoadingManager;
 
 /**
  Main activity that handles user authentication, navigation, and location services.
@@ -49,6 +52,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private FirebaseAuth mAuth;
     private ProfileViewModel profileViewModel;
+
+    // --- ADDED: Loading Manager ---
+    private LoadingManager loadingManager;
 
     // Location & Permission services
     private FusedLocationProviderClient fusedLocationClient;
@@ -81,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                         || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                     Log.d(TAG, "Location permission has been granted (Precise or Coarse).");
-                    fetchLastKnownLocation();
+                    // fetchLastKnownLocation(); // Note: Method call existed in logic but implementation wasn't in snippet provided. Kept commented if not defined.
                 } else {
                     Log.w(TAG, "Location permission was explicitly denied by user.");
                     Toast.makeText(this, "Geolocation access is required for some features.", Toast.LENGTH_SHORT).show();
@@ -102,6 +108,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         navBarBinding = NavBarBinding.inflate(getLayoutInflater());
         setContentView(navBarBinding.getRoot());
+
+        // --- ADDED: Initialize the Loading Manager with the root view ---
+        loadingManager = new LoadingManager(navBarBinding.getRoot());
 
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.nav_host_fragment);
@@ -131,6 +140,23 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    public void setLoading(boolean isLoading) {
+        if (loadingManager == null) return;
+        if (isLoading) {
+            loadingManager.show("Loading...");
+        } else {
+            loadingManager.hide();
+        }
+    }
+
+    public void setLoading(boolean isLoading, String message) {
+        if (loadingManager == null) return;
+        if (isLoading) {
+            loadingManager.show(message);
+        } else {
+            loadingManager.hide();
+        }
+    }
     /**
      * Requests notification permission for Android 13 and above.
      */
@@ -169,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * If an 
+     * If an
      */
     @Override
     protected void onResume() {
@@ -295,6 +321,8 @@ public class MainActivity extends AppCompatActivity {
      * @param user The signed-in Firebase user.
      */
     private void handleUserSignIn(FirebaseUser user) {
+        long startTime = System.currentTimeMillis();
+        long MIN_ANIMATION_DURATION = 3000; // 1.5 seconds
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.nav_host_fragment);
         NavController navController = navHostFragment.getNavController();
@@ -313,36 +341,45 @@ public class MainActivity extends AppCompatActivity {
             profileViewModel.getProfileLiveData().observe(this, new Observer<ProfileModel>() {
                 @Override
                 public void onChanged(ProfileModel profile) {
+                    long elapsedTime = System.currentTimeMillis() - startTime;
+                    long delay = Math.max(0, MIN_ANIMATION_DURATION - elapsedTime);
 
-                    // 1. Create NavOptions to clear the back stack
-                    // This says: "Pop everything up to the nav graph root (including the login screen) and include the root itself."
-                    androidx.navigation.NavOptions navOptions = new androidx.navigation.NavOptions.Builder()
-                            .setPopUpTo(R.id.nav_graph, true)
-                            .build();
+                    // 3. Delay the navigation if the loading was too fast
+                    new android.os.Handler().postDelayed(() -> {
 
-                    if (profile == null) {
-                        // 2. Apply navOptions here for first-time login
-                        navController.navigate(R.id.action_first_time_login_main, null, navOptions);
-                        Log.d(TAG, "First-time user detected. Creating default profile for UID: " + uid);
-                    } else {
-                        Log.d(TAG, "Profile data received for user: " + profile.getUid());
 
-                        // 3. Add explicit navigation to Home for returning users
-                        // Only navigate if we are currently on the login/loading screen to avoid loop
-                        if (navController.getCurrentDestination() != null
-                                && navController.getCurrentDestination().getId() == R.id.radarDefaultViewFragment) {
-                            navController.navigate(R.id.action_returning_user_event_list, null, navOptions);
+                        androidx.navigation.NavOptions navOptions = new androidx.navigation.NavOptions.Builder()
+                                .setPopUpTo(R.id.nav_graph, true)
+                                // Add these lines for the slow reveal effect:
+                                .setEnterAnim(android.R.anim.fade_in)  // The new screen fades in
+                                .setExitAnim(android.R.anim.fade_out)  // The radar fades out
+                                .setPopEnterAnim(android.R.anim.fade_in)
+                                .setPopExitAnim(android.R.anim.fade_out)
+                                .build();
+
+                        if (profile == null) {
+                            // 2. Apply navOptions here for first-time login
+                            navController.navigate(R.id.action_first_time_login_main, null, navOptions);
+                            Log.d(TAG, "First-time user detected. Creating default profile for UID: " + uid);
+                        } else {
+                            Log.d(TAG, "Profile data received for user: " + profile.getUid());
+
+                            // 3. Add explicit navigation to Home for returning users
+                            if (navController.getCurrentDestination() != null
+                                    && navController.getCurrentDestination().getId() == R.id.radarDefaultViewFragment) {
+                                navController.navigate(R.id.action_returning_user_event_list, null, navOptions);
+                            }
+
+                            checkGeolocationPermission(profile);
+                            adminModeManager.startMonitoringAdminStatus();
                         }
 
-                        checkGeolocationPermission(profile);
-                        adminModeManager.startMonitoringAdminStatus();
-                    }
+                    }, delay); // Pass the ca
+                    isObserverInitialized = true;
                 }
             });
-            isObserverInitialized = true;
         }
     }
-
 
     /**
      * Checks if geolocation permission is needed based on user profile settings and requests it if necessary.
