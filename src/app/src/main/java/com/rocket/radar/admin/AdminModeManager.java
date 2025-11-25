@@ -14,6 +14,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import com.rocket.radar.R;
+import com.rocket.radar.profile.ProfileModel;
 
 // cite: the following script was adapted from ChatGPT and Claude,
 // where ChatGPT recommended using shared preferences,
@@ -85,11 +86,28 @@ public class AdminModeManager {
             }
 
             if (snapshot != null && snapshot.exists()) {
-                boolean isAdmin = snapshot.getBoolean("isAdmin") != null && snapshot.getBoolean("isAdmin");
+                // Get the role string from Firestore
+                String roleString = snapshot.getString("role");
 
-                // If user is no longer an admin but admin mode is on, disable it and navigate
-                if (!isAdmin && isAdminModeOn()) {
-                    //Log.w(TAG, "Admin permissions revoked for user: " + uid);
+                // Convert to enum safely (defaults to ORGANIZER if null or invalid)
+                ProfileModel.UserRole userRole;
+                if (roleString == null) {
+                    userRole = ProfileModel.UserRole.ORGANIZER;
+                } else {
+                    try {
+                        userRole = ProfileModel.UserRole.valueOf(roleString);
+                    } catch (IllegalArgumentException e) {
+                        userRole = ProfileModel.UserRole.ORGANIZER;
+                    }
+                }
+
+                boolean isAdmin = userRole == ProfileModel.UserRole.ADMIN;
+                boolean adminModeCurrentlyOn = isAdminModeOn();
+
+                // Only disable admin mode if they're NOT an admin but admin mode is ON
+                // This handles revocation while preserving admin mode across app restarts
+                if (!isAdmin && adminModeCurrentlyOn) {
+                    Log.w(TAG, "Admin permissions revoked for user: " + uid);
                     setAdminModeOn(false);
                     handleAdminPermissionsRevoked();
                 }
@@ -111,7 +129,7 @@ public class AdminModeManager {
      * Navigates to EventViewFragment and shows a toast.
      */
     private void handleAdminPermissionsRevoked() {
-        //Toast.makeText(context, "Your admin permissions were revoked.", Toast.LENGTH_LONG).show();
+        Toast.makeText(context, "Your admin permissions were revoked.", Toast.LENGTH_LONG).show();
 
         if (navController != null) {
             navController.navigate(R.id.eventListFragment);
