@@ -32,6 +32,7 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.firestore.GeoPoint;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
+import com.rocket.radar.events.CSV.CsvUtils;
 import com.rocket.radar.lottery.LotteryLogic;
 import com.rocket.radar.notifications.NotificationRepository;
 import com.rocket.radar.profile.ProfileModel;
@@ -72,6 +73,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
     private EventRepository eventRepository;
     private NotificationRepository notificationRepository;
     private ProfileRepository profileRepository;
+    private CsvUtils Csv;
 
     // UI elements
     private LinearLayout waitlistActions, invitedActions, selectedActions, cancelledActions;
@@ -632,6 +634,48 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
             });
         });
 
+        view.findViewById(R.id.export_csv_button).setOnClickListener(v -> {
+            eventRepository.getAttendingEntrants(event.getEventId(), new EventRepository.AttendingEntrantsCallback() {
+                @Override
+                public void AttendingEntrantsFetched(List<String> userIds) {
+                    String filename = event.getEventTitle() + " Attending Users";
+
+                    if (userIds.isEmpty()) {
+                        Csv.exportToCsv(getContext(), new ArrayList<>(), filename);
+                        return;
+                    }
+
+                    List<String> userNames = new ArrayList<>();
+                    final int[] pendingProfiles = {userIds.size()};
+
+                    for (String userId : userIds) {
+                        profileRepository.readProfile(userId, new ProfileRepository.ReadCallback() {
+                            @Override
+                            public void onProfileLoaded(ProfileModel profile) {
+                                userNames.add(profile.getName());
+                                if (--pendingProfiles[0] == 0) {
+                                    Csv.exportToCsv(getContext(), userNames, filename);
+                                }
+                            }
+
+                            @Override
+                            public void onError(Exception e) {
+                                userNames.add("Unknown User");
+                                if (--pendingProfiles[0] == 0) {
+                                    Csv.exportToCsv(getContext(), userNames, filename);
+                                }
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    Log.e("CSV Export", "Error fetching attending entrants for CSV export", e);
+                    Toast.makeText(getContext(), "Failed to fetch entrants.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
     }
 
     private void updateActionButtons(TabLayout.Tab tab) {
