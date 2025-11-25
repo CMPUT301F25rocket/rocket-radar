@@ -27,6 +27,7 @@ import com.google.firebase.firestore.Blob;
 import com.google.firebase.firestore.GeoPoint;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
+import com.rocket.radar.admin.AdminModeManager;
 import com.rocket.radar.lottery.LotteryLogic;
 import com.rocket.radar.notifications.NotificationRepository;
 import com.rocket.radar.profile.ProfileModel;
@@ -62,6 +63,8 @@ public class EventViewFragment extends Fragment {
 
     private ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
     private ImageView eventImageView;
+
+    private AdminModeManager adminModeManager;
 
     /**
      * Required empty public constructor for fragment instantiation.
@@ -128,9 +131,11 @@ public class EventViewFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         profileViewModel = new ViewModelProvider(requireActivity()).get(ProfileViewModel.class);
+        adminModeManager = AdminModeManager.getInstance(getContext());
 
         // Find views
         Button backButton = view.findViewById(R.id.back_button);
+        Button deleteButton = view.findViewById(R.id.delete_button);
         Button joinAndLeaveWaitlistButton = view.findViewById(R.id.join_and_leave_waitlist_button);
         // 4. DEFINE manageEntrantsButton
         Button manageEntrantsButton = view.findViewById(R.id.manage_entrants);
@@ -198,6 +203,13 @@ public class EventViewFragment extends Fragment {
         ArrayList<String> onAttendingEventIds = currentProfile.getAttendingEventIds();
         boolean isAttending = onAttendingEventIds.contains(event.getEventId());
         Log.d(TAG, "isAttending: " + isAttending);
+
+
+        if (currentProfile.getRole() == ProfileModel.UserRole.ADMIN && adminModeManager.isAdminModeOn()) {
+            deleteButton.setVisibility(View.VISIBLE);
+        } else {
+            deleteButton.setVisibility(View.GONE);
+        }
 
 
 
