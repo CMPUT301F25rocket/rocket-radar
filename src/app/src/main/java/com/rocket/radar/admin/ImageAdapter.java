@@ -12,16 +12,31 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> {
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
         private final ImageView imageView;
 
         public ViewHolder(ImageView view) {
             super(view);
             imageView = view;
+            imageView.setOnClickListener(this);
+            imageView.setOnLongClickListener(this);
         }
 
         public ImageView getImageView() {
             return imageView;
+        }
+
+        @Override
+        public void onClick(View v) {
+            int position = getBindingAdapterPosition();
+            if (postiion != RecyclerView.NO_POSITION) {
+
+            }
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+            return false;
         }
     }
 
