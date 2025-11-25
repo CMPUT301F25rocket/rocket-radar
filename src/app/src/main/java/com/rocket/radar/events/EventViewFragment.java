@@ -21,13 +21,16 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.firestore.Blob;
 import com.google.firebase.firestore.GeoPoint;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
 import com.rocket.radar.admin.AdminModeManager;
+import com.rocket.radar.admin.AdminRepository;
 import com.rocket.radar.lottery.LotteryLogic;
 import com.rocket.radar.notifications.NotificationRepository;
 import com.rocket.radar.profile.ProfileModel;
@@ -207,6 +210,32 @@ public class EventViewFragment extends Fragment {
 
         if (currentProfile.getRole() == ProfileModel.UserRole.ADMIN && adminModeManager.isAdminModeOn()) {
             deleteButton.setVisibility(View.VISIBLE);
+            deleteButton.setOnClickListener(v -> {
+                new MaterialAlertDialogBuilder(requireContext())
+                        .setTitle("Delete this event?")
+                        .setMessage("This will permanently remove this event and all associated data. This action cannot be undone.")
+                        .setNegativeButton("Cancel", (dialog, which) -> {
+                            dialog.dismiss();
+                        })
+                        .setPositiveButton("Delete Event", (dialog, which) -> {
+                            AdminRepository adminRepository = new AdminRepository();
+                            adminRepository.deleteEvent(event.getEventId(),
+                                    new AdminRepository.DeleteEventCallback() {
+                                        @Override
+                                        public void onSuccess() {
+                                            Log.d(TAG, "Successfully deleted event: " + event.getEventId());
+                                            navigateBack();
+                                        }
+
+                                        @Override
+                                        public void onError(Exception e) {
+                                            Log.d(TAG, "Error deleting event: " + event.getEventId() + e.toString());
+                                        }
+                                    }
+                            );
+                        })
+                        .show();
+            });
         } else {
             deleteButton.setVisibility(View.GONE);
         }
