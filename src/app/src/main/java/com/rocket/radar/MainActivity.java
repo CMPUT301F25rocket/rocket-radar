@@ -112,7 +112,8 @@ public class MainActivity extends AppCompatActivity {
         adminModeManager.setNavController(navController);
 
         adminModeManager.getAdminModeLiveData().observe(this, isAdminMode -> {
-            updateBottomNavigation(isAdminMode);
+            if (profileViewModel.getProfileLiveData().getValue() != null)
+                applyMenuVisibility(profileViewModel.getProfileLiveData().getValue(), isAdminMode);
         });
 
         // Initialize location client
@@ -333,6 +334,8 @@ public class MainActivity extends AppCompatActivity {
                                 && navController.getCurrentDestination().getId() == R.id.radarDefaultViewFragment) {
                             navController.navigate(R.id.action_returning_user_event_list, null, navOptions);
                         }
+                        if (profileViewModel.getProfileLiveData().getValue() != null)
+                            applyMenuVisibility(profileViewModel.getProfileLiveData().getValue(), adminModeManager.isAdminModeOn());
 
                         checkGeolocationPermission(profile);
                         adminModeManager.startMonitoringAdminStatus();
@@ -400,11 +403,22 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void updateBottomNavigation(boolean isAdminMode) {
+    private void applyMenuVisibility(ProfileModel profile, boolean isAdminMode) {
         Menu menu = navBarBinding.bottomNavigationView.getMenu();
 
-        menu.findItem(R.id.draftEventsFragment).setVisible(!isAdminMode);
-        menu.findItem(R.id.imagesFragment).setVisible(isAdminMode);
-        menu.findItem(R.id.browseUsersFragment).setVisible(isAdminMode);
+        boolean isEntrant = profile.getRole() == ProfileModel.UserRole.ENTRANT;
+
+        if (isAdminMode) {
+            // Admin mode overrides role
+            menu.findItem(R.id.draftEventsFragment).setVisible(false);
+            menu.findItem(R.id.imagesFragment).setVisible(true);
+            menu.findItem(R.id.browseUsersFragment).setVisible(true);
+        } else {
+            // Normal role-based logic
+            menu.findItem(R.id.draftEventsFragment).setVisible(!isEntrant);
+
+            menu.findItem(R.id.imagesFragment).setVisible(false);
+            menu.findItem(R.id.browseUsersFragment).setVisible(false);
+        }
     }
 }

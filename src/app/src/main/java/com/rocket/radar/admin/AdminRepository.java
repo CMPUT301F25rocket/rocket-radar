@@ -5,6 +5,7 @@ import android.util.Log;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.rocket.radar.notifications.Notification;
 import com.rocket.radar.profile.ProfileModel;
 import com.rocket.radar.events.Event;
 
@@ -142,27 +143,29 @@ public class AdminRepository {
         }
 
         removeEventFromAllUsers(eventId, () -> {
-            db.collection("events").document(eventId)
-                    .get()
-                    .addOnSuccessListener(doc -> {
-                        if (doc.exists()) {
-                            deleteEventSubcollections(eventId, () -> {
-                                db.collection("events").document(eventId)
-                                        .delete()
-                                        .addOnSuccessListener(aVoid -> {
-                                            Log.d("AdminRepository", "Event deleted successfully: " + eventId);
-                                            callback.onSuccess();
-                                        })
-                                        .addOnFailureListener(e -> {
-                                            Log.e("AdminRepository", "Failed to delete event", e);
-                                            callback.onError(e);
-                                        });
-                            }, callback::onError);
-                        } else {
-                            callback.onError(new Exception("Event not found: " + eventId));
-                        }
-                    })
-                    .addOnFailureListener(callback::onError);
+            removeNotificationsAboutEvent(eventId, () -> {
+                db.collection("events").document(eventId)
+                        .get()
+                        .addOnSuccessListener(doc -> {
+                            if (doc.exists()) {
+                                deleteEventSubcollections(eventId, () -> {
+                                    db.collection("events").document(eventId)
+                                            .delete()
+                                            .addOnSuccessListener(aVoid -> {
+                                                Log.d("AdminRepository", "Event deleted successfully: " + eventId);
+                                                callback.onSuccess();
+                                            })
+                                            .addOnFailureListener(e -> {
+                                                Log.e("AdminRepository", "Failed to delete event", e);
+                                                callback.onError(e);
+                                            });
+                                }, callback::onError);
+                            } else {
+                                callback.onError(new Exception("Event not found: " + eventId));
+                            }
+                        })
+                        .addOnFailureListener(callback::onError);
+            }, callback::onError);
         }, callback::onError);
     }
 
@@ -206,6 +209,30 @@ public class AdminRepository {
                 })
                 .addOnFailureListener(e -> {
                     Log.e("AdminRepository", "Failed to query users for event removal", e);
+                    onError.onError(e);
+                });
+    }
+
+    private void removeNotificationsAboutEvent(String eventId, Runnable onComplete, OnErrorCallback onError) {
+        db.collection("notifications")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                        Notification notification = doc.toObject(Notification.class);
+                        if (notification != null && notification.getEventId() != null &&
+                                notification.getEventId().equals(eventId)) {
+                            doc.getReference().delete()
+                                    .addOnFailureListener(e -> {
+                                        Log.e("AdminRepository", "Failed to delete notification", e);
+                                        onError.onError(e);
+                                    });
+                        }
+                    }
+                    Log.d("AdminRepository", "Notification cleanup complete for event: " + eventId);
+                    onComplete.run();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("AdminRepository", "Failed to query notifications", e);
                     onError.onError(e);
                 });
     }
