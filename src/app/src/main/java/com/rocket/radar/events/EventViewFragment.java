@@ -223,7 +223,7 @@ public class EventViewFragment extends Fragment {
                                     new AdminRepository.DeleteEventCallback() {
                                         @Override
                                         public void onSuccess() {
-                                            Log.d(TAG, "Successfully deleted event: " + event.getEventId());
+                                            Log.d(TAG, "Navigating back from deleted event: " + event.getEventId());
                                             navigateBack();
                                         }
 

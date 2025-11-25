@@ -311,7 +311,7 @@ public class UserFragment extends Fragment  implements EventAdapter.OnEventListe
     public void confirmAccountDelete() {
         ProfileModel profileToDelete = userProfile;
 
-        adminRepository.deleteUser(profileToDelete, new AdminRepository.DeleteCallback() {
+        adminRepository.deleteUser(profileToDelete, new AdminRepository.DeleteUserCallback() {
             @Override
             public void onSuccess() {
                 Toast.makeText(getContext(), "User deleted", Toast.LENGTH_SHORT).show();
