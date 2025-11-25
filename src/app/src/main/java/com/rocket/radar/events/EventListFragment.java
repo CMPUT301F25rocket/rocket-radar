@@ -136,13 +136,23 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
     }
 
     private void observeEvents() {
+        // START LOADING
+        if (getActivity() instanceof MainActivity) {        ((MainActivity) getActivity()).setLoading(true, "Scanning Events...");
+        }
+
         eventRepository.getAllEvents().observe(getViewLifecycleOwner(), newEvents -> {
             Log.d("EventListFragment", "Data updated. " + newEvents.size() + " events received.");
             allEvents.clear();
             allEvents.addAll(newEvents);
             filterAndDisplayEvents();
+
+            // STOP LOADING
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).setLoading(false);
+            }
         });
     }
+
 
     private void observeUserProfile() {
         profileViewModel.getProfileLiveData().observe(getViewLifecycleOwner(), profile -> {
