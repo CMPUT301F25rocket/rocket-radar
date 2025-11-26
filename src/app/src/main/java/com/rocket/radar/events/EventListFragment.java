@@ -18,6 +18,8 @@ import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
+import com.rocket.radar.admin.AdminModeManager;
+import com.rocket.radar.admin.AllNotificationsFragment;
 import com.rocket.radar.databinding.CategoryChipBinding;
 import com.rocket.radar.notifications.NotificationFragment;
 import com.rocket.radar.notifications.NotificationRepository; // Import NotificationRepository
@@ -106,13 +108,25 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         notificationRepository = new NotificationRepository();
 
         notificationButton.setOnClickListener(v -> {
-            NotificationFragment notificationFragment = new NotificationFragment();
-            if (getActivity() instanceof MainActivity) {
-                ((MainActivity) getActivity()).setBottomNavigationVisibility(View.GONE);
-                getActivity().getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.nav_host_fragment, notificationFragment)
-                        .addToBackStack(null)
-                        .commit();
+            AdminModeManager adminModeManager = AdminModeManager.getInstance(getContext());
+            if (currentUserProfile != null && currentUserProfile.getRole() == ProfileModel.UserRole.ADMIN && adminModeManager.isAdminModeOn()) {
+                AllNotificationsFragment allNotificationsFragment = new AllNotificationsFragment();
+                if (getActivity() instanceof MainActivity) {
+                    ((MainActivity) getActivity()).setBottomNavigationVisibility(View.GONE);
+                    getActivity().getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.nav_host_fragment, allNotificationsFragment)
+                            .addToBackStack(null)
+                            .commit();
+                }
+            } else {
+                NotificationFragment notificationFragment = new NotificationFragment();
+                if (getActivity() instanceof MainActivity) {
+                    ((MainActivity) getActivity()).setBottomNavigationVisibility(View.GONE);
+                    getActivity().getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.nav_host_fragment, notificationFragment)
+                            .addToBackStack(null)
+                            .commit();
+                }
             }
         });
 

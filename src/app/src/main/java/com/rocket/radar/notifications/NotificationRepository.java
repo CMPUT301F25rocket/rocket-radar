@@ -244,5 +244,38 @@ public class NotificationRepository {
                 }).addOnFailureListener(e -> Log.e(TAG, "Failed to create main notification content.", e));
     }
 
+    public LiveData<List<Notification>> getAllNotifications() {
+        MutableLiveData<List<Notification>> allNotificationsLiveData = new MutableLiveData<>();
+
+        db.collection("notifications")
+                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .addSnapshotListener((snapshot, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "Listen failed on global notifications collection.", error);
+                        allNotificationsLiveData.postValue(new ArrayList<>());
+                        return;
+                    }
+
+                    if (snapshot == null || snapshot.isEmpty()) {
+                        Log.d(TAG, "No notifications found in global collection.");
+                        allNotificationsLiveData.postValue(new ArrayList<>());
+                        return;
+                    }
+
+                    List<Notification> allNotifications = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : snapshot) {
+                        Notification notification = doc.toObject(Notification.class);
+                        if (notification != null) {
+                            notification.setUserNotificationId(doc.getId());
+                            allNotifications.add(notification);
+                        }
+                    }
+
+                    Log.d(TAG, "Fetched " + allNotifications.size() + " notifications from global collection.");
+                    allNotificationsLiveData.postValue(allNotifications);
+                });
+
+        return allNotificationsLiveData;
+    }
 
 }
