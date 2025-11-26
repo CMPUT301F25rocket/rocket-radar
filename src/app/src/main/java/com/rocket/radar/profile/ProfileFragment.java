@@ -1,6 +1,8 @@
 package com.rocket.radar.profile;
 
+import android.icu.text.ListFormatter;
 import android.os.Bundle;
+import android.provider.CalendarContract;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -183,6 +185,10 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
         int checkedId = toggleGroup.getCheckedButtonId();
         List<Event> filteredList;
 
+        // Get all lists from profile to avoid null pointer exceptions
+        ArrayList<String> userWaitlistIds = currentUserProfile.getOnWaitlistEventIds() != null ? currentUserProfile.getOnWaitlistEventIds() : new ArrayList<>();
+        ArrayList<String> userInvitedIds = currentUserProfile.getOnInvitedEventIds() != null ? currentUserProfile.getOnInvitedEventIds() : new ArrayList<>();
+
         ArrayList<String> userMyEventIds = currentUserProfile.getOnMyEventIds();
         if (userMyEventIds == null) {
             userMyEventIds = new ArrayList<>();
@@ -195,12 +201,29 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
                     .collect(Collectors.toList());
             myEventRecyclerView.setAdapter(adapter);
         } else if (checkedId == R.id.my_history_filter_button) {
-            // TODO: This logic is likely incorrect and needs to be updated based on what "history" means
-            ArrayList<String> finalUserMyEventIds1 = userMyEventIds;
+            // Get current time for comparison
+            long currentTime = System.currentTimeMillis();
+
             filteredList = allEvents.stream()
-                    .filter(event -> !finalUserMyEventIds1.contains(event.getEventId()))
+                    .filter(event -> {
+                        // 1. Check if the user was involved (Invited, Waitlisted, or Attending)
+                        boolean isInvited = userInvitedIds.contains(event.getEventId());
+                        boolean isWaitlisted = userWaitlistIds.contains(event.getEventId());
+
+                        // 2. Check if the event has passed
+                        // Assuming event.getTimestamp() returns a Firestore Timestamp or similar
+                        boolean hasPassed = false;
+                        if (event.getEventStartDate() != null) {
+                            hasPassed = event.getEventStartDate().getTime() < currentTime;
+                        }
+
+                        return (isInvited || isWaitlisted) && hasPassed;
+                    })
                     .collect(Collectors.toList());
+
+            // Switch to history adapter for "My History" to show status lines
             myEventRecyclerView.setAdapter(historyAdapter);
+
         } else {
             filteredList = new ArrayList<>();
             myEventRecyclerView.setAdapter(adapter);

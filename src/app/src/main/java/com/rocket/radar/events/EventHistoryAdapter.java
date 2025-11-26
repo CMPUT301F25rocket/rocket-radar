@@ -64,14 +64,22 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
 
         if (currentUserProfile != null) {
             String eventId = event.getEventId();
-            String status = "Status: You did not attend."; // Default status
+            String status = "Status: You did not attend."; // Default fallback
+
+            // Priority check: Attending > Invited > Waitlisted
+            // Since this is history, "Attending" usually means they were selected to go.
 
             if (currentUserProfile.getAttendingEventIds() != null && currentUserProfile.getAttendingEventIds().contains(eventId)) {
-                status = "Status: You attended this event.";
-            } else if (currentUserProfile.getOnInvitedEventIds() != null && currentUserProfile.getOnInvitedEventIds().contains(eventId)) {
-                status = "Status: You were invited but did not attend.";
-            } else if (currentUserProfile.getOnWaitlistEventIds() != null && currentUserProfile.getOnWaitlistEventIds().contains(eventId)) {
-                status = "Status: You were on the waitlist.";
+                // Option 1: They were on the final list
+                status = "Status: You were selected for this event.";
+            }
+            else if (currentUserProfile.getOnInvitedEventIds() != null && currentUserProfile.getOnInvitedEventIds().contains(eventId)) {
+                // Option 2: Invited (Selected) but maybe didn't accept/decline in time, or just stayed in invited state
+                status = "Status: You were chosen to participate.";
+            }
+            else if (currentUserProfile.getOnWaitlistEventIds() != null && currentUserProfile.getOnWaitlistEventIds().contains(eventId)) {
+                // Option 3: Still on waitlist when event ended
+                status = "Status: You were not selected.";
             }
 
             holder.status.setText(status);
