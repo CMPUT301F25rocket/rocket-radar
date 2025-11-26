@@ -14,9 +14,12 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.rocket.radar.R;
 import com.rocket.radar.databinding.FragmentBrowseImagesBinding;
 import com.rocket.radar.events.Event;
 import com.rocket.radar.events.EventRepository;
+import com.rocket.radar.events.EventViewFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,10 +49,30 @@ public class BrowseImageFragment extends Fragment {
         }
         ImageAdapter adapter = new ImageAdapter(images);
         binding.fullImageList.setAdapter(adapter);
+        adapter.addOnItemClickListener(position -> {
+            EventViewFragment eventViewFragment = EventViewFragment.newInstance(events.get(position));
+            BrowseImageFragment.this.requireActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.nav_host_fragment, eventViewFragment)
+                    .addToBackStack(null)
+                    .commit();
+        });
+        adapter.addOnItemClickListener(position -> {
+            new MaterialAlertDialogBuilder(BrowseImageFragment.this.requireContext())
+                    .setMessage("Delete the selected image")
+                    .setPositiveButton("Yes", (dialog, which) -> {
+                        EventRepository.getInstance().deleteImage(events.get(position));
+                    })
+                    .setNegativeButton("No", (dialog, which)-> {
+                        dialog.dismiss();
+                    })
+                    .show();
+        });
         EventRepository.getInstance().getAllEvents().observe(getViewLifecycleOwner(), newEvents -> {
             images.clear();
+            events.clear();
             for (var event : newEvents) {
                 images.add(event.getBannerImageBitmap());
+                events.add(event);
             }
             adapter.notifyDataSetChanged();
         });

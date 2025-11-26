@@ -134,6 +134,10 @@ public class EventRepository {
         }
     }
 
+    public void deleteImage(Event event) {
+        events.document(event.getEventId()).update("imageBlobData", null);
+    }
+
     public void removeUserFromInvited(Event event, String uid) {
         if (event == null || event.getEventId() == null) {
             Log.e(TAG, "Event is null or has no ID. Cannot remove user from waitlist.");
