@@ -222,7 +222,15 @@ public class EventViewFragment extends Fragment {
                         eventWaitlistSize.setText("People on waitlist: " + size);
 
                         // 2. Check Capacity Logic
-                        int capacity = event.getWaitlistCapacity(); // Assuming getter exists in Event model
+                        int capacity = 0;
+                        try {
+                            // If getWaitlistCapacity() returns Integer, this handles null safely
+                            if (event.getWaitlistCapacity() != null) {
+                                capacity = event.getWaitlistCapacity();
+                            }
+                        } catch (Exception e) {
+                            capacity = -1; // Treat as unlimited if error occurs
+                        }// Assuming getter exists in Event model
 
                         // Only apply logic if there is a limit (capacity > 0) AND user is not already on the list
                         if (capacity > 0 && size >= capacity && !isOnWaitlist(profileViewModel.getProfileLiveData().getValue())) {
