@@ -60,8 +60,6 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        clickListeners = new ArrayList<>();
-        longClickListeners = new ArrayList<>();
         // https://stackoverflow.com/questions/6180802/show-imageview-programmatically
         ImageView imageView = new ImageView(parent.getContext());
         int size = parent.getWidth() / 3;
@@ -79,12 +77,12 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     public interface ItemClickListener {
         void onClick(int position);
     }
-    private ArrayList<ItemClickListener> clickListeners;
+    private ArrayList<ItemClickListener> clickListeners = new ArrayList<>();
 
     public interface ItemLongClickListener {
         void onItemLongClick(int position);
     }
-    private ArrayList<ItemLongClickListener> longClickListeners;
+    private ArrayList<ItemLongClickListener> longClickListeners = new ArrayList<>();
 
     public void addOnItemClickListener(ItemClickListener clickListener) {
         clickListeners.add(clickListener);

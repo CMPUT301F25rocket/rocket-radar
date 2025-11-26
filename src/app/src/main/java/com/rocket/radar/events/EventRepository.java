@@ -4,6 +4,8 @@ import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
@@ -134,8 +136,10 @@ public class EventRepository {
         }
     }
 
-    public void deleteImage(Event event) {
-        events.document(event.getEventId()).update("imageBlobData", null);
+    public void deleteImage(Event event, OnSuccessListener<? super Void> successListener, OnFailureListener failureListener) {
+        events.document(event.getEventId()).update("bannerImageBlob", FieldValue.delete())
+                .addOnSuccessListener(successListener)
+                .addOnFailureListener(failureListener);
     }
 
     public void removeUserFromInvited(Event event, String uid) {
