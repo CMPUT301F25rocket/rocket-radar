@@ -215,10 +215,26 @@ public class EventViewFragment extends Fragment {
                 @Override
                 public void onSizeReceived(int size) {
                     // This code runs when the size is successfully fetched.
-                    // Update the UI on the main thread.
                     if (isAdded()) { // Ensure fragment is still attached
                         Log.d("EventViewFragment", "Waitlist size received: " + size);
+
+                        // 1. Display the current size
                         eventWaitlistSize.setText("People on waitlist: " + size);
+
+                        // 2. Check Capacity Logic
+                        int capacity = event.getWaitlistCapacity(); // Assuming getter exists in Event model
+
+                        // Only apply logic if there is a limit (capacity > 0) AND user is not already on the list
+                        if (capacity > 0 && size >= capacity && !isOnWaitlist(profileViewModel.getProfileLiveData().getValue())) {
+                            joinAndLeaveWaitlistButton.setEnabled(false);
+                            joinAndLeaveWaitlistButton.setText("Waitlist Full");
+                            // Optional: Change background color to grey explicitly if standard disabled state isn't enough
+                            joinAndLeaveWaitlistButton.setBackgroundColor(getResources().getColor(android.R.color.darker_gray, null));
+                        } else {
+                            // Ensure button is enabled if space is available (or if already on list so they can leave)
+                            // NOTE: The specific text (Join/Leave) is handled in the button setup logic further down in your file
+                            joinAndLeaveWaitlistButton.setEnabled(true);
+                        }
                     }
                 }
 
