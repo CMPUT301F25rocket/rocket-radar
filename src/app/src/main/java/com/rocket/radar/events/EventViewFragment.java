@@ -241,12 +241,12 @@ public class EventViewFragment extends Fragment {
                             joinAndLeaveWaitlistButton.setText("Waitlist Full");
                             // Optional: Change background color to grey explicitly if standard disabled state isn't enough
                             joinAndLeaveWaitlistButton.setBackgroundColor(getResources().getColor(android.R.color.darker_gray, null));
-                        } else if (event.getRegistrationStartDate().getTime() < System.currentTimeMillis()){
+                        } else if (System.currentTimeMillis() < event.getRegistrationStartDate().getTime()){
                             joinAndLeaveWaitlistButton.setEnabled(false);
                             joinAndLeaveWaitlistButton.setText("Registration Not Started");
                             // Optional: Change background color to grey explicitly if standard disabled state isn't enough
                             joinAndLeaveWaitlistButton.setBackgroundColor(getResources().getColor(android.R.color.darker_gray, null));
-                        } else if (event.getRegistrationEndDate().getTime() > System.currentTimeMillis()){
+                        } else if (System.currentTimeMillis() > event.getRegistrationEndDate().getTime()){
                             joinAndLeaveWaitlistButton.setEnabled(false);
                             joinAndLeaveWaitlistButton.setText("Registration Closed");
                             // Optional: Change background color to grey explicitly if standard disabled state isn't enough
