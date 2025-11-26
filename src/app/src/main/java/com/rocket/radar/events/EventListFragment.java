@@ -288,6 +288,13 @@ public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceStat
             userWaitlistEventIds = new ArrayList<>();
         }
 
+        ArrayList<String> userAttendingEventIds = currentUserProfile.getAttendingEventIds();
+        if (userAttendingEventIds == null) {
+            userAttendingEventIds = new ArrayList<>();
+        }
+
+
+
         if (checkedId == R.id.discover_filter_button) {
             ArrayList<String> finalUserWaitlistEventIds = userWaitlistEventIds;
 
@@ -360,8 +367,10 @@ public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceStat
                     .filter(event -> finalUserWaitlistEventIds1.contains(event.getEventId()))
                     .collect(Collectors.toList());
         } else {
-            filteredList = new ArrayList<>();
-            //TODO: add other filter for attending
+            ArrayList<String> finalUserAttendingEventIds1 = userAttendingEventIds;
+            filteredList = allEvents.stream()
+                    .filter(event -> finalUserAttendingEventIds1.contains(event.getEventId()))
+                    .collect(Collectors.toList());
         }
 
 
