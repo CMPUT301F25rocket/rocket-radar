@@ -241,24 +241,12 @@ public class EventViewFragment extends Fragment {
                             joinAndLeaveWaitlistButton.setText("Waitlist Full");
                             // Optional: Change background color to grey explicitly if standard disabled state isn't enough
                             joinAndLeaveWaitlistButton.setBackgroundColor(getResources().getColor(android.R.color.darker_gray, null));
-                        } else {
-                            // Ensure button is enabled if space is available (or if already on list so they can leave)
-                            // NOTE: The specific text (Join/Leave) is handled in the button setup logic further down in your file
-                            joinAndLeaveWaitlistButton.setEnabled(true);
-                        }
-
-                        if (event.getRegistrationStartDate().getTime() < System.currentTimeMillis()){
+                        } else if (event.getRegistrationStartDate().getTime() < System.currentTimeMillis()){
                             joinAndLeaveWaitlistButton.setEnabled(false);
                             joinAndLeaveWaitlistButton.setText("Registration Not Started");
                             // Optional: Change background color to grey explicitly if standard disabled state isn't enough
                             joinAndLeaveWaitlistButton.setBackgroundColor(getResources().getColor(android.R.color.darker_gray, null));
-                        } else {
-                            // Ensure button is enabled if space is available (or if already on list so they can leave)
-                            // NOTE: The specific text (Join/Leave) is handled in the button setup logic further down in your file
-                            joinAndLeaveWaitlistButton.setEnabled(true);
-                        }
-
-                        if (event.getRegistrationEndDate().getTime() > System.currentTimeMillis()){
+                        } else if (event.getRegistrationEndDate().getTime() > System.currentTimeMillis()){
                             joinAndLeaveWaitlistButton.setEnabled(false);
                             joinAndLeaveWaitlistButton.setText("Registration Closed");
                             // Optional: Change background color to grey explicitly if standard disabled state isn't enough
