@@ -500,10 +500,13 @@ public class Event implements Serializable {
     /**
      * Fetches the banner image. If it has not yet been decoded it will decode the image from the
      * base64 image field.
-     * @return the banner image.
+     * @return the banner image, or null if no banner image is set.
      */
     @com.google.firebase.firestore.Exclude
     public Bitmap getBannerImageBitmap() {
+        if (bannerImageBlob == null) {
+            return null;
+        }
         if (bannerImage == null) {
             byte[] compressedBlob = bannerImageBlob.toBytes();
             bannerImage = BitmapFactory.decodeByteArray(compressedBlob, 0, compressedBlob.length);
