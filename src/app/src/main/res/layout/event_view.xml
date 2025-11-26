@@ -27,6 +27,7 @@
                 android:layout_height="250dp"
                 android:scaleType="centerCrop"
                 android:src="@drawable/mushroom_in_headphones_amidst_nature"
+                android:transitionName="event_image_transition"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -42,6 +43,7 @@
                 android:elevation="4dp"
                 android:padding="8dp"
                 android:text="BBQ Event"
+                android:transitionName="event_title_transition"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
                 android:textColor="@android:color/black"
                 app:layout_constraintStart_toStartOf="parent"
@@ -103,6 +105,7 @@
                             android:id="@+id/event_date"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:transitionName="event_date_transition"
                             android:text="July 14th, 5-9 pm" />
                     </LinearLayout>
                 </LinearLayout>

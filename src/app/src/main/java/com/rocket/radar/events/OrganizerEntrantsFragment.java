@@ -715,7 +715,7 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         cancelNotificationButton.setOnClickListener(v -> showSendNotificationDialog(false));
 
         sendButton.setOnClickListener(v -> {
-            String title = notificationTitleInput.getText().toString().trim();
+            String title = event.getEventTitle();
             String body = notificationBodyInput.getText().toString().trim();
             if (title.isEmpty() || body.isEmpty()) {
                 Toast.makeText(getContext(), "Title and message cannot be empty.", Toast.LENGTH_SHORT).show();

@@ -1,53 +1,58 @@
 package com.rocket.radar.notifications;
 
-import android.content.Context;import android.graphics.Typeface;
+import android.content.Context;
+import android.graphics.Typeface;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import com.rocket.radar.R;
-import java.util.List;
+
 import com.rocket.radar.MainActivity;
+import com.rocket.radar.R;
 import com.rocket.radar.events.Event;
 import com.rocket.radar.events.EventRepository;
 import com.rocket.radar.events.EventViewFragment;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Adapter for the RecyclerView in the notifications screen.
- * This class is responsible for displaying a list of {@link Notification} objects.
- * It handles multiple view types:
- * - A standard notification item.
- * - A separator to distinguish between read and unread notifications.
- * - An empty state message for when there are no notifications.
- * It also manages the visual state for read/unread notifications.
+ * It displays notifications, handles image loading (with caching), and sets up shared element transitions.
  */
 public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    // --- NEW VIEW TYPE ADDED ---
     private static final int VIEW_TYPE_NOTIFICATION = 1;
     private static final int VIEW_TYPE_SEPARATOR = 2;
-    private static final int VIEW_TYPE_EMPTY = 3; // For the "No notifications" message
+    private static final int VIEW_TYPE_EMPTY = 3;
 
     private final Context context;
     private final List<Notification> notificationList;
     private final NotificationRepository repository;
     private final EventRepository eventRepository;
 
+    // NEW: Cache to store pre-loaded events so images display instantly
+    private final Map<String, Event> eventCache = new HashMap<>();
 
+    private int lastClickedPosition = -1;
     private int separatorIndex = -1;
 
-    /**
-     * Constructs a new NotificationAdapter.
-     *
-     * @param context The current context, used for inflating layouts.
-     * @param notificationList The list of notifications to be displayed.
-     * @param repository The repository to handle data operations, like marking notifications as read.
-     */
+    private OnItemClickListener onItemClickListener;
+
+    public interface OnItemClickListener {
+        void onItemClick(int position);
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.onItemClickListener = listener;
+    }
+
     public NotificationAdapter(Context context,
                                List<Notification> notificationList,
                                NotificationRepository repository,
@@ -58,13 +63,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         this.eventRepository = eventRepository;
     }
 
-    /**
-     * Updates the list of notifications displayed by the adapter.
-     * This method clears the existing list, adds the new notifications, recalculates the
-     * separator position, and refreshes the RecyclerView.
-     *
-     * @param newNotifications The new list of notifications to display.
-     */
     public void setNotifications(List<Notification> newNotifications) {
         notificationList.clear();
         notificationList.addAll(newNotifications);
@@ -72,12 +70,17 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         notifyDataSetChanged();
     }
 
-    /**
-     * Calculates the position for the "Previously Read" separator.
-     * The separator is placed just before the first read notification. If all notifications are
-     * unread, the separator is placed at the end of the list. If there are no notifications,
-     * the separator is not shown.
-     */
+    // NEW: Method to populate the cache from the Fragment before binding
+    public void updateEventCache(List<Event> events) {
+        for (Event event : events) {
+            if (event != null && event.getEventId() != null) {
+                eventCache.put(event.getEventId(), event);
+            }
+        }
+        // Refresh view to apply cached images
+        notifyDataSetChanged();
+    }
+
     private void calculateSeparatorIndex() {
         separatorIndex = -1;
         for (int i = 0; i < notificationList.size(); i++) {
@@ -86,26 +89,16 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 return;
             }
         }
-        // This case handles when there are notifications, but all of them are unread.
-        // In this scenario, we still want a separator, but it should be at the end of the list.
         if (separatorIndex == -1 && !notificationList.isEmpty()) {
             separatorIndex = notificationList.size();
         }
     }
 
-    /**
-     * Returns the view type for the item at the given position.
-     *
-     * @param position The position of the item within the adapter's data set.
-     * @return An integer representing the view type.
-     */
     @Override
     public int getItemViewType(int position) {
-        // If the list is empty, we only show the empty view type.
         if (notificationList.isEmpty()) {
             return VIEW_TYPE_EMPTY;
         }
-        // Otherwise, use the existing logic.
         if (separatorIndex != -1 && position == separatorIndex) {
             return VIEW_TYPE_SEPARATOR;
         }
@@ -116,7 +109,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(context);
-        // Handle creating the new empty view holder
         if (viewType == VIEW_TYPE_EMPTY) {
             View view = inflater.inflate(R.layout.notification_empty_state, parent, false);
             return new EmptyViewHolder(view);
@@ -125,15 +117,12 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             View view = inflater.inflate(R.layout.notification_separator, parent, false);
             return new SeparatorViewHolder(view);
         }
-        // Default is the notification item
         View view = inflater.inflate(R.layout.event_notification_item, parent, false);
         return new NotificationViewHolder(view);
     }
 
-    // --- MODIFIED ---
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        // Handle each view type
         switch (holder.getItemViewType()) {
 
             case VIEW_TYPE_SEPARATOR:
@@ -141,7 +130,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 break;
 
             case VIEW_TYPE_NOTIFICATION:
-                // This is the original binding logic
                 int listIndex = position;
                 if (separatorIndex != -1 && position > separatorIndex) {
                     listIndex--;
@@ -150,7 +138,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 NotificationViewHolder notificationHolder = (NotificationViewHolder) holder;
 
                 if (listIndex < 0 || listIndex >= notificationList.size()) {
-                    Log.e("NotificationAdapter", "CRITICAL BUG: Invalid index. Position: " + position + ", ListIndex: " + listIndex);
                     holder.itemView.setVisibility(View.GONE);
                     return;
                 }
@@ -158,9 +145,57 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
                 Notification notification = notificationList.get(listIndex);
 
+                // 1. Text Setup
                 notificationHolder.eventTitle.setText(notification.getEventTitle());
                 notificationHolder.notificationType.setText(notification.getNotificationType());
 
+                // 2. Transition Names Setup
+                String transitionId = notification.getEventId();
+                if (transitionId != null && !transitionId.isEmpty()) {
+                    androidx.core.view.ViewCompat.setTransitionName(notificationHolder.eventImage, "img_" + transitionId);
+                    androidx.core.view.ViewCompat.setTransitionName(notificationHolder.eventTitle, "title_" + transitionId);
+                }
+
+                // 3. INSTANT IMAGE LOADING (Using Cache)
+                notificationHolder.eventImage.setImageDrawable(null); // Reset first
+                notificationHolder.eventImage.setTag(transitionId);
+
+                boolean imageSetFromCache = false;
+
+                // Check cache first
+                if (transitionId != null && eventCache.containsKey(transitionId)) {
+                    Event cachedEvent = eventCache.get(transitionId);
+                    if (cachedEvent != null) {
+                        if (cachedEvent.getBannerImageBitmap() != null) {
+                            notificationHolder.eventImage.setImageBitmap(cachedEvent.getBannerImageBitmap());
+                            imageSetFromCache = true;
+                        } else {
+                            // Set placeholder if event has no image
+                            notificationHolder.eventImage.setImageResource(R.drawable.ic_radar);
+                            imageSetFromCache = true;
+                        }
+                    }
+                }
+
+                // Fallback: If not in cache, load async (prevents blank rows if cache fails)
+                if (!imageSetFromCache && transitionId != null && !transitionId.isEmpty()) {
+                    eventRepository.getEventById(transitionId, new EventRepository.SingleEventListener() {
+                        @Override
+                        public void onEventLoaded(Event event) {
+                            if (event != null && transitionId.equals(notificationHolder.eventImage.getTag())) {
+                                if (event.getBannerImageBitmap() != null) {
+                                    notificationHolder.eventImage.setImageBitmap(event.getBannerImageBitmap());
+                                    // Add to cache for future scrolls
+                                    eventCache.put(transitionId, event);
+                                }
+                            }
+                        }
+                        @Override
+                        public void onError(Exception e) { }
+                    });
+                }
+
+                // 4. Read Status Visuals
                 if (notification.isReadStatus()) {
                     notificationHolder.unreadIndicator.setVisibility(View.GONE);
                     notificationHolder.eventTitle.setTypeface(null, Typeface.NORMAL);
@@ -169,83 +204,104 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                     notificationHolder.eventTitle.setTypeface(null, Typeface.BOLD);
                 }
 
+                // 5. Click Listener
                 notificationHolder.itemView.setOnClickListener(v -> {
+                    int clickedPos = holder.getBindingAdapterPosition();
+                    lastClickedPosition = clickedPos;
+
+                    if (onItemClickListener != null) {
+                        onItemClickListener.onItemClick(clickedPos);
+                    }
+
                     if (!notification.isReadStatus()) {
                         repository.markNotificationAsRead(notification.getUserNotificationId());
                     }
 
-                    String eventId = notification.getEventId();
-                    if (eventId == null || eventId.isEmpty()) {
-                        Log.e("NotificationAdapter", "Notification has no eventId; cannot open EventViewFragment");
-                        return;
+                    if (transitionId == null || transitionId.isEmpty()) return;
+
+                    // Check cache for navigation event data first
+                    if (eventCache.containsKey(transitionId)) {
+                        navigateToEvent(v, eventCache.get(transitionId), notificationHolder);
+                    } else {
+                        // Fetch if missing
+                        eventRepository.getEventById(transitionId, new EventRepository.SingleEventListener() {
+                            @Override
+                            public void onEventLoaded(Event event) {
+                                if (event != null) navigateToEvent(v, event, notificationHolder);
+                            }
+                            @Override
+                            public void onError(Exception e) {}
+                        });
                     }
-
-                    // Fetch the Event from Firestore, then navigate
-                    eventRepository.getEventById(eventId, new EventRepository.SingleEventListener() {
-                        @Override
-                        public void onEventLoaded(Event event) {
-                            if (event == null) {
-                                Log.e("NotificationAdapter", "Event loaded is null for id: " + eventId);
-                                return;
-                            }
-
-                            if (!(context instanceof MainActivity)) {
-                                Log.e("NotificationAdapter", "Context is not MainActivity; cannot open fragment");
-                                return;
-                            }
-
-                            MainActivity activity = (MainActivity) context;
-
-                            EventViewFragment fragment = EventViewFragment.newInstance(event);
-
-                            activity.getSupportFragmentManager()
-                                    .beginTransaction()
-                                    .replace(R.id.nav_host_fragment, fragment)
-                                    .addToBackStack(null)
-                                    .commit();
-                        }
-
-                        @Override
-                        public void onError(Exception e) {
-                            Log.e("NotificationAdapter", "Failed to load event for id: " + eventId, e);
-                        }
-                    });
                 });
-
                 break;
         }
     }
 
+    private void navigateToEvent(View v, Event event, NotificationViewHolder holder) {
+        if (event == null) return;
+        if (!(context instanceof MainActivity)) return;
 
-    /**
-     * Returns the total number of items in the data set held by the adapter.
-     * This includes notifications and the separator, if present.
-     *
-     * @return The total number of items.
-     */
+        android.os.Bundle bundle = new android.os.Bundle();
+        bundle.putSerializable("event", event);
+
+        androidx.navigation.fragment.FragmentNavigator.Extras extras =
+                new androidx.navigation.fragment.FragmentNavigator.Extras.Builder()
+                        .addSharedElement(holder.eventImage, androidx.core.view.ViewCompat.getTransitionName(holder.eventImage))
+                        .addSharedElement(holder.eventTitle, androidx.core.view.ViewCompat.getTransitionName(holder.eventTitle))
+                        .build();
+
+        try {
+            androidx.navigation.Navigation.findNavController(v).navigate(
+                    R.id.eventViewFragment,
+                    bundle,
+                    null,
+                    extras
+            );
+        } catch (Exception e) {
+            Log.e("NotificationAdapter", "Nav Component failed, falling back to manual", e);
+            fallbackManualNavigation(event, holder);
+        }
+    }
+
+    private void fallbackManualNavigation(Event event, NotificationViewHolder holder) {
+        if (context instanceof MainActivity) {
+            EventViewFragment fragment = EventViewFragment.newInstance(event);
+
+            android.transition.TransitionSet transitionSet = new android.transition.TransitionSet();
+            transitionSet.addTransition(new android.transition.ChangeBounds());
+            transitionSet.addTransition(new android.transition.ChangeTransform());
+            transitionSet.addTransition(new android.transition.ChangeImageTransform());
+
+            fragment.setSharedElementEnterTransition(transitionSet);
+            fragment.setSharedElementReturnTransition(transitionSet);
+
+            ((MainActivity) context).getSupportFragmentManager().beginTransaction()
+                    .setReorderingAllowed(true)
+                    .addSharedElement(holder.eventImage, androidx.core.view.ViewCompat.getTransitionName(holder.eventImage))
+                    .addSharedElement(holder.eventTitle, androidx.core.view.ViewCompat.getTransitionName(holder.eventTitle))
+                    .replace(R.id.nav_host_fragment, fragment)
+                    .addToBackStack(null)
+                    .commit();
+        }
+    }
+
     @Override
     public int getItemCount() {
         int count = notificationList.size();
-        // If a separator exists (is not -1), we need one extra space for it.
-        if (separatorIndex != -1) {
-            count++;
-        }
+        if (separatorIndex != -1) count++;
         return count;
     }
 
+    public int getLastClickedPosition() {
+        return lastClickedPosition;
+    }
 
-    /**
-     * ViewHolder for a single notification item. Caches view references and binds data.
-     */
     public static class NotificationViewHolder extends RecyclerView.ViewHolder {
         ImageView eventImage;
         TextView eventTitle, notificationType;
         View unreadIndicator;
 
-        /**
-         * Constructs the ViewHolder.
-         * @param itemView The view for a single notification item.
-         */
         public NotificationViewHolder(@NonNull View itemView) {
             super(itemView);
             eventImage = itemView.findViewById(R.id.event_background_image);
@@ -255,9 +311,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }
     }
 
-    /**
-     * ViewHolder for the separator view, which displays a title like "Previously Read".
-     */
     public static class SeparatorViewHolder extends RecyclerView.ViewHolder {
         TextView separatorText;
         public SeparatorViewHolder(@NonNull View itemView) {
@@ -266,14 +319,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }
     }
 
-    /**
-     * ViewHolder for the empty state view, displayed when there are no notifications.
-     */
     public static class EmptyViewHolder extends RecyclerView.ViewHolder {
-        /**
-         * Constructs the ViewHolder for the empty state.
-         * @param itemView The empty state view.
-         */
         public EmptyViewHolder(@NonNull View itemView) {
             super(itemView);
         }

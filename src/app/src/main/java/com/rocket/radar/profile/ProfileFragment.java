@@ -5,14 +5,20 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.SharedElementCallback;
+import androidx.core.view.ViewCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
+import androidx.navigation.fragment.FragmentNavigator;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -30,6 +36,7 @@ import org.checkerframework.checker.units.qual.A;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -51,6 +58,7 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
     private List<Event> allEvents;
     private List<Event> displayedEvents;
     private EventRepository eventRepository;
+    private int lastClickedPosition = -1;
 
 
     /**
@@ -108,6 +116,32 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        postponeEnterTransition();
+
+        // 3. Setup the Callback to map views when returning from Detail Screen
+        setExitSharedElementCallback(new SharedElementCallback() {
+            @Override
+            public void onMapSharedElements(List<String> names, Map<String, View> sharedElements) {
+                // Make sure we have a valid position
+                if (lastClickedPosition < 0) return;
+
+                // Find the ViewHolder
+                RecyclerView.ViewHolder selectedViewHolder =
+                        myEventRecyclerView.findViewHolderForAdapterPosition(lastClickedPosition);
+
+                if (selectedViewHolder == null || selectedViewHolder.itemView == null) return;
+
+                // Map unique names to views
+                ImageView image = selectedViewHolder.itemView.findViewById(R.id.event_background_image);
+                TextView title = selectedViewHolder.itemView.findViewById(R.id.event_title_text);
+                TextView date = selectedViewHolder.itemView.findViewById(R.id.date_text);
+
+                if (image != null) sharedElements.put(names.get(0), image);
+                if (title != null) sharedElements.put(names.get(1), title);
+                if (date != null) sharedElements.put(names.get(2), date);
+            }
+        });
+
         eventRepository = EventRepository.getInstance();
         profileViewModel = new ViewModelProvider(requireActivity()).get(ProfileViewModel.class);
         allEvents = new ArrayList<>();
@@ -119,6 +153,27 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
         setupToggleListener();
         observeUserProfile();
         observeEvents();
+
+        myEventRecyclerView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            @Override
+            public boolean onPreDraw() {
+                if (lastClickedPosition == -1) {
+                    myEventRecyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
+                    startPostponedEnterTransition();
+                    return true;
+                }
+
+                RecyclerView.ViewHolder holder = myEventRecyclerView.findViewHolderForAdapterPosition(lastClickedPosition);
+                if (holder == null) {
+                    myEventRecyclerView.scrollToPosition(lastClickedPosition);
+                    return false; // Wait for scroll
+                }
+
+                myEventRecyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
+                startPostponedEnterTransition();
+                return true;
+            }
+        });
     }
 
     /**
@@ -198,22 +253,37 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
      * @param position The position of the clicked item in the adapter.
      */
     @Override
-    public void onEventClick(int position) {
-        Event clickedEvent = displayedEvents.get(position);
+    public void onEventClick(int position, View itemView, ImageView imageView, TextView titleView, TextView dateView) {lastClickedPosition = position;
+        Event selectedEvent = displayedEvents.get(position);
 
+        // 1. Create the Bundle (Just like newInstance does internally)
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("event", selectedEvent);
+
+        // 2. Determine if the user is the organizer based on your filter logic
+        // (If they are in the "My Events" tab, they are the organizer)
         boolean isOrganizer = (toggleGroup.getCheckedButtonId() == R.id.my_events_filter_button);
 
-        EventViewFragment eventViewFragment =
-                EventViewFragment.newInstance(clickedEvent, isOrganizer);
+        // 3. Add the flag to the bundle manually
+        // This string key "is_organizer" MUST match the constant in EventViewFragment
+        bundle.putBoolean("is_organizer", isOrganizer);
 
-        // The transaction code remains the same
-        if (getActivity() != null) {
-            getActivity().getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.nav_host_fragment, eventViewFragment)
-                    .addToBackStack(null)
-                    .commit();
-        }
+        // 4. Setup transitions
+        FragmentNavigator.Extras extras = new FragmentNavigator.Extras.Builder()
+                .addSharedElement(imageView, ViewCompat.getTransitionName(imageView))
+                .addSharedElement(titleView, ViewCompat.getTransitionName(titleView))
+                .addSharedElement(dateView, ViewCompat.getTransitionName(dateView))
+                .build();
+
+        // 5. Navigate
+        Navigation.findNavController(itemView).navigate(
+                R.id.eventViewFragment,
+                bundle,
+                null,
+                extras
+        );
     }
+
 
     /**
      * Called when the fragment resumes. Re-observes events and restores UI visibility.

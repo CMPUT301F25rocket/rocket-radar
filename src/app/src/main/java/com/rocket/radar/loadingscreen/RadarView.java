@@ -27,7 +27,7 @@ public class RadarView extends View {
 
     // Configuration
     private static final int RADAR_COLOR = Color.parseColor("#000000"); // Neon Green
-    private static final float ANIMATION_SPEED = 3.5f; // Scan speed
+    private static final float ANIMATION_SPEED = 1.75f; // Scan speed
 
     public RadarView(Context context) {
         super(context);

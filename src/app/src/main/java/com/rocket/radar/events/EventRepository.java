@@ -14,10 +14,8 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.rocket.radar.R;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +27,7 @@ public class EventRepository {
 
     private static final String TAG = "EventRepository";
 
-    // 🔹 This is now the source of truth for Firestore
+    // Source of truth for Firestore
     private static FirebaseFirestore firestore = FirebaseFirestore.getInstance();
 
     private final CollectionReference events;
@@ -49,20 +47,17 @@ public class EventRepository {
     // 🔹 Test-only hook: replace Firestore and reset singleton
     public static void useFirestoreForTesting(FirebaseFirestore testFirestore) {
         firestore = testFirestore;
-        instance = null; // force re-creation with the new db
+        instance = null;
     }
 
     /**
-     * This is the method you asked for, adapted from your lab.
-     * It listens for real-time updates from the "events" collection in Firestore
-     * and returns the data wrapped in LiveData.
+     * Listens for real-time updates from the "events" collection.
+     * Because this uses addSnapshotListener, new events created will
+     * automatically trigger this and update the LiveData.
      */
-    // FIXME: This is bad practice and going to spike our firestore reads really hard.
-    // TODO: EventListFragment should query the firestore for events upcoming soon, and as the user
-    // nears the bottom of the list should load additional events as they are required.
-    // But that's hard and annoying so part 4 it is.
     public LiveData<List<Event>> getAllEvents() {
         MutableLiveData<List<Event>> eventsLiveData = new MutableLiveData<>();
+
         events.addSnapshotListener((value, error) -> {
             if (error != null) {
                 Log.e(TAG, "Listen failed.", error);
@@ -80,60 +75,50 @@ public class EventRepository {
         return eventsLiveData;
     }
 
-    /**
-     * @param eventId UUID of the event we want to fetch.
-     * @return Task yielding a {@code DocumentSnapshot} which can be converted into an {@code Event}
-     */
     public Task<DocumentSnapshot> getEvent(String eventId) {
         return events.document(eventId).get();
     }
 
+    public void getEventById(String eventId, SingleEventListener listener) {
+        events.document(eventId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    Event event = documentSnapshot.toObject(Event.class);
+                    listener.onEventLoaded(event);
+                })
+                .addOnFailureListener(listener::onError);
+    }
+
+    public interface SingleEventListener {
+        void onEventLoaded(Event event);
+        void onError(Exception e);
+    }
+
     public void addUserToAttending(Event event, String uid) {
-        if (event == null || event.getEventId() == null) {
-            Log.e(TAG, "Event is null or has no ID.");
-            return;
-        }
-        else {
-            // 1. Get the correct path: events -> {event-id} -> waitlistedUsers -> {user-id}
-            DocumentReference attendingRef = events.document(event.getEventId())
-                    .collection("attendingUsers").document(uid);
+        if (event == null || event.getEventId() == null) return;
 
-            // 2. Create a map to hold some data, like a timestamp.
-            // Firestore documents cannot be completely empty.
+        DocumentReference attendingRef = events.document(event.getEventId())
+                .collection("attendingUsers").document(uid);
 
-            Map<String, Object> attendingData = new HashMap<>();
-            attendingData.put("timestamp", FieldValue.serverTimestamp());
+        Map<String, Object> attendingData = new HashMap<>();
+        attendingData.put("timestamp", FieldValue.serverTimestamp());
 
-            // 3. Set the data. If the document already exists, this overwrites it but
-            // that's fine. If it doesn't exist, it is created.
-            attendingRef.set(attendingData)
-                    .addOnSuccessListener(aVoid -> Log.d(TAG, "User " + uid + " successfully added to attending users for event " + event.getEventId()))
-                    .addOnFailureListener(e -> Log.e(TAG, "Error adding user to attending users ", e));
-        }
+        attendingRef.set(attendingData)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "User added to attending: " + uid))
+                .addOnFailureListener(e -> Log.e(TAG, "Error adding to attending", e));
     }
 
     public void addUserToCancelled(Event event, String uid) {
-        if (event == null || event.getEventId() == null) {
-            Log.e(TAG, "Event is null or has no ID.");
-            return;
-        }
-        else {
-            // 1. Get the correct path: events -> {event-id} -> waitlistedUsers -> {user-id}
-            DocumentReference cancelledRef = events.document(event.getEventId())
-                    .collection("cancelledUsers").document(uid);
+        if (event == null || event.getEventId() == null) return;
 
-            // 2. Create a map to hold some data, like a timestamp.
-            // Firestore documents cannot be completely empty.
+        DocumentReference cancelledRef = events.document(event.getEventId())
+                .collection("cancelledUsers").document(uid);
 
-            Map<String, Object> cancelledData = new HashMap<>();
-            cancelledData.put("timestamp", FieldValue.serverTimestamp());
+        Map<String, Object> cancelledData = new HashMap<>();
+        cancelledData.put("timestamp", FieldValue.serverTimestamp());
 
-            // 3. Set the data. If the document already exists, this overwrites it but
-            // that's fine. If it doesn't exist, it is created.
-            cancelledRef.set(cancelledData)
-                    .addOnSuccessListener(aVoid -> Log.d(TAG, "User " + uid + " successfully added to cancelled users for event " + event.getEventId()))
-                    .addOnFailureListener(e -> Log.e(TAG, "Error adding user to cancelled users ", e));
-        }
+        cancelledRef.set(cancelledData)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "User added to cancelled: " + uid))
+                .addOnFailureListener(e -> Log.e(TAG, "Error adding to cancelled", e));
     }
 
     public void deleteImage(Event event, OnSuccessListener<? super Void> successListener, OnFailureListener failureListener) {
@@ -143,91 +128,64 @@ public class EventRepository {
     }
 
     public void removeUserFromInvited(Event event, String uid) {
-        if (event == null || event.getEventId() == null) {
-            Log.e(TAG, "Event is null or has no ID. Cannot remove user from waitlist.");
-            return;
-        }
-        if (uid == null || uid.isEmpty()) {
-            Log.e(TAG, "User ID is null or empty. Cannot remove user from waitlist.");
-            return;
-        }
-        DocumentReference userDocumentInWaitlist = events.document(event.getEventId())
-                .collection("invitedUsers").document(uid);
+        if (event == null || event.getEventId() == null || uid == null) return;
 
-        // 2. Call .delete() on that specific document reference.
-        userDocumentInWaitlist.delete()
-                .addOnSuccessListener(aVoid -> Log.d(TAG, "User " + uid + " successfully removed from invited users for event " + event.getEventId()))
-                .addOnFailureListener(e -> Log.e(TAG, "Error removing user " + uid + " from invited users", e));
+        events.document(event.getEventId())
+                .collection("invitedUsers").document(uid)
+                .delete()
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "User removed from invited: " + uid))
+                .addOnFailureListener(e -> Log.e(TAG, "Error removing from invited", e));
     }
 
+    // --- Waitlist Size Logic ---
     public interface WaitlistSizeListener {
         void onSizeReceived(int size);
-
         void onWaitlistEntrantsFetched(List<String> userIds);
         void onError(Exception e);
     }
 
-    /**
-     * Asynchronously fetches the size of the waitlist for a given event.
-     * @param event The event whose waitlist size is needed.
-     * @param listener The callback to be invoked with the result.
-     */
     public void getWaitlistSize(Event event, WaitlistSizeListener listener) {
-        if (event == null || event.getEventTitle() == null || event.getEventTitle().isEmpty()) {
-            Log.e(TAG, "Event is null or has no Title.");
-            listener.onError(new IllegalArgumentException("Event is null or has no title"));
+        if (event == null || event.getEventId() == null) {
+            listener.onError(new IllegalArgumentException("Event is null or has no ID"));
             return;
         }
 
-        // CORRECT PATH: events -> {event-id} -> waitlistedUsers
-        CollectionReference waitlistRef = events.document(event.getEventId())
-                .collection("waitlistedUsers");
-
-        waitlistRef.get().addOnSuccessListener(queryDocumentSnapshots -> {
-            // This code runs when the database call is successful.
-            listener.onSizeReceived(queryDocumentSnapshots.size());
-            List<String> userIds = new ArrayList<>();
-            queryDocumentSnapshots.forEach(doc -> userIds.add(doc.getId()));
-            listener.onWaitlistEntrantsFetched(userIds);
-        }).addOnFailureListener(e -> {
-            // This code runs if the call fails.
-            Log.e(TAG, "Error getting waitlist size", e);
-            listener.onError(e);
-        });
+        events.document(event.getEventId()).collection("waitlistedUsers")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    listener.onSizeReceived(queryDocumentSnapshots.size());
+                    List<String> userIds = new ArrayList<>();
+                    queryDocumentSnapshots.forEach(doc -> userIds.add(doc.getId()));
+                    listener.onWaitlistEntrantsFetched(userIds);
+                })
+                .addOnFailureListener(listener::onError);
     }
 
+    // --- Invited Size Logic ---
     public interface InvitedSizeListener {
         void onSizeReceived(int size);
         void onInvitedEntrantsFetched(List<String> userIds);
         void onError(Exception e);
     }
 
-    /**
-     * Asynchronously fetches the size of the invited list for a given event.
-     * @param event The event whose invited list size is needed.
-     * @param listener The callback to be invoked with the result.
-     */
     public void getInvitedSize(Event event, InvitedSizeListener listener) {
-        if (event == null || event.getEventId() == null || event.getEventId().isEmpty()) {
-            Log.e(TAG, "Event is null or has no ID.");
+        if (event == null || event.getEventId() == null) {
             listener.onError(new IllegalArgumentException("Event is null or has no ID"));
             return;
         }
 
-        CollectionReference invitedRef = events.document(event.getEventId())
-                .collection("invitedUsers");
-
-        invitedRef.get().addOnSuccessListener(queryDocumentSnapshots -> {
-            listener.onSizeReceived(queryDocumentSnapshots.size());
-            List<String> userIds = new ArrayList<>();
-            queryDocumentSnapshots.forEach(doc -> userIds.add(doc.getId()));
-            listener.onInvitedEntrantsFetched(userIds);
-        }).addOnFailureListener(e -> {
-            Log.e(TAG, "Error getting invited list size", e);
-            listener.onError(e);
-        });
+        events.document(event.getEventId()).collection("invitedUsers")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    listener.onSizeReceived(queryDocumentSnapshots.size());
+                    List<String> userIds = new ArrayList<>();
+                    queryDocumentSnapshots.forEach(doc -> userIds.add(doc.getId()));
+                    listener.onInvitedEntrantsFetched(userIds);
+                })
+                .addOnFailureListener(listener::onError);
     }
 
+    // --- Cancelled Size Logic ---
     public interface CancelledSizeListener {
         void onSizeReceived(int size);
         void onError(Exception e);
@@ -240,48 +198,39 @@ public class EventRepository {
         }
 
         events.document(event.getEventId()).collection("cancelledUsers")
-                .get().addOnSuccessListener(q -> listener.onSizeReceived(q.size()))
+                .get()
+                .addOnSuccessListener(q -> listener.onSizeReceived(q.size()))
                 .addOnFailureListener(listener::onError);
     }
 
-
     /**
      * This method adds a new event to Firestore.
-     * @return The UUID of the created event.
      */
     public String createEvent(Event event) {
-        // Decide which document reference to use
         DocumentReference docRef;
 
         if (event.getEventId() == null || event.getEventId().isEmpty()) {
-            // No ID yet? Let Firestore generate one.
-            docRef = events.document();               // auto-ID
-            event.setEventId(docRef.getId());         // store it on the Event
+            docRef = events.document();
+            event.setEventId(docRef.getId());
         } else {
-            // ID already present (e.g., app code set it)
             docRef = events.document(event.getEventId());
         }
 
         docRef.set(event)
-                .addOnSuccessListener(aVoid ->
-                        Log.d(TAG, "Event successfully written: " + event.getEventTitle()))
-                .addOnFailureListener(e ->
-                        Log.e(TAG, "Error writing event", e));
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Event successfully written: " + event.getEventTitle()))
+                .addOnFailureListener(e -> Log.e(TAG, "Error writing event", e));
 
-        // You still return the event ID as before
         return event.getEventId();
     }
-
 
     public void addUserToWaitlist(Event event, String userId, GeoPoint location){
         if (event == null || event.getEventId() == null) {
             Log.e(TAG, "Event is null or has no ID.");
             return;
         }
-        else {
-            // 1. Get the correct path: events -> {event-id} -> waitlistedUsers -> {user-id}
-            DocumentReference waitlistRef = events.document(event.getEventId())
-                    .collection("waitlistedUsers").document(userId);
+
+        DocumentReference waitlistRef = events.document(event.getEventId())
+                .collection("waitlistedUsers").document(userId);
 
             // 2. Create a map to hold some data, like a timestamp.
             // Firestore documents cannot be completely empty.
@@ -300,8 +249,6 @@ public class EventRepository {
                     .addOnSuccessListener(aVoid -> Log.d(TAG, "User " + userId + " successfully added to waitlist for event " + event.getEventId()))
                     .addOnFailureListener(e -> Log.e(TAG, "Error adding user to waitlist", e));
         }
-    }
-
 
     public void removeUserFromWaitlist(Event event, String userId) {
         if (event == null || event.getEventId() == null) {
@@ -719,39 +666,5 @@ public class EventRepository {
                     callback.onSelectedLocationsFetched(locations);
                 })
                 .addOnFailureListener(callback::onError);
-    }
-    public interface SingleEventListener {
-        void onEventLoaded(Event event);
-        void onError(Exception e);
-    }
-
-    public void getEventById(String eventId, SingleEventListener listener) {
-        if (eventId == null || eventId.isEmpty()) {
-            if (listener != null) {
-                listener.onError(new IllegalArgumentException("eventId is null or empty"));
-            }
-            return;
-        }
-
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        events.document(eventId)
-                .get()
-                .addOnSuccessListener(doc -> {
-                    if (doc.exists()) {
-                        Event event = doc.toObject(Event.class);
-                        if (listener != null) {
-                            listener.onEventLoaded(event);
-                        }
-                    } else {
-                        if (listener != null) {
-                            listener.onError(new Exception("Event not found for id: " + eventId));
-                        }
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    if (listener != null) {
-                        listener.onError(e);
-                    }
-                });
     }
 }

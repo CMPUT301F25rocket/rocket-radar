@@ -43,6 +43,19 @@
         android:label="Images Fragment" />
 
     <fragment
+        android:id="@+id/eventViewFragment"
+        android:name="com.rocket.radar.events.EventViewFragment"
+        android:label="Event Details"
+        tools:layout="@layout/event_view">
+
+        <!-- Define the argument so NavController knows to pass it -->
+        <argument
+            android:name="event"
+            app:argType="com.rocket.radar.events.Event" />
+    </fragment>
+
+
+    <fragment
         android:id="@+id/loginStartScanningFragment"
         android:name="com.rocket.radar.login.LoginStartScanningFragment"
         android:label="Login Start Scanning">
@@ -70,6 +83,10 @@
             app:destination="@id/loginStartScanningFragment"/>
     </fragment>
 
+    <fragment
+        android:id="@+id/notificationFragment"
+        android:name="com.rocket.radar.notifications.NotificationFragment"
+        android:label="Notifications" />
 
     <fragment
         android:id="@+id/accountSettingsFragment"
