@@ -7,6 +7,8 @@ import androidx.lifecycle.MutableLiveData;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -214,6 +216,17 @@ public class EventRepository {
             event.setEventId(docRef.getId());
         } else {
             docRef = events.document(event.getEventId());
+        }
+
+        // Safety Check: Ensure organizerId is set before writing
+        if (event.getOrganizerId() == null || event.getOrganizerId().isEmpty()) {
+            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            if (currentUser != null) {
+                event.setOrganizerId(currentUser.getUid());
+                Log.d(TAG, "createEvent: Auto-assigned organizerId to current user: " + currentUser.getUid());
+            } else {
+                Log.w(TAG, "createEvent: Warning - Event created without an organizerId.");
+            }
         }
 
         docRef.set(event)

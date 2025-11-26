@@ -16,6 +16,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.WriteBatch;
 import com.rocket.radar.R;
+import com.rocket.radar.events.Event;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -277,5 +278,58 @@ public class NotificationRepository {
 
         return allNotificationsLiveData;
     }
+
+    /**
+     * Sends a notification specifically to the organizer of an event.
+     * Use this for system alerts like "Lottery Ready" or "Registration Deadline Passed".
+     *
+     * @param title   The title of the notification.
+     * @param body    The body text.
+     * @param event The ID of the event whose organizer should be notified.
+     */
+    public void sendNotificationToOrganizer(String title, String body, Event event) {
+        if (event == null) {
+            Log.e(TAG, "Event ID is missing. Cannot notify organizer.");
+            return;
+        }
+
+        String eventId = event.getEventId();
+
+
+        // 1. Fetch the event to find the organizer's ID
+        db.collection("events").document(eventId).get()
+                .addOnSuccessListener(eventSnapshot -> {
+                    if (!eventSnapshot.exists()) {
+                        Log.e(TAG, "Event not found: " + eventId);
+                        return;
+                    }
+
+                    String organizerId = event.getOrganizerId();
+                    if (organizerId == null || organizerId.isEmpty()) {
+                        Log.e(TAG, "Organizer ID not found for event: " + eventId);
+                        return;
+                    }
+
+                    // 2. Check if the organizer has notifications enabled
+                    db.collection("users").document(organizerId).get()
+                            .addOnSuccessListener(userDoc -> {
+                                if (Boolean.FALSE.equals(userDoc.getBoolean("notificationsEnabled"))) {
+                                    Log.d(TAG, "Organizer " + organizerId + " has disabled notifications. Skipping.");
+                                    return;
+                                }
+
+                                // 3. Reuse the existing fan-out logic for a single user list
+                                List<String> usersToNotify = new ArrayList<>();
+                                usersToNotify.add(organizerId);
+
+                                createAndFanOutNotification(title, body, eventId, usersToNotify);
+                                Log.d(TAG, "Notification sent to organizer: " + organizerId);
+                            })
+                            .addOnFailureListener(e -> Log.e(TAG, "Failed to fetch organizer profile.", e));
+
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to fetch event to find organizer.", e));
+    }
+
 
 }

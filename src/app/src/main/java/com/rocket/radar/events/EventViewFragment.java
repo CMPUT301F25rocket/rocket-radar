@@ -221,6 +221,9 @@ public class EventViewFragment extends Fragment {
                         // 1. Display the current size
                         eventWaitlistSize.setText("People on waitlist: " + size);
 
+                        if (isOrganizer) {
+                            return;
+                        }
                         // 2. Check Capacity Logic
                         int capacity = 0;
                         try {
@@ -330,6 +333,34 @@ public class EventViewFragment extends Fragment {
 
             // 2. Repurpose the other button as "Edit"
             joinAndLeaveWaitlistButton.setVisibility(View.VISIBLE); // Make sure it is VISIBLE
+
+            long currentTime = System.currentTimeMillis();
+            long deadlineTime = 0;
+
+            // Assuming getRegistrationDeadline() returns a Date object.
+            // If it returns null, we assume immediate access.
+            if (event.getRegistrationEndDate() != null) {
+                deadlineTime = event.getRegistrationEndDate().getTime();
+            }
+
+            if (currentTime < deadlineTime) {
+                // Deadline has NOT passed yet
+                joinAndLeaveWaitlistButton.setEnabled(false);
+                joinAndLeaveWaitlistButton.setText("Lottery Locked");
+                joinAndLeaveWaitlistButton.setBackgroundColor(getResources().getColor(android.R.color.darker_gray, null));
+
+                // Optional: Add a small toast or click listener to explain why
+                joinAndLeaveWaitlistButton.setOnClickListener(v ->
+                        Toast.makeText(getContext(), "Waiting for registration deadline to pass.", Toast.LENGTH_SHORT).show()
+                );
+            } else {
+                // Deadline HAS passed
+                joinAndLeaveWaitlistButton.setEnabled(true);
+                joinAndLeaveWaitlistButton.setText("Run Lottery");
+                // Restore original listener
+                joinAndLeaveWaitlistButton.setOnClickListener(v -> lottery.handleRunLottery(event));
+            }
+
             joinAndLeaveWaitlistButton.setText("Run Lottery");
             joinAndLeaveWaitlistButton.setOnClickListener(v -> lottery.handleRunLottery(event));
 

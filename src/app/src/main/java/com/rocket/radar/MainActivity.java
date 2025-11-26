@@ -36,11 +36,16 @@ import com.rocket.radar.events.EventRepository;
 import com.rocket.radar.events.EventViewFragment;
 import com.rocket.radar.events.FilterModel;
 import com.rocket.radar.loadingscreen.LoadingManager;
+import com.rocket.radar.notifications.NotificationRepository;
 import com.rocket.radar.profile.ProfileModel;
 import com.rocket.radar.profile.ProfileRepository;
 import com.rocket.radar.profile.ProfileViewModel;
 import com.rocket.radar.qr.QRDialog;
 import com.rocket.radar.loadingscreen.LoadingManager;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  Main activity that handles user authentication, navigation, and location services.
@@ -55,6 +60,8 @@ public class MainActivity extends AppCompatActivity {
 
     // --- ADDED: Loading Manager ---
     private LoadingManager loadingManager;
+
+    private boolean hasCheckedLotteries = false;
 
     // Location & Permission services
     private FusedLocationProviderClient fusedLocationClient;
@@ -108,6 +115,17 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         navBarBinding = NavBarBinding.inflate(getLayoutInflater());
         setContentView(navBarBinding.getRoot());
+
+        profileViewModel.getProfileLiveData().observe(this, profile -> {
+            if (profile != null && !hasCheckedLotteries) {
+                checkOrganizerEventsForLottery(profile);
+                hasCheckedLotteries = true; // Ensure we only run this once per app session
+            }
+
+            // ... existing admin mode logic ...
+            if (profile != null)
+                applyMenuVisibility(profile, adminModeManager.getAdminModeLiveData().getValue());
+        });
 
         // --- ADDED: Initialize the Loading Manager with the root view ---
         loadingManager = new LoadingManager(navBarBinding.getRoot());
@@ -456,6 +474,50 @@ public class MainActivity extends AppCompatActivity {
 
             menu.findItem(R.id.imagesFragment).setVisible(false);
             menu.findItem(R.id.browseUsersFragment).setVisible(false);
+        }
+    }
+    private void checkOrganizerEventsForLottery(ProfileModel profile) {
+        Log.d(TAG, "checkOrganizerEventsForLottery: Starting scan for user: " + profile.getUid());
+
+        ArrayList<String> myEventIds = profile.getOnMyEventIds();
+        if (myEventIds == null || myEventIds.isEmpty()) {
+            Log.d(TAG, "checkOrganizerEventsForLottery: No organized events found for this user.");
+
+            return;
+        }
+        EventRepository eventRepo = new EventRepository();
+        NotificationRepository notificationRepo = new NotificationRepository();
+        long currentTime = System.currentTimeMillis();
+
+        for (String eventId : myEventIds) {
+            eventRepo.getEvent(eventId).addOnSuccessListener(documentSnapshot -> {
+                Event event = documentSnapshot.toObject(Event.class);
+
+                if (event != null) {
+                    Date deadline = event.getRegistrationEndDate();
+
+                    // 1. Check if deadline exists and has passed
+                    if (deadline != null && deadline.getTime() < currentTime) {
+                        Log.d(TAG, "checkOrganizerEventsForLottery: Checking '" + event.getEventTitle() +
+                                "'. Deadline: " + deadline.getTime() + " vs Now: " + currentTime);
+
+
+                        // 2. Check if lottery has NOT been run yet.
+                        // (Assuming Event has a list of "selected" users or a flag.
+                        // If 'selected' is empty, we assume lottery hasn't run).
+                        boolean lotteryRun = (event.getEventAttendingIds() != null || !event.getEventInvitedIds().isEmpty() || !event.getEventCancelledIds().isEmpty());
+                        Log.d(TAG, "checkOrganizerEventsForLottery: Deadline passed. Lottery run status: " + lotteryRun);
+
+                        if (!lotteryRun) {
+                            Log.d(TAG, "checkOrganizerEventsForLottery: ACTION REQUIRED. Sending notification for " + event.getEventTitle());
+
+                            String title = event.getEventTitle();
+                            String body = "Time to run the Lottery";
+                            notificationRepo.sendNotificationToOrganizer(title, body, event);
+                        }
+                    }
+                }
+            });
         }
     }
 }

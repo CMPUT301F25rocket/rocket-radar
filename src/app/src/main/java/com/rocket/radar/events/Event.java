@@ -67,6 +67,7 @@ public class Event implements Serializable {
     private boolean requireLocation;
     private int eventCapacity;
     private Date lotteryDate;
+    private String organizerId;
 
     private Time lotteryTime;
 
@@ -425,6 +426,15 @@ public class Event implements Serializable {
         this.eventEndDate = Optional.ofNullable(eventEndDate);
     }
 
+
+    /**
+     * Sets the ID of the user who organized this event.
+     * @param organizerId The organizer's User ID.
+     */
+    public void setOrganizerId(String organizerId) {
+        this.organizerId = organizerId;
+    }
+
     /**
      * Sets the start date of the event.
      *
@@ -658,6 +668,10 @@ public class Event implements Serializable {
      */
     public void setEventWaitlistIds(ArrayList<String> eventWaitlistIds) {
         this.eventWaitlistIds = eventWaitlistIds;
+    }
+
+    public String getOrganizerId() {
+        return organizerId;
     }
 
     public static class Builder {

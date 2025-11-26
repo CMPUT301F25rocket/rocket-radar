@@ -12,6 +12,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
 import com.rocket.radar.events.Event;
@@ -245,6 +246,18 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         android.os.Bundle bundle = new android.os.Bundle();
         bundle.putSerializable("event", event);
 
+        // --- NEW LOGIC: Check if current user is the organizer ---
+        boolean isOrganizer = false;
+        String currentUserId = FirebaseAuth.getInstance().getUid();
+
+        if (currentUserId != null && event.getOrganizerId() != null) {
+            if (currentUserId.equals(event.getOrganizerId())) {
+                isOrganizer = true;
+            }
+        }
+        bundle.putBoolean("is_organizer", isOrganizer);
+        // --------------------------------------------------------
+
         androidx.navigation.fragment.FragmentNavigator.Extras extras =
                 new androidx.navigation.fragment.FragmentNavigator.Extras.Builder()
                         .addSharedElement(holder.eventImage, androidx.core.view.ViewCompat.getTransitionName(holder.eventImage))
@@ -266,7 +279,19 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     private void fallbackManualNavigation(Event event, NotificationViewHolder holder) {
         if (context instanceof MainActivity) {
-            EventViewFragment fragment = EventViewFragment.newInstance(event);
+
+            // --- NEW LOGIC: Check here as well for the manual fallback ---
+            boolean isOrganizer = false;
+            String currentUserId = FirebaseAuth.getInstance().getUid();
+            if (currentUserId != null && event.getOrganizerId() != null) {
+                if (currentUserId.equals(event.getOrganizerId())) {
+                    isOrganizer = true;
+                }
+            }
+            // -------------------------------------------------------------
+
+            // Use the newInstance that accepts the isOrganizer flag
+            EventViewFragment fragment = EventViewFragment.newInstance(event, isOrganizer);
 
             android.transition.TransitionSet transitionSet = new android.transition.TransitionSet();
             transitionSet.addTransition(new android.transition.ChangeBounds());
@@ -324,4 +349,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             super(itemView);
         }
     }
+
+
 }

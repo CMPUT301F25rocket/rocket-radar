@@ -23,6 +23,8 @@ public class CreateEventModel extends ViewModel {
     public MutableLiveData<String> description;
     public MutableLiveData<String> tagline;
 
+    public MutableLiveData<String> organizerId; // <--- ADD THIS
+
 
     // Datetime section field values
     public MutableLiveData<Boolean> singleDayEvent;
@@ -130,6 +132,8 @@ public class CreateEventModel extends ViewModel {
         eventCapacity = new MutableLiveData<>(Optional.empty());
         lotteryDate = new MutableLiveData<>(Optional.empty());
         lotteryTime = new MutableLiveData<>(Optional.empty());
+        organizerId = new MutableLiveData<>(""); // <--- ADD THIS
+
         // Actually be default this should be some random cover image.
         image = new MutableLiveData<>(Optional.empty());
         color = new MutableLiveData<>(Optional.empty());
