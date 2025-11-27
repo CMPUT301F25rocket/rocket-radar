@@ -407,6 +407,9 @@ public class EventViewFragment extends Fragment {
                 // Logic for joining a waitlist
                 currentProfile.addAttendingEventId(event.getEventId());
                 currentProfile.removeInvitedEventId(event.getEventId());
+                currentProfile.removeOnWaitlistEventId(event.getEventId());
+
+                // 1. Get the location from the user's profile.
                 // 2. Pass the user ID and location to the repository method.
 
 
@@ -426,6 +429,7 @@ public class EventViewFragment extends Fragment {
                 // deal with client side logic
                 currentProfile.addCancelledEventId(event.getEventId());
                 currentProfile.removeInvitedEventId(event.getEventId());
+                currentProfile.removeOnWaitlistEventId(event.getEventId());
 
                 // automatically re-run the lottery for 1 person
                 lottery.handleRunLottery(event, 1);
