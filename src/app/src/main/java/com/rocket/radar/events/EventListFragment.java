@@ -173,16 +173,10 @@ public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceStat
         notificationButton.setOnClickListener(v -> {
             AdminModeManager adminModeManager = AdminModeManager.getInstance(getContext());
             if (currentUserProfile != null && currentUserProfile.getRole() == ProfileModel.UserRole.ADMIN && adminModeManager.isAdminModeOn()) {
-                AllNotificationsFragment allNotificationsFragment = new AllNotificationsFragment();
-                if (getActivity() instanceof MainActivity) {
-                    ((MainActivity) getActivity()).setBottomNavigationVisibility(View.GONE);
-                    getActivity().getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.nav_host_fragment, allNotificationsFragment)
-                            .addToBackStack(null)
-                            .commit();
-                }
-            } 
-            Navigation.findNavController(v).navigate(R.id.notificationFragment);
+                Navigation.findNavController(v).navigate(R.id.action_event_list_fragment_to_all_notifications);
+            } else {
+                Navigation.findNavController(v).navigate(R.id.notificationFragment);
+            }
         });
 
         filterButton.setOnClickListener(v -> {

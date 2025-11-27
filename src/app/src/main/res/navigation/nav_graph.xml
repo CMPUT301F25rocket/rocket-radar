@@ -18,6 +18,11 @@
         android:label="Radar Default View" />
 
     <fragment
+        android:id="@+id/allNotificationsFragment"
+        android:name="com.rocket.radar.admin.AllNotificationsFragment"
+        android:label="All Notifications" />
+
+    <fragment
         android:id="@+id/browseUsersFragment"
         android:name="com.rocket.radar.admin.BrowseUsersFragment"
         android:label="Users">
@@ -31,6 +36,10 @@
         android:id="@+id/eventListFragment"
         android:name="com.rocket.radar.events.EventListFragment"
         android:label="Events">
+        <action
+            android:id="@+id/action_event_list_fragment_to_all_notifications"
+            app:destination="@id/allNotificationsFragment"
+        />
         <argument
         android:name="event"
         app:argType="com.rocket.radar.events.Event"
