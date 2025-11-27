@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.google.android.material.chip.Chip;
 import com.rocket.radar.databinding.CategoryChipBinding;
 import com.rocket.radar.databinding.ViewInputEventGeneralBinding;
 import com.rocket.radar.events.Event;
@@ -25,7 +26,7 @@ public class EventGeneralFragment extends Fragment implements InputFragment {
     private ViewInputEventGeneralBinding binding;
     private CreateEventModel model;
     // TODO: Pull all data from the model into the individual fragments.
-    List<Integer> categories;
+    ArrayList<String> categories;
 
     @Nullable
     @Override
@@ -41,7 +42,11 @@ public class EventGeneralFragment extends Fragment implements InputFragment {
         }
 
         binding.createEventGeneralChipGroup.getRoot().setOnCheckedStateChangeListener((group, checkedIds) ->  {
-            categories = checkedIds;
+            categories.clear();
+            for (var viewId : checkedIds) {
+                String category = ((Chip)group.findViewById(viewId)).getText().toString();
+                categories.add(category);
+            }
         });
 
         return binding.getRoot();
@@ -72,11 +77,9 @@ public class EventGeneralFragment extends Fragment implements InputFragment {
 
     @Override
     public Event.Builder extract(Event.Builder builder) {
-        for (var idx : categories) {
-            builder.category(Event.allEventCategories.get(idx));
-        }
-
-        return builder.title(this.model.title.getValue())
+        return builder
+                .categories(categories)
+                .title(this.model.title.getValue())
                 .description(this.model.description.getValue())
                 .tagline(model.tagline.getValue());
     }
