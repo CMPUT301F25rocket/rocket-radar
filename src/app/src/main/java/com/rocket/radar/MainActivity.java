@@ -505,10 +505,10 @@ public class MainActivity extends AppCompatActivity {
                         // 2. Check if lottery has NOT been run yet.
                         // (Assuming Event has a list of "selected" users or a flag.
                         // If 'selected' is empty, we assume lottery hasn't run).
-                        boolean lotteryRun = (event.getEventAttendingIds() != null || !event.getEventInvitedIds().isEmpty() || !event.getEventCancelledIds().isEmpty());
+                        boolean lotteryRun = (event.getEventAttendingIds().isEmpty() || event.getEventInvitedIds().isEmpty() || event.getEventCancelledIds().isEmpty());
                         Log.d(TAG, "checkOrganizerEventsForLottery: Deadline passed. Lottery run status: " + lotteryRun);
 
-                        if (!lotteryRun) {
+                        if (lotteryRun) {
                             Log.d(TAG, "checkOrganizerEventsForLottery: ACTION REQUIRED. Sending notification for " + event.getEventTitle());
 
                             String title = event.getEventTitle();
