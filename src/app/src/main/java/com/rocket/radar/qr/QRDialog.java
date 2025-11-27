@@ -35,6 +35,7 @@ public class QRDialog extends DialogFragment {
     public static final String TAG = QRDialog.class.getSimpleName();
     private final Bitmap bitmap;
     private final BitmapDrawable drawable;
+    private final String link;
 
     /**
      * Constructs a new QRDialog.
@@ -45,7 +46,8 @@ public class QRDialog extends DialogFragment {
      * @param eventId The unique identifier for the event, which will be encoded in the QR code.
      */
     public QRDialog(Context context, String eventId) {
-        bitmap = QRGenerator.generate(eventId);
+        link = QRGenerator.formatLink(eventId);
+        bitmap = QRGenerator.generate(link);
         drawable = new BitmapDrawable(context.getResources(), bitmap);
         drawable.getPaint().setFilterBitmap(false);
     }
@@ -99,34 +101,13 @@ public class QRDialog extends DialogFragment {
      * to other applications which support {@code image/png}.
      */
     private void shareQrCode() {
-        Intent intent = new Intent(Intent.ACTION_SEND);
         // NOTE: Would do svg but I don't know if the default message client support it.
         // https://stackoverflow.com/a/73547282 (non doc help)
-        File stored;
-        try {
-            stored = File.createTempFile("com.rocket.radar.qrcode",".png");
-        } catch (IOException e) {
-            Log.e(TAG, "Failed to create temporary file for QR code");
-            return;
-        }
-
-        // REMINDER: The try resource handles the close automagically.
-        try (FileOutputStream fileStream = new FileOutputStream(stored)) {
-            var byteStream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.PNG, 50, byteStream);
-            fileStream.write(byteStream.toByteArray());
-            fileStream.flush();
-        } catch (FileNotFoundException ignored) {
-            // I mean we should have just created it. This should be unreachable.
-            Log.e(TAG, "Something is very wrong");
-            return;
-        } catch (IOException e) {
-            Log.e(TAG, e.toString());
-            return;
-        }
-
-        intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(stored));
-        intent.setType("image/png");
+        // https://developer.android.com/training/sharing/send
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        intent.putExtra(Intent.EXTRA_TEXT, link);
+        intent.setType("text/plain");
         startActivity(Intent.createChooser(intent, "Share QR code"));
     }
 }
