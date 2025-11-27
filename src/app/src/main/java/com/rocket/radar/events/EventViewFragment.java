@@ -65,15 +65,15 @@ public class EventViewFragment extends Fragment {
     private static final String ARG_IS_ORGANIZER = "is_organizer";
     private Event event;
     private ProfileViewModel profileViewModel;
-    private EventRepository repo = new EventRepository();
+    private EventRepository eventRepo = new EventRepository();
     private LotteryLogic lottery;
-
 
     // 2. ADD isOrganizer aS A MEMBER VARIABLE
     private boolean isOrganizer;
 
     private ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
     private ImageView eventImageView;
+    private ImageView statusBarImage;
 
     private AdminModeManager adminModeManager;
 
@@ -183,10 +183,23 @@ public class EventViewFragment extends Fragment {
         // 4. DEFINE manageEntrantsButton
         Button manageEntrantsButton = view.findViewById(R.id.manage_entrants);
         eventImageView = view.findViewById(R.id.event_image);
+        statusBarImage = view.findViewById(R.id.status_bar_image);
         TextView eventTitle = view.findViewById(R.id.event_title);
         TextView eventDate = view.findViewById(R.id.event_date);
         TextView eventDescription = view.findViewById(R.id.event_desc);
         TextView eventWaitlistSize = view.findViewById(R.id.waitlist_size);
+
+        // handle image pizza bar logic logic
+        if (System.currentTimeMillis() < event.getRegistrationStartDate().getTime()) {
+            // set the image to pre-registration status
+
+        } else if (System.currentTimeMillis() >= event.getRegistrationStartDate().getTime() && System.currentTimeMillis() < event.getRegistrationEndDate().getTime()) {
+            // display the image for registration period
+            statusBarImage.setImageResource(R.drawable.progress_bar_reg_period);
+        } else  {
+            // set the image to the post-registration status
+            statusBarImage.setImageResource(R.drawable.progress_bar_selection_final);
+        }
 
         // Populate static event data
         if (event != null) {
@@ -211,7 +224,7 @@ public class EventViewFragment extends Fragment {
                 }
             }
 
-            repo.getWaitlistSize(event, new EventRepository.WaitlistSizeListener() {
+            eventRepo.getWaitlistSize(event, new EventRepository.WaitlistSizeListener() {
                 @Override
                 public void onSizeReceived(int size) {
                     // This code runs when the size is successfully fetched.
@@ -398,9 +411,9 @@ public class EventViewFragment extends Fragment {
                 // TODO: Implement accept invitation
 
                 // event side attending list
-                // call to event repo
-                repo.addUserToAttending(event, currentProfile.getUid());
-                repo.removeUserFromInvited(event, currentProfile.getUid());
+                // call to event eventRepo
+                eventRepo.addUserToAttending(event, currentProfile.getUid());
+                eventRepo.removeUserFromInvited(event, currentProfile.getUid());
 
                 // client side list of attending events
                 // call to profile model
@@ -410,7 +423,7 @@ public class EventViewFragment extends Fragment {
                 currentProfile.removeOnWaitlistEventId(event.getEventId());
 
                 // 1. Get the location from the user's profile.
-                // 2. Pass the user ID and location to the repository method.
+                // 2. Pass the user ID and location to the eventRepository method.
 
 
                 navigateBack();
@@ -423,8 +436,8 @@ public class EventViewFragment extends Fragment {
             joinAndLeaveWaitlistButton.setOnClickListener(v -> {
                 // TODO: Implement reject invitation
                 // deal with backend stuff
-                repo.addUserToCancelled(event, currentProfile.getUid());
-                repo.removeUserFromInvited(event, currentProfile.getUid());
+                eventRepo.addUserToCancelled(event, currentProfile.getUid());
+                eventRepo.removeUserFromInvited(event, currentProfile.getUid());
 
                 // deal with client side logic
                 currentProfile.addCancelledEventId(event.getEventId());
@@ -511,7 +524,7 @@ public class EventViewFragment extends Fragment {
             currentProfile.removeOnMyEventId(event.getEventId());
             // This needs to be updated to use the correct subcollection name if you changed it
             // For now assuming the logic in removeUserFromWaitlist is correct
-            repo.removeUserFromWaitlist(event, currentProfile.getUid());
+            eventRepo.removeUserFromWaitlist(event, currentProfile.getUid());
             navigateBack();
             Toast.makeText(getContext(), "Removed from waitlist!", Toast.LENGTH_SHORT).show();
         } else {
@@ -521,8 +534,8 @@ public class EventViewFragment extends Fragment {
             // 1. Get the location from the user's profile.
             GeoPoint lastKnownLocation = currentProfile.getLastKnownLocation();
 
-            // 2. Pass the user ID and location to the repository method.
-            repo.addUserToWaitlist(event, currentProfile.getUid(), lastKnownLocation);
+            // 2. Pass the user ID and location to the eventRepository method.
+            eventRepo.addUserToWaitlist(event, currentProfile.getUid(), lastKnownLocation);
 
             navigateBack();
             Toast.makeText(getContext(), "Added to waitlist!", Toast.LENGTH_SHORT).show();
@@ -588,7 +601,7 @@ public class EventViewFragment extends Fragment {
             event.setBannerImageBlob(imageBlob);
 
             // Save to Firebase using createEvent (which uses set() and will update if exists)
-            repo.createEvent(event);
+            eventRepo.createEvent(event);
             Toast.makeText(getContext(), "Event banner updated!", Toast.LENGTH_SHORT).show();
 
         } catch (Exception e) {
