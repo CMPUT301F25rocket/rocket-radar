@@ -389,6 +389,7 @@ public class EventViewFragment extends Fragment {
             joinAndLeaveWaitlistButton.setText("We'll see you there!");
             // joinandlaave button should be unclickable
             joinAndLeaveWaitlistButton.setClickable(false);
+            return;
 
         } else if (isInvited) {
             // invited user view
@@ -437,6 +438,7 @@ public class EventViewFragment extends Fragment {
                 navigateBack();
                 Toast.makeText(getContext(), "Invitation rejected (not implemented)", Toast.LENGTH_SHORT).show();
             });
+            return;
         } else {
             // regular (non invited/waitlisted) User View
 
