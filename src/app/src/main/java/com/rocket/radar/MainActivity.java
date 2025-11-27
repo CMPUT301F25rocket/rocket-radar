@@ -509,7 +509,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG, "checkOrganizerEventsForLottery: Deadline passed. Lottery run status: " + lotteryRun);
 
                             if (lotteryRun) {
-                                if (!event.getEventWaitlistIds().isEmpty()){
+                                if (event.getEventWaitlistIds().isEmpty()){
                                     Log.d(TAG, "checkOrganizerEventsForLottery: ACTION REQUIRED. Sending notification for " + event.getEventTitle());
 
                                     String title = event.getEventTitle();
