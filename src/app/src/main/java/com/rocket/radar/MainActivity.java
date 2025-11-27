@@ -508,13 +508,21 @@ public class MainActivity extends AppCompatActivity {
                         boolean lotteryRun = (event.getEventAttendingIds().isEmpty() || event.getEventInvitedIds().isEmpty() || event.getEventCancelledIds().isEmpty());
                         Log.d(TAG, "checkOrganizerEventsForLottery: Deadline passed. Lottery run status: " + lotteryRun);
 
-                        if (lotteryRun) {
-                            Log.d(TAG, "checkOrganizerEventsForLottery: ACTION REQUIRED. Sending notification for " + event.getEventTitle());
+                            if (lotteryRun) {
+                                if (!event.getEventWaitlistIds().isEmpty()){
+                                    Log.d(TAG, "checkOrganizerEventsForLottery: ACTION REQUIRED. Sending notification for " + event.getEventTitle());
 
-                            String title = event.getEventTitle();
-                            String body = "Time to run the Lottery";
-                            notificationRepo.sendNotificationToOrganizer(title, body, event);
-                        }
+                                    String title = event.getEventTitle();
+                                    String body = "Time to run the Lottery";
+                                    notificationRepo.sendNotificationToOrganizer(title, body, event);
+                                }
+                                else {
+                                    Log.d(TAG, "Registration period has closed for " + event.getEventTitle() + ". No one signed up for your shitty event.");
+                                    String title = event.getEventTitle();
+                                    String body = "No one signed up for your event";
+                                    notificationRepo.sendNotificationToOrganizer(title, body, event);
+                                }
+                            }
                     }
                 }
             });
