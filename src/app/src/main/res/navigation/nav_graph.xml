@@ -30,7 +30,14 @@
     <fragment
         android:id="@+id/eventListFragment"
         android:name="com.rocket.radar.events.EventListFragment"
-        android:label="Events" />
+        android:label="Events">
+        <argument
+        android:name="event"
+        app:argType="com.rocket.radar.events.Event"
+
+        />
+    </fragment>
+
 
     <fragment
         android:id="@+id/draftEventsFragment"
@@ -53,6 +60,7 @@
             android:name="event"
             app:argType="com.rocket.radar.events.Event" />
     </fragment>
+
 
 
     <fragment

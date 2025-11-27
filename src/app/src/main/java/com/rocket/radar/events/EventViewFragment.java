@@ -484,9 +484,11 @@ public class EventViewFragment extends Fragment {
     /**
      * Navigates back to the previous fragment in the back stack.
      */
-    private void navigateBack() {
-        if (getActivity() != null) {
-            getActivity().getSupportFragmentManager().popBackStack();
+    private void navigateBack() {        // We use the Navigation Controller to pop the stack.
+        // This ensures we return to the previous screen (Profile or List)
+        // exactly as we left it, maintaining the NavController connection.
+        if (getView() != null) {
+            androidx.navigation.Navigation.findNavController(getView()).popBackStack();
         }
     }
 

@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
  * Outstanding issues: The "Attending" filter functionality is not yet implemented.
  */
 public class EventListFragment extends Fragment implements EventAdapter.OnEventListener {
-
+    private static final String ARG_EVENT = "event";
     private RecyclerView eventRecyclerView;
     private EventAdapter adapter;
     private List<Event> displayedEvents;
@@ -66,6 +66,16 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
 
     public EventListFragment() {
         // Required empty public constructor
+    }
+
+    public static EventListFragment newInstance(Event event) {
+
+            EventListFragment fragment = new EventListFragment();
+            Bundle args = new Bundle();
+            args.putSerializable(ARG_EVENT, event);
+            fragment.setArguments(args);
+            return fragment;
+
     }
 
     @Override
@@ -413,7 +423,7 @@ public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceStat
         }
 
         if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).setBottomNavigationVisibility(View.VISIBLE);
+            ((MainActivity) getActivity()).setBottomNavigationVisibility(android.view.View.VISIBLE);
         }
 
         filterAndDisplayEvents();
