@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
+import com.rocket.radar.admin.AdminModeManager;
 import com.rocket.radar.events.Event;
 import com.rocket.radar.events.EventRepository;
 import com.rocket.radar.events.EventViewFragment;
@@ -197,7 +198,8 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 }
 
                 // 4. Read Status Visuals
-                if (notification.isReadStatus()) {
+                AdminModeManager adminModeManager = AdminModeManager.getInstance(this.context);
+                if (notification.isReadStatus() || adminModeManager.isAdminModeOn()) {
                     notificationHolder.unreadIndicator.setVisibility(View.GONE);
                     notificationHolder.eventTitle.setTypeface(null, Typeface.NORMAL);
                 } else {
