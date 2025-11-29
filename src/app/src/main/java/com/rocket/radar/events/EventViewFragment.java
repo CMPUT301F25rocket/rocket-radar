@@ -192,13 +192,13 @@ public class EventViewFragment extends Fragment {
         // handle image pizza bar logic logic
         if (System.currentTimeMillis() < event.getRegistrationStartDate().getTime()) {
             // set the image to pre-registration status
-
+            statusBarImage.setImageResource(R.drawable.pre_reg_period);
         } else if (System.currentTimeMillis() >= event.getRegistrationStartDate().getTime() && System.currentTimeMillis() < event.getRegistrationEndDate().getTime()) {
             // display the image for registration period
-            statusBarImage.setImageResource(R.drawable.progress_bar_reg_period);
+            statusBarImage.setImageResource(R.drawable.reg_period);
         } else  {
             // set the image to the post-registration status
-            statusBarImage.setImageResource(R.drawable.progress_bar_selection_final);
+            statusBarImage.setImageResource(R.drawable.select_period);
         }
 
         // Populate static event data
