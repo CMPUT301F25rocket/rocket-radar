@@ -69,13 +69,11 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
     }
 
     public static EventListFragment newInstance(Event event) {
-
-            EventListFragment fragment = new EventListFragment();
-            Bundle args = new Bundle();
-            args.putSerializable(ARG_EVENT, event);
-            fragment.setArguments(args);
-            return fragment;
-
+        EventListFragment fragment = new EventListFragment();
+        Bundle args = new Bundle();
+        args.putSerializable(ARG_EVENT, event);
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
@@ -100,73 +98,49 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
 
         // initialize chips
         chipGroup.setVisibility(View.GONE);
-
         return view;
     }
 
 @Override
 public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-
     postponeEnterTransition();
-    setExitSharedElementCallback(new SharedElementCallback() {
-    @Override
-    public void onMapSharedElements(java.util.List< java.lang.String> names, java.util.Map< java.lang.String, android.view.View> sharedElements) {
-        // Locate the ViewHolder for the clicked position
-        RecyclerView.ViewHolder selectedViewHolder = eventRecyclerView.findViewHolderForAdapterPosition(lastClickedPosition);
-
-        if (selectedViewHolder == null) {
-            return;
-        }
-
-        // Map the logic names to the actual views in the RecyclerView
-        // We must check if 'names' (what the ViewFragment expects) matches what we have
-
-        // Note: 'names' usually contains the transitionNames sent from the other fragment
-        // We strictly map them to the views in our ViewHolder
-        sharedElements.put(names.get(0), selectedViewHolder.itemView.findViewById(R.id.event_background_image));
-        sharedElements.put(names.get(1), selectedViewHolder.itemView.findViewById(R.id.event_title_text));
-        sharedElements.put(names.get(2), selectedViewHolder.itemView.findViewById(R.id.date_text));
-    }
-});
-
 
     // Initialization
-        eventRepository = EventRepository.getInstance();
-        profileViewModel = new ViewModelProvider(requireActivity()).get(ProfileViewModel.class);
-        allEvents = new ArrayList<>();
-        displayedEvents = new ArrayList<>();
-        adapter = new EventAdapter(getContext(), displayedEvents, this);
-        eventRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        eventRecyclerView.setAdapter(adapter);
+    eventRepository = EventRepository.getInstance();
+    profileViewModel = new ViewModelProvider(requireActivity()).get(ProfileViewModel.class);
+    allEvents = new ArrayList<>();
+    displayedEvents = new ArrayList<>();
+    adapter = new EventAdapter(getContext(), displayedEvents, this);
+    eventRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+    eventRecyclerView.setAdapter(adapter);
 
-        eventRecyclerView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-            @Override
-            public boolean onPreDraw() {
-                // If no position was clicked, just start normally
-                if (lastClickedPosition == -1) {
-                    eventRecyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
-                    startPostponedEnterTransition();
-                    return true;
-                }
-
-                RecyclerView.ViewHolder holder = eventRecyclerView.findViewHolderForAdapterPosition(lastClickedPosition);
-
-                // If the holder is null, it means the item is off-screen.
-                if (holder == null) {
-                    eventRecyclerView.scrollToPosition(lastClickedPosition);
-                    // RETURN FALSE: This cancels the current frame draw and waits for the scroll to finish.
-                    // The listener will be called again on the next frame.
-                    return false;
-                }
-
-                // The view is ready! Remove listener and start animation.
+    eventRecyclerView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+        @Override
+        public boolean onPreDraw() {
+            // If no position was clicked, just start normally
+            if (lastClickedPosition == -1) {
                 eventRecyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
                 startPostponedEnterTransition();
                 return true;
             }
-        });
 
+            RecyclerView.ViewHolder holder = eventRecyclerView.findViewHolderForAdapterPosition(lastClickedPosition);
+
+            // If the holder is null, it means the item is off-screen.
+            if (holder == null) {
+                eventRecyclerView.scrollToPosition(lastClickedPosition);
+                // RETURN FALSE: This cancels the current frame draw and waits for the scroll to finish.
+                // The listener will be called again on the next frame.
+                return false;
+            }
+
+            // The view is ready! Remove listener and start animation.
+            eventRecyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
+            startPostponedEnterTransition();
+            return true;
+        }
+    });
 
     notificationRepository = new NotificationRepository();
 
@@ -183,12 +157,11 @@ public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceStat
             FilterEventsFragment filterFragment = new FilterEventsFragment();
             if (getActivity() != null) {
                 getActivity().getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.nav_host_fragment, filterFragment)
-                        .addToBackStack(null) // Allows user to go back to the event list
-                        .commit();
+                    .replace(R.id.nav_host_fragment, filterFragment)
+                    .addToBackStack(null) // Allows user to go back to the event list
+                    .commit();
             }
         });
-
 
         setupToggleListener();
 
@@ -198,12 +171,10 @@ public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceStat
         observeUnreadNotifications();
     }
 
-    private void setExitSharedElementCallback(SharedElementCallback sharedElementCallback) {
-    }
-
     private void observeEvents() {
         // START LOADING
-        if (getActivity() instanceof MainActivity) {        ((MainActivity) getActivity()).setLoading(true, "Scanning Events...");
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).setLoading(true, "Scanning Events...");
         }
 
         eventRepository.getAllEvents().observe(getViewLifecycleOwner(), newEvents -> {
@@ -218,7 +189,6 @@ public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceStat
             }
         });
     }
-
 
     private void observeUserProfile() {
         profileViewModel.getProfileLiveData().observe(getViewLifecycleOwner(), profile -> {
@@ -250,7 +220,6 @@ public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceStat
             notificationBadge.setAlpha(0.0f);
         }
     }
-
 
     private void observeUnreadNotifications() {
         // Observe the list of notifications from the repository
@@ -297,8 +266,6 @@ public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceStat
             userAttendingEventIds = new ArrayList<>();
         }
 
-
-
         if (checkedId == R.id.discover_filter_button) {
             ArrayList<String> finalUserWaitlistEventIds = userWaitlistEventIds;
 
@@ -333,8 +300,6 @@ public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceStat
                 if (selectedDate == null) {
                     Log.e("EventListFragment", "selected date is null");
                 }
-
-
 
                 List<Event> intermediateList = allEvents.stream()
                         .filter(event -> event.getCategories().containsAll(finalSelectedFilters))
@@ -376,8 +341,6 @@ public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceStat
                     .filter(event -> finalUserAttendingEventIds1.contains(event.getEventId()))
                     .collect(Collectors.toList());
         }
-
-
 
         Log.d("EventListFragment", "Filtered list size: " + filteredList.size());
         displayedEvents.clear();

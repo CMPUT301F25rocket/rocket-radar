@@ -38,6 +38,7 @@ import com.rocket.radar.notifications.NotificationRepository;
 import com.rocket.radar.profile.ProfileModel;
 import com.rocket.radar.profile.ProfileRepository;
 import com.rocket.radar.profile.ProfileViewModel;
+import com.rocket.radar.qr.QRDialog;
 
 import java.io.ByteArrayOutputStream;
 import java.text.DateFormat;
@@ -179,7 +180,9 @@ public class EventViewFragment extends Fragment {
         // Find views
         Button backButton = view.findViewById(R.id.back_button);
         Button deleteButton = view.findViewById(R.id.delete_button);
+        Button shareButton = view.findViewById(R.id.share_button);
         Button joinAndLeaveWaitlistButton = view.findViewById(R.id.join_and_leave_waitlist_button);
+
         // 4. DEFINE manageEntrantsButton
         Button manageEntrantsButton = view.findViewById(R.id.manage_entrants);
         eventImageView = view.findViewById(R.id.event_image);
@@ -302,6 +305,9 @@ public class EventViewFragment extends Fragment {
         boolean isAttending = onAttendingEventIds.contains(event.getEventId());
         Log.d(TAG, "isAttending: " + isAttending);
 
+        shareButton.setOnClickListener(v -> {
+            new QRDialog(requireContext(), event.getEventId()).show(requireActivity().getSupportFragmentManager(), QRDialog.TAG);
+        });
 
         if (currentProfile.getRole() == ProfileModel.UserRole.ADMIN && adminModeManager.isAdminModeOn()) {
             deleteButton.setVisibility(View.VISIBLE);
@@ -334,9 +340,6 @@ public class EventViewFragment extends Fragment {
         } else {
             deleteButton.setVisibility(View.GONE);
         }
-
-
-
 
         // 5. THE LOGIC BLOCK CAN NOW USE THE DEFINED VARIABLES
         if (isOrganizer) {
