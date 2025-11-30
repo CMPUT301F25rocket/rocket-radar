@@ -1,10 +1,16 @@
 package com.rocket.radar.eventmanagement;
 
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -15,17 +21,37 @@ import com.rocket.radar.databinding.CategoryChipBinding;
 import com.rocket.radar.databinding.ViewInputEventGeneralBinding;
 import com.rocket.radar.events.Event;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Fragment for the General section of the event creation wizard.
- * Handles input for event title and description.
+ * Handles input for event title, description, tagline, categories, and banner image.
  */
 public class EventGeneralFragment extends Fragment implements InputFragment {
+    private static final String TAG = EventGeneralFragment.class.getSimpleName();
     private ViewInputEventGeneralBinding binding;
     private EventGeneralViewModel viewModel;
+    private ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
     ArrayList<String> categories;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Register for activity result (must be done before onCreateView)
+        pickMedia = registerForActivityResult(
+                new ActivityResultContracts.PickVisualMedia(),
+                uri -> {
+                    if (uri != null && binding != null) {
+                        binding.inputEventGeneralPickImage.setImageURI(uri);
+                        viewModel.image.setValue(Optional.of(uri));
+                    }
+                }
+        );
+    }
 
     @Nullable
     @Override
@@ -61,6 +87,19 @@ public class EventGeneralFragment extends Fragment implements InputFragment {
         // Bind the model to the view
         binding.setViewModel(viewModel);
         binding.setLifecycleOwner(getViewLifecycleOwner());
+
+        // Set up image picker
+        setupImagePicker();
+    }
+
+    private void setupImagePicker() {
+        // Image picker
+        binding.inputEventGeneralPickImage.setOnClickListener(v -> {
+            pickMedia.launch(new PickVisualMediaRequest.Builder()
+                    .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                    .build()
+            );
+        });
     }
 
     @Override
@@ -68,19 +107,29 @@ public class EventGeneralFragment extends Fragment implements InputFragment {
         String title = this.viewModel.title.getValue();
         String descr = this.viewModel.description.getValue();
         String tagline = this.viewModel.tagline.getValue();
+        Optional<Uri> uri = viewModel.image.getValue();
 
         return (title != null && !title.isBlank())
                 && (descr != null && !descr.isBlank())
-                && (tagline != null && !tagline.isBlank());
+                && (tagline != null && !tagline.isBlank())
+                && uri.isPresent();
     }
 
     @Override
-    public Event.Builder extract(Event.Builder builder) {
+    public Event.Builder extract(Event.Builder builder) throws Exception {
+        Uri uri = viewModel.image.getValue().orElseThrow();
+        Bitmap bitmap;
+        try {
+            bitmap = MediaStore.Images.Media.getBitmap(requireActivity().getContentResolver(), uri);
+        } catch (FileNotFoundException e) {
+            throw new Exception("Provided image could not be read from storage");
+        }
         return builder
                 .categories(categories)
                 .title(this.viewModel.title.getValue())
                 .description(this.viewModel.description.getValue())
-                .tagline(viewModel.tagline.getValue());
+                .tagline(viewModel.tagline.getValue())
+                .bannerImage(bitmap);
     }
 
     @Override

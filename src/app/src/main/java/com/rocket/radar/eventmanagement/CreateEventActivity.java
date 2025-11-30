@@ -57,7 +57,6 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
     private EventGeneralFragment eventGeneralFragment;
     private EventDateTimeFragment eventDateTimeFragment;
     private EventLotteryFragment eventLotteryFragment;
-    private EventStyleFragment eventStyleFragment;
 
     private Fragment fragment;
 
@@ -75,7 +74,6 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
         eventGeneralFragment = new EventGeneralFragment();
         eventDateTimeFragment = new EventDateTimeFragment();
         eventLotteryFragment = new EventLotteryFragment();
-        eventStyleFragment = new EventStyleFragment();
 
         // Main navigation buttons
         binding.createEventWizardNavLeftButton.setOnClickListener(btn -> {
@@ -95,7 +93,6 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
                     builder = eventGeneralFragment.extract(builder);
                     builder = eventDateTimeFragment.extract(builder);
                     builder = eventLotteryFragment.extract(builder);
-                    builder = eventStyleFragment.extract(builder);
 
                     String uuid = eventRepository.createEvent(builder.build());
                     Intent intent = new Intent(CreateEventActivity.this, MainActivity.class);
@@ -131,9 +128,7 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
         EdgeToEdge.enable(this);
 
         // Observe section changes and swap fragments accordingly
-        currentSection.observe(this, section -> {
-            navigateToSection(section);
-        });
+        currentSection.observe(this, this::navigateToSection);
     }
 
     private void nextSection(InputFragment fragment) {
@@ -172,9 +167,6 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
                 break;
             case LOTTERY:
                 fragment = eventLotteryFragment;
-                break;
-            case STYLE:
-                fragment = eventStyleFragment;
                 break;
             default:
                 Log.e(TAG, "Unknown section: " + section);

@@ -38,37 +38,16 @@ public class CreateEventModel extends ViewModel {
         return Transformations.map(source, date -> date.map(dateFormatter::format).orElse(""));
     }
 
-    public LiveData<String> eventDateDisplay() {
-        return dateDisplay(eventDate);
-    }
-
     public MutableLiveData<Optional<Time>> eventStartTime;
 
-    public LiveData<String> eventStartTimeDisplay() {
-        return Transformations.map(eventStartTime, time -> time.map(Time::toString).orElse(""));
-    }
 
     public MutableLiveData<Optional<Time>> eventEndTime;
-    public LiveData<String> eventEndTimeDisplay() {
-        return Transformations.map(eventEndTime, time -> time.map(Time::toString).orElse(""));
-    }
 
     // Deadline section field values
     public MutableLiveData<Optional<Date>> registrationStartDate;
-    public LiveData<String> registrationStartDateDisplay() {
-        return dateDisplay(registrationStartDate);
-    }
-
     public MutableLiveData<Optional<Date>> initialSelectionStartDate;
-    public LiveData<String> initialSelectionStartDateDisplay() {
-        return dateDisplay(initialSelectionStartDate);
-    }
 
     public MutableLiveData<Optional<Date>> finalAttendeeSelectionDate;
-
-    public LiveData<String> finalAttendeeSelectionDateDisplay() {
-        return dateDisplay(finalAttendeeSelectionDate);
-    }
 
     // Lottery section field values
     public MutableLiveData<Boolean> hasWaitlistCapacity;
@@ -127,7 +106,7 @@ public class CreateEventModel extends ViewModel {
 
     public LiveData<String> getRightButtonText() {
         return Transformations.map(section, s -> {
-            if (s == Section.STYLE) return "Create";
+            if (s == Section.lastSection) return "Create";
             else return "Next";
         });
     }
