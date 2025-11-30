@@ -20,7 +20,7 @@ import java.util.Optional;
 
 /**
  * Fragment for the Date & Time section of the event creation wizard.
- * Handles input for event date, start time, and end time.
+ * Handles input for event date, start time, end time, and all deadline dates.
  */
 public class EventDateTimeFragment extends Fragment implements InputFragment {
     private static final String TAG = EventDateTimeFragment.class.getSimpleName();
@@ -78,6 +78,21 @@ public class EventDateTimeFragment extends Fragment implements InputFragment {
         binding.inputEventDatetimeEndTextInput.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) bottomSheetProvider.openTimeBottomSheet(viewModel.eventEndTime, v);
         });
+
+        // Registration start date picker
+        binding.eventDeadlineRegistrationStartDate.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) bottomSheetProvider.openCalendarBottomSheet(viewModel.registrationStartDate, v);
+        });
+
+        // Selection start date picker
+        binding.eventDeadlineSelectionStartDate.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) bottomSheetProvider.openCalendarBottomSheet(viewModel.initialSelectionStartDate, v);
+        });
+
+        // Final decision date picker
+        binding.eventDeadlineFinalDecisionDate.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) bottomSheetProvider.openCalendarBottomSheet(viewModel.finalAttendeeSelectionDate, v);
+        });
     }
 
 
@@ -86,10 +101,20 @@ public class EventDateTimeFragment extends Fragment implements InputFragment {
         Optional<Date> date = viewModel.eventDate.getValue();
         Optional<Time> startTime = viewModel.eventStartTime.getValue();
         Optional<Time> endTime = viewModel.eventEndTime.getValue();
+        Optional<Date> regStart = viewModel.registrationStartDate.getValue();
+        Optional<Date> selStart = viewModel.initialSelectionStartDate.getValue();
+        Optional<Date> finSelDate = viewModel.finalAttendeeSelectionDate.getValue();
 
-        return date.isPresent() && startTime.isPresent() && endTime.isPresent()
+        // Validate event date and times
+        boolean eventDateTimeValid = date.isPresent() && startTime.isPresent() && endTime.isPresent()
                 && startTime.get().compareTo(endTime.get()) < 0;
 
+        // Validate deadlines
+        boolean deadlinesValid = regStart.isPresent() && selStart.isPresent() && finSelDate.isPresent()
+                && regStart.get().before(selStart.get())
+                && selStart.get().before(finSelDate.get());
+
+        return eventDateTimeValid && deadlinesValid;
     }
 
     @Override
@@ -105,7 +130,10 @@ public class EventDateTimeFragment extends Fragment implements InputFragment {
 
         return builder.eventStartDate(date)
                 .eventStartTime(startTime)
-                .eventEndTime(endTime);
+                .eventEndTime(endTime)
+                .registrationStartDate(viewModel.registrationStartDate.getValue().orElseThrow())
+                .initialSelectionStartDate(viewModel.initialSelectionStartDate.getValue().orElseThrow())
+                .finalSelectionDate(viewModel.finalAttendeeSelectionDate.getValue().orElseThrow());
     }
 
     @Override

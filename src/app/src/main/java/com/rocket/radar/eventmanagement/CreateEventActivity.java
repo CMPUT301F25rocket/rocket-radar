@@ -56,7 +56,6 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
 
     private EventGeneralFragment eventGeneralFragment;
     private EventDateTimeFragment eventDateTimeFragment;
-    private EventDeadlinesFragment eventDeadlinesFragment;
     private EventLotteryFragment eventLotteryFragment;
     private EventStyleFragment eventStyleFragment;
 
@@ -75,7 +74,6 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
         // NOTE: may be better to lazy load these but I don't want to.
         eventGeneralFragment = new EventGeneralFragment();
         eventDateTimeFragment = new EventDateTimeFragment();
-        eventDeadlinesFragment = new EventDeadlinesFragment();
         eventLotteryFragment = new EventLotteryFragment();
         eventStyleFragment = new EventStyleFragment();
 
@@ -96,7 +94,6 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
                     Event.Builder builder = new Event.Builder();
                     builder = eventGeneralFragment.extract(builder);
                     builder = eventDateTimeFragment.extract(builder);
-                    builder = eventDeadlinesFragment.extract(builder);
                     builder = eventLotteryFragment.extract(builder);
                     builder = eventStyleFragment.extract(builder);
 
@@ -172,9 +169,6 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
                 break;
             case DATETIME:
                 fragment = eventDateTimeFragment;
-                break;
-            case DEADLINES:
-                fragment = eventDeadlinesFragment;
                 break;
             case LOTTERY:
                 fragment = eventLotteryFragment;
