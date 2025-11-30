@@ -55,7 +55,6 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
     EventRepository eventRepository;
 
     private EventGeneralFragment eventGeneralFragment;
-    private EventDateTimeFragment eventDateTimeFragment;
     private EventLotteryFragment eventLotteryFragment;
 
     private Fragment fragment;
@@ -72,83 +71,102 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
 
         // NOTE: may be better to lazy load these but I don't want to.
         eventGeneralFragment = new EventGeneralFragment();
-        eventDateTimeFragment = new EventDateTimeFragment();
         eventLotteryFragment = new EventLotteryFragment();
 
-        // Main navigation buttons
-        binding.createEventWizardNavLeftButton.setOnClickListener(btn -> {
-            if (currentSection.getValue() == Section.firstSection) {
-                Intent intent = new Intent();
-                setResult(RESULT_CANCELED, intent);
-                CreateEventActivity.this.finish();
-            } else {
-                prevSection();
+        // Set up toolbar
+        binding.createEventToolbar.setNavigationOnClickListener(v -> {
+            Intent intent = new Intent();
+            setResult(RESULT_CANCELED, intent);
+            CreateEventActivity.this.finish();
+        });
+
+        // Set up tabs
+        for (Section section : Section.values()) {
+            binding.createEventTabLayout.addTab(
+                binding.createEventTabLayout.newTab().setText(section.getTitle())
+            );
+        }
+
+        // Set up tab selection listener
+        binding.createEventTabLayout.addOnTabSelectedListener(new com.google.android.material.tabs.TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(com.google.android.material.tabs.TabLayout.Tab tab) {
+                currentSection.setValue(Section.values()[tab.getPosition()]);
+            }
+
+            @Override
+            public void onTabUnselected(com.google.android.material.tabs.TabLayout.Tab tab) {
+            }
+
+            @Override
+            public void onTabReselected(com.google.android.material.tabs.TabLayout.Tab tab) {
             }
         });
 
-        binding.createEventWizardNavRightButton.setOnClickListener(btn -> {
-            if (currentSection.getValue() == Section.lastSection) {
-                try {
-                    Event.Builder builder = new Event.Builder();
-                    builder = eventGeneralFragment.extract(builder);
-                    builder = eventDateTimeFragment.extract(builder);
-                    builder = eventLotteryFragment.extract(builder);
+        // Set up submit button in toolbar
+        binding.createEventSubmitButtonToolbar.setOnClickListener(btn -> {
+            try {
+                // Perform validation for each input fragment.
+                // TODO: This could use a refactor into a method but I'm lazy
+                if (!eventGeneralFragment.valid(eventGeneralFragment)) {
+                    binding.createEventTabLayout.selectTab(binding.createEventTabLayout.getTabAt(0));
+                    new MaterialAlertDialogBuilder(CreateEventActivity.this)
+                        .setTitle("Incomplete Information")
+                        .setMessage("Please fill in all required fields in the General section")
+                        .setPositiveButton("OK", null)
+                        .show();
+                    return;
+                }
 
-                    String uuid = eventRepository.createEvent(builder.build());
-                    Intent intent = new Intent(CreateEventActivity.this, MainActivity.class);
-                    intent.setAction(getString(R.string.intent_action_show_qr));
-                    intent.putExtra("eventId", uuid);
-                    // TODO: Ideally we want end this activity but it breaks the intents so
-                    // this is for later. Even though this is kindof broken as it is.
-                    // setResult(RESULT_OK, intent);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                    startActivity(intent);
-                    CreateEventActivity.this.finish();
-                } catch (Exception e) {
-                    Log.e(TAG, "Create event failure: ", e);
-                    MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(CreateEventActivity.this);
-                    builder.setTitle("Something went wrong")
-                            .setMessage(e.toString())
-                            .setNeutralButton("Ok", (dialogInterface, which) -> {
-                                dialogInterface.dismiss();
-                            })
-                            .create()
-                            .show();
+                if (!eventLotteryFragment.valid(eventLotteryFragment)) {
+                    binding.createEventTabLayout.selectTab(binding.createEventTabLayout.getTabAt(1));
+                    new MaterialAlertDialogBuilder(CreateEventActivity.this)
+                        .setTitle("Incomplete Information")
+                        .setMessage("Please fill in all required fields in the Details section")
+                        .setPositiveButton("OK", null)
+                        .show();
+                    return;
                 }
-            } else {
-                if (fragment instanceof InputFragment) {
-                    nextSection((InputFragment) fragment);
-                } else {
-                    Log.e(TAG, "Fragment " + fragment.getTag() + " is not an input fragment");
-                }
+
+                Event.Builder builder = new Event.Builder();
+                builder = eventGeneralFragment.extract(builder);
+                builder = eventLotteryFragment.extract(builder);
+
+                String uuid = eventRepository.createEvent(builder.build());
+                Intent intent = new Intent(CreateEventActivity.this, MainActivity.class);
+                intent.setAction(getString(R.string.intent_action_show_qr));
+                intent.putExtra("eventId", uuid);
+                // TODO: Ideally we want end this activity but it breaks the intents so
+                // this is for later. Even though this is kindof broken as it is.
+                // setResult(RESULT_OK, intent);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                CreateEventActivity.this.finish();
+            } catch (Exception e) {
+                Log.e(TAG, "Create event failure: ", e);
+                MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(CreateEventActivity.this);
+                builder.setTitle("Something went wrong")
+                        .setMessage(e.toString())
+                        .setNeutralButton("Ok", (dialogInterface, which) -> {
+                            dialogInterface.dismiss();
+                        })
+                        .create()
+                        .show();
             }
         });
 
         setContentView(binding.getRoot());
+
+        // Handle window insets for edge-to-edge display
         EdgeToEdge.enable(this);
+        binding.createEventAppBar.setOnApplyWindowInsetsListener((v, insets) -> {
+            int topInset = insets.getSystemWindowInsetTop();
+            v.setPadding(0, topInset, 0, 0);
+            return insets;
+        });
 
         // Observe section changes and swap fragments accordingly
         currentSection.observe(this, this::navigateToSection);
-    }
-
-    private void nextSection(InputFragment fragment) {
-        if (!fragment.valid(fragment)) return;
-
-        Section current = currentSection.getValue();
-        if (current == Section.lastSection) {
-            return;
-        } else {
-            currentSection.setValue(Section.values()[current.ordinal() + 1]);
-        }
-    }
-
-    private void prevSection() {
-        Section current = currentSection.getValue();
-        if (current == Section.firstSection) {
-            return;
-        } else {
-            currentSection.setValue(Section.values()[current.ordinal() - 1]);
-        }
     }
 
     /**
@@ -157,13 +175,9 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
      * @param section The section to navigate to
      */
     private void navigateToSection(Section section) {
-
         switch (section) {
             case GENERAL:
                 fragment = eventGeneralFragment;
-                break;
-            case DATETIME:
-                fragment = eventDateTimeFragment;
                 break;
             case LOTTERY:
                 fragment = eventLotteryFragment;

@@ -8,7 +8,7 @@ import java.util.Date;
 
 public enum Section {
     // WARN: The order here is important. Section transitions will happen in the order these appear in.
-    GENERAL, DATETIME, LOTTERY;
+    GENERAL, LOTTERY;
 
     public static final Section firstSection = Section.values()[0];
     public static final Section lastSection = Section.values()[Section.values().length - 1];
@@ -25,10 +25,8 @@ public enum Section {
         switch (this) {
             case GENERAL:
                 return "General";
-            case DATETIME:
-                return "Date & Time";
             case LOTTERY:
-                return "Lottery";
+                return "Details";
         }
         throw new IllegalArgumentException("Section variant " + this + " has no title defined.");
     }
