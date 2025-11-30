@@ -1,23 +1,17 @@
 package com.rocket.radar.events;
 
-import android.app.SharedElementCallback;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView; // Import TextView
+import android.widget.TextView; 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.view.ViewCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
-import androidx.navigation.fragment.FragmentNavigator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -27,10 +21,8 @@ import com.google.android.material.chip.ChipGroup;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
 import com.rocket.radar.admin.AdminModeManager;
-import com.rocket.radar.admin.AllNotificationsFragment;
 import com.rocket.radar.databinding.CategoryChipBinding;
-import com.rocket.radar.notifications.NotificationFragment;
-import com.rocket.radar.notifications.NotificationRepository; // Import NotificationRepository
+import com.rocket.radar.notifications.NotificationRepository; 
 import com.rocket.radar.profile.ProfileModel;
 import com.rocket.radar.profile.ProfileViewModel;
 import java.util.Date;
@@ -62,7 +54,6 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
     private ChipGroup chipGroup;
     private ArrayList<String> selectedFilters;
     private FilterModel filterModel;
-    private int lastClickedPosition = -1;
 
     public EventListFragment() {
         // Required empty public constructor
@@ -104,7 +95,6 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
 @Override
 public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-    postponeEnterTransition();
 
     // Initialization
     eventRepository = EventRepository.getInstance();
@@ -114,33 +104,6 @@ public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceStat
     adapter = new EventAdapter(getContext(), displayedEvents, this);
     eventRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
     eventRecyclerView.setAdapter(adapter);
-
-    eventRecyclerView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-        @Override
-        public boolean onPreDraw() {
-            // If no position was clicked, just start normally
-            if (lastClickedPosition == -1) {
-                eventRecyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
-                startPostponedEnterTransition();
-                return true;
-            }
-
-            RecyclerView.ViewHolder holder = eventRecyclerView.findViewHolderForAdapterPosition(lastClickedPosition);
-
-            // If the holder is null, it means the item is off-screen.
-            if (holder == null) {
-                eventRecyclerView.scrollToPosition(lastClickedPosition);
-                // RETURN FALSE: This cancels the current frame draw and waits for the scroll to finish.
-                // The listener will be called again on the next frame.
-                return false;
-            }
-
-            // The view is ready! Remove listener and start animation.
-            eventRecyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
-            startPostponedEnterTransition();
-            return true;
-        }
-    });
 
     notificationRepository = new NotificationRepository();
 
@@ -348,26 +311,16 @@ public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceStat
         adapter.notifyDataSetChanged();
     }
 
-    // Update the method signature and add the shared element
     @Override
-    public void onEventClick(int position, View itemView, ImageView imageView, TextView titleView, TextView dateView) {
-        lastClickedPosition = position;
+    public void onEventClick(int position, View itemView) {
         Event selectedEvent = displayedEvents.get(position);
 
         Bundle bundle = new Bundle();
         bundle.putSerializable("event", selectedEvent);
 
-        FragmentNavigator.Extras extras = new FragmentNavigator.Extras.Builder()
-                .addSharedElement(imageView, ViewCompat.getTransitionName(imageView))
-                .addSharedElement(titleView, ViewCompat.getTransitionName(titleView))
-                .addSharedElement(dateView, ViewCompat.getTransitionName(dateView))
-                .build();
-
         Navigation.findNavController(itemView).navigate(
                 R.id.eventViewFragment,
-                bundle,
-                null,
-                extras
+                bundle
         );
     }
 

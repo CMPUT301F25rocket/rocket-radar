@@ -9,7 +9,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.rocket.radar.R;
@@ -53,10 +52,6 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
         } else {
             holder.eventImage.setImageResource(event.getImage());
         }
-
-        ViewCompat.setTransitionName(holder.eventImage, "img_" + event.getEventId());
-        ViewCompat.setTransitionName(holder.eventTitle, "title_" + event.getEventId());
-        ViewCompat.setTransitionName(holder.date, "date_" + event.getEventId());
 
         holder.eventTitle.setText(event.getEventTitle());
         holder.date.setText(event.getFormattedDate());
@@ -114,12 +109,12 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
         public void onClick(View v) {
             int position = getBindingAdapterPosition();
             if (position != RecyclerView.NO_POSITION && onEventListener != null) {
-                onEventListener.onEventClick(position, itemView, eventImage, eventTitle, date);
+                onEventListener.onEventClick(position, itemView);
             }
         }
     }
 
     public interface OnEventListener {
-        void onEventClick(int position, View itemView, ImageView imageView, TextView titleView, TextView dateView);
+        void onEventClick(int position, View itemView);
     }
 }

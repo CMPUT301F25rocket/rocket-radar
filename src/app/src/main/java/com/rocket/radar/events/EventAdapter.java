@@ -9,7 +9,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.rocket.radar.R;
@@ -51,12 +50,6 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.MyViewHolder
             holder.eventImage.setImageResource(event.getImage());
         }
 
-        // We append the event ID to the static name to make it unique for this specific row
-        ViewCompat.setTransitionName(holder.eventImage, "img_" + event.getEventId());
-        ViewCompat.setTransitionName(holder.eventTitle, "title_" + event.getEventId());
-        ViewCompat.setTransitionName(holder.date, "date_" + event.getEventId());
-
-
         holder.eventTitle.setText(event.getEventTitle());
         holder.date.setText(event.getFormattedDate());
         holder.tagline.setText(event.getTagline());
@@ -83,20 +76,16 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.MyViewHolder
             itemView.setOnClickListener(this);
         }
 
-        // 2. Update the onClick method in MyViewHolder class
         @Override
         public void onClick(View v) {
             int position = getBindingAdapterPosition();
             if (position != RecyclerView.NO_POSITION && onEventListener != null) {
-                // Pass 'date' (which is already defined in your ViewHolder)
-                onEventListener.onEventClick(position, itemView, eventImage, eventTitle, date);
+                onEventListener.onEventClick(position, itemView);
             }
         }
     }
 
-    // 1. Update the Interface definition at the bottom of the file
     public interface OnEventListener {
-        // Add TextView dateView to the parameters
-        void onEventClick(int position, View itemView, ImageView imageView, TextView titleView, TextView dateView);
+        void onEventClick(int position, View itemView);
     }
 }

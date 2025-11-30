@@ -9,7 +9,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -20,7 +19,6 @@ import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.view.ViewCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -44,13 +42,7 @@ import java.io.ByteArrayOutputStream;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import androidx.transition.Fade;
-import androidx.transition.ChangeBounds;
-import androidx.transition.ChangeImageTransform;
-import androidx.transition.ChangeTransform;
-import androidx.transition.TransitionSet;
 
-import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
 /**
  * A fragment that displays the details of a specific event.
  * This view adapts its functionality based on whether the current user is the event organizer
@@ -121,38 +113,6 @@ public class EventViewFragment extends Fragment {
             isOrganizer = getArguments().getBoolean(ARG_IS_ORGANIZER, false); // Default to false
         }
 
-        Log.d(TAG, "onCreate: setting shared element transitions");
-
-        // Shared element transition for image + title
-        TransitionSet sharedSet = new TransitionSet()
-                .addTransition(new ChangeBounds())
-                .addTransition(new ChangeTransform())
-                .addTransition(new ChangeImageTransform());
-        sharedSet.setDuration(200); // 5 seconds, no way you miss this
-        sharedSet.setInterpolator(new AccelerateDecelerateInterpolator());
-
-        setSharedElementEnterTransition(sharedSet);
-        setSharedElementReturnTransition(sharedSet);
-
-        // Create a Fade transition for the non-shared elements
-        Fade fade = new Fade();
-        fade.setDuration(250);
-
-        // DELAY: This makes the rest of the screen wait 200ms before appearing,
-        // giving the image/title time to move first.
-        fade.setStartDelay(100);
-
-        // EXCLUDE: Vital! We must tell the Fade NOT to touch the views that are flying in.
-        // If we don't do this, the image will try to fade in AND fly at the same time, looking glitchy.
-        fade.excludeTarget(R.id.event_image, true);
-        fade.excludeTarget(R.id.event_title, true);
-        //fade.excludeTarget(R.id.event_date, true);
-        // Also exclude the background/navigation bars to prevent system UI flickering
-        fade.excludeTarget(android.R.id.statusBarBackground, true);
-        fade.excludeTarget(android.R.id.navigationBarBackground, true);
-
-        setEnterTransition(fade);
-
         // Register for activity result (must be done before onCreateView)
         pickMedia = registerForActivityResult(
                 new ActivityResultContracts.PickVisualMedia(),
@@ -206,11 +166,6 @@ public class EventViewFragment extends Fragment {
 
         // Populate static event data
         if (event != null) {
-                // These must match the strings we created in the Adapter exactly
-                ViewCompat.setTransitionName(eventImageView, "img_" + event.getEventId());
-                ViewCompat.setTransitionName(eventTitle, "title_" + event.getEventId());
-                ViewCompat.setTransitionName(eventDate, "date_" + event.getEventId());
-
             lottery = new LotteryLogic(event);
             eventTitle.setText(event.getEventTitle());
             if (event.getEventStartDate() != null) { // Check event.getDate() for null

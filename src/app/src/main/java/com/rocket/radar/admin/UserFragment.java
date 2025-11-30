@@ -8,17 +8,14 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.view.ViewCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
-import androidx.navigation.fragment.FragmentNavigator;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -32,7 +29,6 @@ import com.rocket.radar.R;
 import com.rocket.radar.events.Event;
 import com.rocket.radar.events.EventAdapter;
 import com.rocket.radar.events.EventRepository;
-import com.rocket.radar.events.EventViewFragment;
 import com.rocket.radar.profile.ProfileModel;
 import com.rocket.radar.profile.ProfileViewModel;
 
@@ -47,7 +43,6 @@ public class UserFragment extends Fragment  implements EventAdapter.OnEventListe
     private AdminRepository adminRepository;
     private AutoCompleteTextView roleDropdown;
     private TextInputLayout roleDropdownLayout;
-    private int lastClickedPosition = -1;
     public static UserFragment newInstance(ProfileModel profile) {
         UserFragment fragment = new UserFragment();
         Bundle args = new Bundle();
@@ -275,24 +270,15 @@ public class UserFragment extends Fragment  implements EventAdapter.OnEventListe
      * @param position The position of the clicked item in the adapter.
      */
     @Override
-    public void onEventClick(int position, View itemView, ImageView imageView, TextView titleView, TextView dateView) {
-        lastClickedPosition = position;
+    public void onEventClick(int position, View itemView) {
         Event selectedEvent = displayedEvents.get(position);
 
         Bundle bundle = new Bundle();
         bundle.putSerializable("event", selectedEvent);
 
-        FragmentNavigator.Extras extras = new FragmentNavigator.Extras.Builder()
-                .addSharedElement(imageView, ViewCompat.getTransitionName(imageView))
-                .addSharedElement(titleView, ViewCompat.getTransitionName(titleView))
-                .addSharedElement(dateView, ViewCompat.getTransitionName(dateView))
-                .build();
-
         Navigation.findNavController(itemView).navigate(
                 R.id.eventViewFragment,
-                bundle,
-                null,
-                extras
+                bundle
         );
     }
 

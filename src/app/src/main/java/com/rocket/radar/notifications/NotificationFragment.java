@@ -2,7 +2,8 @@ package com.rocket.radar.notifications;
 
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;import android.view.View;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
@@ -13,7 +14,6 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.transition.Hold; // <--- The fix is here
 import com.rocket.radar.R;
 import com.rocket.radar.events.Event;
 import com.rocket.radar.events.EventRepository;
@@ -33,18 +33,6 @@ public class NotificationFragment extends Fragment {
     private NotificationRepository notificationRepository;
     private RecyclerView.AdapterDataObserver adapterObserver;
 
-    // Stores the position so the shared element knows where to return
-    private int savedClickedPosition = -1;
-
-    // NEW: Added onCreate to set the Exit Transition correctly
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        // This prevents the list from disappearing immediately when you click an item.
-        // It "Holds" the view in place while the shared element flies out.
-        setExitTransition(new Hold());
-    }
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.notification_list, container, false);
@@ -59,42 +47,9 @@ public class NotificationFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 1. Postpone the enter transition until we say so!
-        postponeEnterTransition();
-
         setupRecyclerView();
         setupClickListeners();
         observeNotifications();
-
-        // 2. Handle the RETURN transition mapping
-        setExitSharedElementCallback(new androidx.core.app.SharedElementCallback() {
-            @Override
-            public void onMapSharedElements(java.util.List<String> names, java.util.Map<String, View> sharedElements) {
-                if (savedClickedPosition < 0) return;
-
-                RecyclerView.ViewHolder selectedViewHolder =
-                        notificationRecyclerView.findViewHolderForAdapterPosition(savedClickedPosition);
-
-                if (selectedViewHolder == null || selectedViewHolder.itemView == null) {
-                    return;
-                }
-
-                if (selectedViewHolder instanceof NotificationAdapter.NotificationViewHolder) {
-                    NotificationAdapter.NotificationViewHolder holder =
-                            (NotificationAdapter.NotificationViewHolder) selectedViewHolder;
-
-                    if (holder.eventImage != null && holder.eventImage.getTransitionName() != null) {
-                        sharedElements.put(holder.eventImage.getTransitionName(), holder.eventImage);
-                    }
-                    if (holder.eventTitle != null && holder.eventTitle.getTransitionName() != null) {
-                        sharedElements.put(holder.eventTitle.getTransitionName(), holder.eventTitle);
-                    }
-                }
-            }
-        });
-
-        // Note: We do NOT add the PreDrawListener here anymore.
-        // We add it only AFTER the images are fetched in observeNotifications.
     }
 
     private void setupRecyclerView() {
@@ -106,10 +61,6 @@ public class NotificationFragment extends Fragment {
                 notificationRepository,
                 eventRepository
         );
-
-        adapter.setOnItemClickListener(position -> {
-            this.savedClickedPosition = position;
-        });
 
         notificationRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         notificationRecyclerView.setAdapter(adapter);
@@ -174,9 +125,7 @@ public class NotificationFragment extends Fragment {
             }
 
             if (eventIdsToFetch.isEmpty()) {
-                // No images to load? Update list and start animation immediately.
                 adapter.setNotifications(newNotifications);
-                waitForLayoutAndStartTransition();
                 return;
             }
 
@@ -208,34 +157,11 @@ public class NotificationFragment extends Fragment {
                                     // 3. Update Adapter with Cache AND Notifications
                                     adapter.updateEventCache(loadedEvents);
                                     adapter.setNotifications(newNotifications);
-
-                                    // 4. NOW start the transition
-                                    waitForLayoutAndStartTransition();
                                 });
                             }
                         }
                     }
                 });
-            }
-        });
-    }
-
-    private void waitForLayoutAndStartTransition() {
-        notificationRecyclerView.getViewTreeObserver().addOnPreDrawListener(new android.view.ViewTreeObserver.OnPreDrawListener() {
-            @Override
-            public boolean onPreDraw() {
-                // If we are returning from an event detail, scroll to position
-                if (savedClickedPosition != -1) {
-                    RecyclerView.ViewHolder holder = notificationRecyclerView.findViewHolderForAdapterPosition(savedClickedPosition);
-                    if (holder == null) {
-                        notificationRecyclerView.scrollToPosition(savedClickedPosition);
-                        return false; // Retry next frame
-                    }
-                }
-
-                notificationRecyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
-                startPostponedEnterTransition(); // Start the animation now that images are ready!
-                return true;
             }
         });
     }
