@@ -262,7 +262,7 @@ public class EventViewFragment extends Fragment {
                             joinAndLeaveWaitlistButton.setText("Registration Not Started");
                             // Optional: Change background color to grey explicitly if standard disabled state isn't enough
                             joinAndLeaveWaitlistButton.setBackgroundColor(getResources().getColor(android.R.color.darker_gray, null));
-                        } else if (System.currentTimeMillis() > event.getRegistrationEndDate().getTime() && /*not on waitlist */ (!isOnWaitlist(profileViewModel.getProfileLiveData().getValue()) || /*is theyre on the waitlist but the invited list isnt empty, then they didnt get selected so this staement should evaluate to true*/ !event.getEventInvitedIds().isEmpty())){
+                        } else if (System.currentTimeMillis() > event.getSelectionStartDate().getTime() && /*not on waitlist */ (!isOnWaitlist(profileViewModel.getProfileLiveData().getValue()) || /*is theyre on the waitlist but the invited list isnt empty, then they didnt get selected so this staement should evaluate to true*/ !event.getEventInvitedIds().isEmpty())){
                             joinAndLeaveWaitlistButton.setEnabled(false);
                             joinAndLeaveWaitlistButton.setText("Registration Closed");
                             // Optional: Change background color to grey explicitly if standard disabled state isn't enough
@@ -365,8 +365,8 @@ public class EventViewFragment extends Fragment {
 
             // Assuming getRegistrationDeadline() returns a Date object.
             // If it returns null, we assume immediate access.
-            if (event.getRegistrationEndDate() != null) {
-                deadlineTime = event.getRegistrationEndDate().getTime();
+            if (event.getSelectionStartDate() != null) {
+                deadlineTime = event.getSelectionStartDate().getTime();
             }
 
             if (currentTime < deadlineTime) {

@@ -494,7 +494,7 @@ public class MainActivity extends AppCompatActivity {
                 Event event = documentSnapshot.toObject(Event.class);
 
                 if (event != null) {
-                    Date deadline = event.getRegistrationEndDate();
+                    Date deadline = event.getSelectionStartDate();
 
                     // 1. Check if deadline exists and has passed
                     if (deadline != null && deadline.getTime() < currentTime) {

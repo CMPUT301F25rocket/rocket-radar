@@ -143,16 +143,11 @@ public class EventsTests {
                 .eventStartTime(sample.getEventStartTime())
                 .eventEndTime(sample.getEventEndTime())
                 .registrationStartDate(sample.getRegistrationStartDate())
-                .registrationEndDate(sample.getRegistrationEndDate())
                 .initialSelectionStartDate(sample.getSelectionStartDate())
-                .initialSelectionEndDate(sample.getSelectionEndDate())
                 .finalSelectionDate(sample.getFinalSelectionDate())
                 .waitlistCapacity(Optional.ofNullable(sample.getWaitlistCapacity()))
                 .requireLocation(sample.isRequireLocation())
-                .lotteryDate(sample.getLotteryDate())
-                .lotteryTime(sample.getLotteryTime())
                 .bannerImage(sample.getBannerImageBitmap())
-                .color(Color.valueOf(sample.getColor()))
                 .build();
 
         EventTestUtils.assertEventEquals(sample, copy);

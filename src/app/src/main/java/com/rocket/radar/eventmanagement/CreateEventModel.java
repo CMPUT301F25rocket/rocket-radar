@@ -27,7 +27,6 @@ public class CreateEventModel extends ViewModel {
 
 
     // Datetime section field values
-    public MutableLiveData<Boolean> singleDayEvent;
     public MutableLiveData<Optional<Date>> eventDate;
 
     /**
@@ -60,19 +59,9 @@ public class CreateEventModel extends ViewModel {
         return dateDisplay(registrationStartDate);
     }
 
-    public MutableLiveData<Optional<Date>> registrationEndDate;
-    public LiveData<String> registrationEndDateDisplay() {
-        return dateDisplay(registrationEndDate);
-    }
-
     public MutableLiveData<Optional<Date>> initialSelectionStartDate;
     public LiveData<String> initialSelectionStartDateDisplay() {
         return dateDisplay(initialSelectionStartDate);
-    }
-
-    public MutableLiveData<Optional<Date>> initialSelectionEndDate;
-    public LiveData<String> initialSelectionEndDateDisplay() {
-        return dateDisplay(initialSelectionEndDate);
     }
 
     public MutableLiveData<Optional<Date>> finalAttendeeSelectionDate;
@@ -95,21 +84,8 @@ public class CreateEventModel extends ViewModel {
         return Transformations.map(eventCapacity, val -> val.map(Object::toString).orElse(""));
     }
 
-
-    public MutableLiveData<Optional<Date>> lotteryDate;
-    public LiveData<String> lotteryDateDisplay() {
-        return dateDisplay(lotteryDate);
-    }
-
-
-    public MutableLiveData<Optional<Time>> lotteryTime;
-    public LiveData<String> lotteryTimeDisplay() {
-        return Transformations.map(lotteryTime, time -> time.map(Time::toString).orElse(""));
-    }
-
     // Style section field values
     public MutableLiveData<Optional<Uri>> image;
-    public MutableLiveData<Optional<Color>> color;
 
     public CreateEventModel() {
         // TRIANGLE
@@ -117,26 +93,20 @@ public class CreateEventModel extends ViewModel {
         title = new MutableLiveData<>("");
         description = new MutableLiveData<>("");
         tagline = new MutableLiveData<>("");
-        singleDayEvent = new MutableLiveData<>(true);
         eventDate = new MutableLiveData<>(Optional.empty());
         eventStartTime = new MutableLiveData<>(Optional.empty());
         eventEndTime = new MutableLiveData<>(Optional.empty());
         registrationStartDate = new MutableLiveData<>(Optional.empty());
-        registrationEndDate = new MutableLiveData<>(Optional.empty());
         initialSelectionStartDate = new MutableLiveData<>(Optional.empty());
-        initialSelectionEndDate = new MutableLiveData<>(Optional.empty());
         finalAttendeeSelectionDate = new MutableLiveData<>(Optional.empty());
         hasWaitlistCapacity = new MutableLiveData<>(false);
         hasLocationRequirement = new MutableLiveData<>(false);
         waitlistCapacity = new MutableLiveData<>(Optional.empty());
         eventCapacity = new MutableLiveData<>(Optional.empty());
-        lotteryDate = new MutableLiveData<>(Optional.empty());
-        lotteryTime = new MutableLiveData<>(Optional.empty());
         organizerId = new MutableLiveData<>(""); // <--- ADD THIS
 
         // Actually be default this should be some random cover image.
         image = new MutableLiveData<>(Optional.empty());
-        color = new MutableLiveData<>(Optional.empty());
     }
 
     public LiveData<Section> getSection() {

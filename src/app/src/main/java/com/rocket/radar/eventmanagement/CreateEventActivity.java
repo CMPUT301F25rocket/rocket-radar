@@ -51,7 +51,7 @@ import kotlin.Unit;
 public class CreateEventActivity extends AppCompatActivity implements BottomSheetProvider {
     public static final String TAG = CreateEventActivity.class.getSimpleName();
     ActivityCreateEventBinding binding;
-    CreateEventModel model;
+    private MutableLiveData<Section> currentSection;
     EventRepository eventRepository;
 
     private EventGeneralFragment eventGeneralFragment;
@@ -70,7 +70,7 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
         // These three lines took way too long to write. ʕノ•ᴥ•ʔノ ︵ ┻━┻
         // WARN: Make sure when you create variables you call setMyVarName(...) on the binding.
         binding = ActivityCreateEventBinding.inflate(getLayoutInflater());
-        model = new CreateEventModel();
+        currentSection = new MutableLiveData<>(Section.GENERAL);
 
         // NOTE: may be better to lazy load these but I don't want to.
         eventGeneralFragment = new EventGeneralFragment();
@@ -81,17 +81,17 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
 
         // Main navigation buttons
         binding.createEventWizardNavLeftButton.setOnClickListener(btn -> {
-            if (model.getSection().getValue() == Section.firstSection) {
+            if (currentSection.getValue() == Section.firstSection) {
                 Intent intent = new Intent();
                 setResult(RESULT_CANCELED, intent);
                 CreateEventActivity.this.finish();
             } else {
-                model.prevSection();
+                prevSection();
             }
         });
 
         binding.createEventWizardNavRightButton.setOnClickListener(btn -> {
-            if (model.getSection().getValue() == Section.lastSection) {
+            if (currentSection.getValue() == Section.lastSection) {
                 try {
                     Event.Builder builder = new Event.Builder();
                     builder = eventGeneralFragment.extract(builder);
@@ -123,7 +123,7 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
                 }
             } else {
                 if (fragment instanceof InputFragment) {
-                    model.nextSection((InputFragment) fragment);
+                    nextSection((InputFragment) fragment);
                 } else {
                     Log.e(TAG, "Fragment " + fragment.getTag() + " is not an input fragment");
                 }
@@ -133,15 +133,30 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
         setContentView(binding.getRoot());
         EdgeToEdge.enable(this);
 
-
-        // Bind the model to the views.
-        binding.setCreateEvent(model);
-        binding.setLifecycleOwner(this);
-
         // Observe section changes and swap fragments accordingly
-        model.getSection().observe(this, section -> {
+        currentSection.observe(this, section -> {
             navigateToSection(section);
         });
+    }
+
+    private void nextSection(InputFragment fragment) {
+        if (!fragment.valid(fragment)) return;
+
+        Section current = currentSection.getValue();
+        if (current == Section.lastSection) {
+            return;
+        } else {
+            currentSection.setValue(Section.values()[current.ordinal() + 1]);
+        }
+    }
+
+    private void prevSection() {
+        Section current = currentSection.getValue();
+        if (current == Section.firstSection) {
+            return;
+        } else {
+            currentSection.setValue(Section.values()[current.ordinal() - 1]);
+        }
     }
 
     /**

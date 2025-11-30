@@ -59,24 +59,18 @@ public class Event implements Serializable {
     private Time eventStartTime;
     private Time eventEndTime;
     private Date registrationStartDate;
-    private Date registrationEndDate;
     private Date selectionStartDate;
-    private Date selectionEndDate;
     private Date finalSelectionDate;
     private Optional<Integer> waitlistCapacity;
     private boolean requireLocation;
     private int eventCapacity;
-    private Date lotteryDate;
     private String organizerId;
-
-    private Time lotteryTime;
 
     private Blob bannerImageBlob;
 
     // WARN: DO NOT REMOVE TRANSIENT. WE WILL CONSUME OUR FIRESTORE USAGE FAST (maybe).
     // We don't want this one serialized.
     private transient Bitmap bannerImage;
-    private Color color;
 
     /**
      * A list of user IDs for those on the waitlist for the event.
@@ -174,59 +168,6 @@ public class Event implements Serializable {
     public void setEventId(String eventId) { this.eventId = eventId; }
 
 
-    /**
-     * Gets the associated color for the event as an ARGB integer.
-     *
-     * @return The integer representation of the event's color.
-     */
-    public int getColor() {
-        return color.toArgb();
-    }
-
-    /**
-     * Sets the color for the event from an ARGB integer.
-     *
-     * @param color The integer representation of the color.
-     */
-    public void setColor(int color) {
-        this.color = Color.valueOf(color);
-    }
-
-    /**
-     * Gets the time of the lottery draw.
-     *
-     * @return The {@link Time} of the lottery.
-     */
-    public Time getLotteryTime() {
-        return lotteryTime;
-    }
-
-    /**
-     * Sets the time of the lottery draw.
-     *
-     * @param lotteryTime The {@link Time} of the lottery.
-     */
-    public void setLotteryTime(Time lotteryTime) {
-        this.lotteryTime = lotteryTime;
-    }
-
-    /**
-     * Gets the date of the lottery draw.
-     *
-     * @return The {@link Date} of the lottery.
-     */
-    public Date getLotteryDate() {
-        return lotteryDate;
-    }
-
-    /**
-     * Sets the date of the lottery draw.
-     *
-     * @param lotteryDate The {@link Date} of the lottery.
-     */
-    public void setLotteryDate(Date lotteryDate) {
-        this.lotteryDate = lotteryDate;
-    }
 
     /**
      * Gets the maximum capacity of the event.
@@ -300,23 +241,6 @@ public class Event implements Serializable {
         this.finalSelectionDate = finalSelectionDate;
     }
 
-    /**
-     * Gets the end date of the selection period.
-     *
-     * @return The selection end {@link Date}.
-     */
-    public Date getSelectionEndDate() {
-        return selectionEndDate;
-    }
-
-    /**
-     * Sets the end date of the selection period.
-     *
-     * @param selectionEndDate The selection end {@link Date}.
-     */
-    public void setSelectionEndDate(Date selectionEndDate) {
-        this.selectionEndDate = selectionEndDate;
-    }
 
     /**
      * Gets the start date of the selection period.
@@ -336,23 +260,6 @@ public class Event implements Serializable {
         this.selectionStartDate = selectionStartDate;
     }
 
-    /**
-     * Gets the end date of the registration period.
-     *
-     * @return The registration end {@link Date}.
-     */
-    public Date getRegistrationEndDate() {
-        return registrationEndDate;
-    }
-
-    /**
-     * Sets the end date of the registration period.
-     *
-     * @param registrationEndDate The registration end {@link Date}.
-     */
-    public void setRegistrationEndDate(Date registrationEndDate) {
-        this.registrationEndDate = registrationEndDate;
-    }
 
     /**
      * Gets the start date of the registration period.
@@ -757,18 +664,8 @@ public class Event implements Serializable {
             return this;
         }
 
-        public Builder registrationEndDate(Date date) {
-            event.registrationEndDate = date;
-            return this;
-        }
-
         public Builder initialSelectionStartDate(Date date) {
             event.selectionStartDate = date;
-            return this;
-        }
-
-        public Builder initialSelectionEndDate(Date date) {
-            event.selectionEndDate = date;
             return this;
         }
 
@@ -792,16 +689,6 @@ public class Event implements Serializable {
             return this;
         }
 
-        public Builder lotteryDate(Date date) {
-            event.lotteryDate = date;
-            return this;
-        }
-
-        public Builder lotteryTime(Time time) {
-            event.lotteryTime = time;
-            return this;
-        }
-
         public Builder bannerImage(Bitmap image) throws Exception {
             // IMPORTANT: Make sure these are kept up to date.
             // These are the dimensions in DP for the image on the event view page. This may result
@@ -812,11 +699,6 @@ public class Event implements Serializable {
             resized.compress(Bitmap.CompressFormat.JPEG, 70, outputStream);
             event.bannerImageBlob = Blob.fromBytes(outputStream.toByteArray());
             event.bannerImage = resized;
-            return this;
-        }
-
-        public Builder color(Color color) {
-            event.color = color;
             return this;
         }
 

@@ -25,7 +25,7 @@ import java.util.Optional;
 public class EventDateTimeFragment extends Fragment implements InputFragment {
     private static final String TAG = EventDateTimeFragment.class.getSimpleName();
     private ViewInputEventDatetimeBinding binding;
-    private CreateEventModel model;
+    private EventDateTimeViewModel viewModel;
     private BottomSheetProvider bottomSheetProvider;
 
     @Nullable
@@ -39,8 +39,8 @@ public class EventDateTimeFragment extends Fragment implements InputFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Get the shared ViewModel from the parent activity
-        model = new ViewModelProvider(requireActivity()).get(CreateEventModel.class);
+        // Get the ViewModel scoped to the activity to preserve state across fragment replacements
+        viewModel = new ViewModelProvider(requireActivity()).get(EventDateTimeViewModel.class);
 
         // Try to get the BottomSheetProvider from the parent activity
         if (requireActivity() instanceof BottomSheetProvider) {
@@ -51,7 +51,7 @@ public class EventDateTimeFragment extends Fragment implements InputFragment {
         }
 
         // Bind the model to the view
-        binding.setCreateEvent(model);
+        binding.setViewModel(viewModel);
         binding.setLifecycleOwner(getViewLifecycleOwner());
 
         // Set up date and time pickers
@@ -66,26 +66,26 @@ public class EventDateTimeFragment extends Fragment implements InputFragment {
 
         // Event date picker
         binding.inputEventDatetimeDaterangeTextInput.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) bottomSheetProvider.openCalendarBottomSheet(model.eventDate, v);
+            if (hasFocus) bottomSheetProvider.openCalendarBottomSheet(viewModel.eventDate, v);
         });
 
         // Event start time picker
         binding.inputEventDatetimeStartTextInput.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) bottomSheetProvider.openTimeBottomSheet(model.eventStartTime, v);
+            if (hasFocus) bottomSheetProvider.openTimeBottomSheet(viewModel.eventStartTime, v);
         });
 
         // Event end time picker
         binding.inputEventDatetimeEndTextInput.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) bottomSheetProvider.openTimeBottomSheet(model.eventEndTime, v);
+            if (hasFocus) bottomSheetProvider.openTimeBottomSheet(viewModel.eventEndTime, v);
         });
     }
 
 
     @Override
     public boolean valid(InputFragment inputFragment) {
-        Optional<Date> date = model.eventDate.getValue();
-        Optional<Time> startTime = model.eventStartTime.getValue();
-        Optional<Time> endTime = model.eventEndTime.getValue();
+        Optional<Date> date = viewModel.eventDate.getValue();
+        Optional<Time> startTime = viewModel.eventStartTime.getValue();
+        Optional<Time> endTime = viewModel.eventEndTime.getValue();
 
         return date.isPresent() && startTime.isPresent() && endTime.isPresent()
                 && startTime.get().compareTo(endTime.get()) < 0;
@@ -94,13 +94,13 @@ public class EventDateTimeFragment extends Fragment implements InputFragment {
 
     @Override
     public Event.Builder extract(Event.Builder builder) {
-        Date date = model.eventDate.getValue()
+        Date date = viewModel.eventDate.getValue()
                 .orElseThrow(() -> new NoSuchElementException("The event start date is missing."));
 
-        Time startTime = model.eventStartTime.getValue()
+        Time startTime = viewModel.eventStartTime.getValue()
                 .orElseThrow(() -> new NoSuchElementException("The event start time is missing."));
 
-        Time endTime = model.eventEndTime.getValue()
+        Time endTime = viewModel.eventEndTime.getValue()
                 .orElseThrow(() -> new NoSuchElementException("The event end time is missing."));
 
         return builder.eventStartDate(date)

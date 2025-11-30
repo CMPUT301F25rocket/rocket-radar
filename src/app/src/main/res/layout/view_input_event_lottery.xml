@@ -5,7 +5,7 @@
     >
     <data>
         <import type="android.view.View" />
-        <variable name="createEvent" type="com.rocket.radar.eventmanagement.CreateEventModel"/>
+        <variable name="viewModel" type="com.rocket.radar.eventmanagement.EventLotteryViewModel"/>
     </data>
     <LinearLayout
         android:layout_width="match_parent"
@@ -50,7 +50,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="24dp"
-                android:checked="@={createEvent.hasWaitlistCapacity}"
+                android:checked="@={viewModel.hasWaitlistCapacity}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -90,7 +90,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="24dp"
-                android:checked="@={createEvent.hasLocationRequirement}"
+                android:checked="@={viewModel.hasLocationRequirement}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -110,7 +110,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Waitlist Capacity"
-                android:visibility="@{createEvent.hasWaitlistCapacity ? View.VISIBLE : View.GONE}"
+                android:visibility="@{viewModel.hasWaitlistCapacity ? View.VISIBLE : View.GONE}"
                 app:layout_constraintTop_toTopOf="parent"
                 >
                 <com.google.android.material.textfield.TextInputEditText
@@ -139,53 +139,6 @@
                     />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/lotterySectionDateLayout"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:layout_marginEnd="12dp"
-                android:hint="Lottery Date"
-                app:layout_constraintTop_toBottomOf="@id/inputEventLotteryEventCapacity"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/lotterySectionTimeLayout"
-                >
-                <com.google.android.material.textfield.TextInputEditText
-                    style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
-                    android:id="@+id/lotterySectionDateInput"
-                    android:text="@{createEvent.lotteryDateDisplay}"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:cursorVisible="false"
-                    android:inputType="none"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/lotterySectionTimeLayout"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:layout_marginStart="12dp"
-                android:hint="Lottery Time"
-                app:layout_constraintTop_toBottomOf="@id/inputEventLotteryEventCapacity"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/lotterySectionDateLayout"
-                >
-                <com.google.android.material.textfield.TextInputEditText
-                    style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
-                    android:id="@+id/lotterySectionTimeInput"
-                    android:text="@{createEvent.lotteryTimeDisplay}"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:cursorVisible="false"
-                    android:inputType="none"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    />
-            </com.google.android.material.textfield.TextInputLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>
 

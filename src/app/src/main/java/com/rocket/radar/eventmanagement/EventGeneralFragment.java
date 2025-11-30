@@ -24,8 +24,7 @@ import java.util.List;
  */
 public class EventGeneralFragment extends Fragment implements InputFragment {
     private ViewInputEventGeneralBinding binding;
-    private CreateEventModel model;
-    // TODO: Pull all data from the model into the individual fragments.
+    private EventGeneralViewModel viewModel;
     ArrayList<String> categories;
 
     @Nullable
@@ -36,7 +35,7 @@ public class EventGeneralFragment extends Fragment implements InputFragment {
         categories = new ArrayList<>();
 
         for (var category : Event.allEventCategories) {
-            CategoryChipBinding chip = CategoryChipBinding.inflate(inflater, binding.createEventGeneralChipGroup.getRoot(), false);
+                CategoryChipBinding chip = CategoryChipBinding.inflate(inflater, binding.createEventGeneralChipGroup.getRoot(), false);
             chip.getRoot().setText(category);
             binding.createEventGeneralChipGroup.getRoot().addView(chip.getRoot());
         }
@@ -56,19 +55,19 @@ public class EventGeneralFragment extends Fragment implements InputFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Get the shared ViewModel from the parent activity
-        model = new ViewModelProvider(requireActivity()).get(CreateEventModel.class);
+        // Get the ViewModel scoped to the activity to preserve state across fragment replacements
+        viewModel = new ViewModelProvider(requireActivity()).get(EventGeneralViewModel.class);
 
         // Bind the model to the view
-        binding.setCreateEvent(model);
+        binding.setViewModel(viewModel);
         binding.setLifecycleOwner(getViewLifecycleOwner());
     }
 
     @Override
     public boolean valid(InputFragment inputFragment) {
-        String title = this.model.title.getValue();
-        String descr = this.model.description.getValue();
-        String tagline = this.model.tagline.getValue();
+        String title = this.viewModel.title.getValue();
+        String descr = this.viewModel.description.getValue();
+        String tagline = this.viewModel.tagline.getValue();
 
         return (title != null && !title.isBlank())
                 && (descr != null && !descr.isBlank())
@@ -79,9 +78,9 @@ public class EventGeneralFragment extends Fragment implements InputFragment {
     public Event.Builder extract(Event.Builder builder) {
         return builder
                 .categories(categories)
-                .title(this.model.title.getValue())
-                .description(this.model.description.getValue())
-                .tagline(model.tagline.getValue());
+                .title(this.viewModel.title.getValue())
+                .description(this.viewModel.description.getValue())
+                .tagline(viewModel.tagline.getValue());
     }
 
     @Override

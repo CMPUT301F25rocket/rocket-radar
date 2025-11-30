@@ -1,8 +1,6 @@
 package com.rocket.radar.eventmanagement;
 
-import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -15,29 +13,23 @@ import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.maxkeppeler.sheets.color.ColorSheet;
-import com.maxkeppeler.sheets.core.SheetStyle;
-import com.rocket.radar.R;
 import com.rocket.radar.databinding.ViewInputEventStyleBinding;
 import com.rocket.radar.events.Event;
 
 import java.io.FileNotFoundException;
 import java.util.Optional;
 
-import kotlin.Unit;
-
 /**
  * Fragment for the Style section of the event creation wizard.
- * Handles input for event banner image and color theme.
+ * Handles input for event banner image.
  */
 public class EventStyleFragment extends Fragment implements InputFragment {
     private static final String TAG = EventStyleFragment.class.getSimpleName();
     private ViewInputEventStyleBinding binding;
-    private CreateEventModel model;
+    private EventStyleViewModel viewModel;
     private ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
 
     @Override
@@ -50,7 +42,7 @@ public class EventStyleFragment extends Fragment implements InputFragment {
                 uri -> {
                     if (uri != null && binding != null) {
                         binding.inputEventStylePickImage.setImageURI(uri);
-                        model.image.setValue(Optional.of(uri));
+                        viewModel.image.setValue(Optional.of(uri));
                     }
                 }
         );
@@ -67,58 +59,18 @@ public class EventStyleFragment extends Fragment implements InputFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Get the shared ViewModel from the parent activity
-        model = new ViewModelProvider(requireActivity()).get(CreateEventModel.class);
+        // Get the ViewModel scoped to the activity to preserve state across fragment replacements
+        viewModel = new ViewModelProvider(requireActivity()).get(EventStyleViewModel.class);
 
         // Bind the model to the view
-        binding.setCreateEvent(model);
+        binding.setViewModel(viewModel);
         binding.setLifecycleOwner(getViewLifecycleOwner());
 
-        // Set up style pickers
-        setupStylePickers();
+        // Set up image picker
+        setupImagePicker();
     }
 
-    private String colorToString(Integer color) {
-        if (color == ContextCompat.getColor(requireContext(), R.color.red))
-            return "Red";
-
-        if (color == ContextCompat.getColor(requireContext(), R.color.orange))
-            return "Orange";
-
-        if (color == ContextCompat.getColor(requireContext(), R.color.yellow))
-            return "Yellow";
-
-        if (color == ContextCompat.getColor(requireContext(), R.color.green))
-            return "Green";
-
-        if (color == ContextCompat.getColor(requireContext(), R.color.cyan))
-            return "Cyan";
-
-        if (color == ContextCompat.getColor(requireContext(), R.color.blue))
-            return "Blue";
-
-        return color.toString();
-    }
-
-    private void setupStylePickers() {
-        // Color picker
-        binding.inputEventStylePickColorButton.setOnClickListener(btn -> {
-            ColorSheet colorSheet = new ColorSheet();
-            colorSheet.show(requireActivity(), null, sheet -> {
-                sheet.style(SheetStyle.BOTTOM_SHEET);
-                sheet.disableAlpha();
-                sheet.colorsRes(R.color.red, R.color.orange, R.color.yellow, R.color.green, R.color.cyan, R.color.blue);
-                sheet.onPositive(selected -> {
-                    Color color = Color.valueOf(selected);
-                    model.color.setValue(Optional.of(color));
-                    binding.inputEventStylePickColorButton.setBackgroundColor(color.toArgb());
-                    binding.inputEventStylePickColorButton.setText(colorToString(selected));
-                    return Unit.INSTANCE;
-                });
-                return Unit.INSTANCE;
-            });
-        });
-
+    private void setupImagePicker() {
         // Image picker
         binding.inputEventStylePickImage.setOnClickListener(v -> {
             pickMedia.launch(new PickVisualMediaRequest.Builder()
@@ -130,22 +82,20 @@ public class EventStyleFragment extends Fragment implements InputFragment {
 
     @Override
     public boolean valid(InputFragment inputFragment) {
-        Optional<Color> color = model.color.getValue();
-        Optional<Uri> uri = model.image.getValue();
-        return color.isPresent() && uri.isPresent();
+        Optional<Uri> uri = viewModel.image.getValue();
+        return uri.isPresent();
     }
 
     @Override
     public Event.Builder extract(Event.Builder builder) throws Exception {
-        Uri uri = model.image.getValue().orElseThrow();
+        Uri uri = viewModel.image.getValue().orElseThrow();
         Bitmap bitmap;
         try {
             bitmap = MediaStore.Images.Media.getBitmap(requireActivity().getContentResolver(), uri);
         } catch (FileNotFoundException e) {
             throw new Exception("Provided image could not be read from storage");
         }
-        return builder.bannerImage(bitmap)
-                .color(model.color.getValue().orElseThrow());
+        return builder.bannerImage(bitmap);
     }
 
     @Override

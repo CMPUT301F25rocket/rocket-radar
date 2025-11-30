@@ -68,22 +68,14 @@ public class EventTestUtils {
 
         cal.set(currentYear, Calendar.SEPTEMBER, 2);
         event.setRegistrationStartDate(cal.getTime());
-        cal.set(currentYear, Calendar.SEPTEMBER, 5);
-        event.setRegistrationEndDate(cal.getTime());
 
         cal.set(currentYear, Calendar.SEPTEMBER, 6);
         event.setSelectionStartDate(cal.getTime());
-        cal.set(currentYear, Calendar.SEPTEMBER, 8);
-        event.setSelectionEndDate(cal.getTime());
         cal.set(currentYear, Calendar.SEPTEMBER, 14);
         event.setFinalSelectionDate(cal.getTime());
 
         event.setWaitlistCapacity(30);
         event.setRequireLocation(true);
-        cal.set(currentYear, Calendar.SEPTEMBER, 10);
-        event.setLotteryDate(cal.getTime());
-        event.setLotteryTime(new Time(12, 0));
-        event.setColor(Color.RED);
 
         Bitmap bitmap = Bitmap.createBitmap(500, 880, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);

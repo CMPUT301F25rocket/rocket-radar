@@ -2,46 +2,13 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto" >
     <data>
-        <variable name="createEvent" type="com.rocket.radar.eventmanagement.CreateEventModel"/>
+        <variable name="viewModel" type="com.rocket.radar.eventmanagement.EventDateTimeViewModel"/>
     </data>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         >
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingVertical="12dp"
-            >
-
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/materialTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:textSize="20dp"
-                android:text="Single Day Event"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <com.google.android.material.materialswitch.MaterialSwitch
-                style="@style/Widget.Material3.CompoundButton.MaterialSwitch"
-                android:layout_width="wrap_content"
-                android:layout_height="10dp"
-                android:layout_marginEnd="24dp"
-                android:checked="@={createEvent.singleDayEvent}"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                />
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <com.google.android.material.divider.MaterialDivider
-            android:layout_width="match_parent"
-            android:layout_height="1dp" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -60,7 +27,7 @@
                 <com.google.android.material.textfield.TextInputEditText
                     style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
                     android:id="@+id/inputEventDatetimeDaterangeTextInput"
-                    android:text="@{createEvent.eventDateDisplay}"
+                    android:text="@{viewModel.eventDateDisplay()}"
                     android:clickable="true"
                     android:focusable="true"
                     android:cursorVisible="false"
@@ -84,7 +51,7 @@
                 <com.google.android.material.textfield.TextInputEditText
                     style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
                     android:id="@+id/inputEventDatetimeStartTextInput"
-                    android:text="@{createEvent.eventStartTimeDisplay()}"
+                    android:text="@{viewModel.eventStartTimeDisplay()}"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     />
@@ -105,7 +72,7 @@
                 <com.google.android.material.textfield.TextInputEditText
                     style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
                     android:id="@+id/inputEventDatetimeEndTextInput"
-                    android:text="@{createEvent.eventEndTimeDisplay()}"
+                    android:text="@{viewModel.eventEndTimeDisplay()}"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     />

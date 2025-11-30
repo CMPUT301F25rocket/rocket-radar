@@ -26,7 +26,7 @@ import java.util.Optional;
 public class EventDeadlinesFragment extends Fragment implements InputFragment {
     private static final String TAG = EventDeadlinesFragment.class.getSimpleName();
     private ViewInputEventDeadlinesBinding binding;
-    private CreateEventModel model;
+    private EventDeadlinesViewModel viewModel;
     private BottomSheetProvider bottomSheetProvider;
 
     @Nullable
@@ -40,8 +40,8 @@ public class EventDeadlinesFragment extends Fragment implements InputFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Get the shared ViewModel from the parent activity
-        model = new ViewModelProvider(requireActivity()).get(CreateEventModel.class);
+        // Get the ViewModel scoped to the activity to preserve state across fragment replacements
+        viewModel = new ViewModelProvider(requireActivity()).get(EventDeadlinesViewModel.class);
 
         // Try to get the BottomSheetProvider from the parent activity
         if (requireActivity() instanceof BottomSheetProvider) {
@@ -52,7 +52,7 @@ public class EventDeadlinesFragment extends Fragment implements InputFragment {
         }
 
         // Bind the model to the view
-        binding.setCreateEvent(model);
+        binding.setViewModel(viewModel);
         binding.setLifecycleOwner(getViewLifecycleOwner());
 
         // Set up date pickers
@@ -67,52 +67,36 @@ public class EventDeadlinesFragment extends Fragment implements InputFragment {
 
         // Registration start date picker
         binding.eventDeadlineRegistrationStartDate.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) bottomSheetProvider.openCalendarBottomSheet(model.registrationStartDate, v);
-        });
-
-        // Registration end date picker
-        binding.eventDeadlineRegistrationEndDate.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) bottomSheetProvider.openCalendarBottomSheet(model.registrationEndDate, v);
+            if (hasFocus) bottomSheetProvider.openCalendarBottomSheet(viewModel.registrationStartDate, v);
         });
 
         // Selection start date picker
         binding.eventDeadlineSelectionStartDate.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) bottomSheetProvider.openCalendarBottomSheet(model.initialSelectionStartDate, v);
-        });
-
-        // Selection end date picker
-        binding.eventDeadlineSelectionEndDate.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) bottomSheetProvider.openCalendarBottomSheet(model.initialSelectionEndDate, v);
+            if (hasFocus) bottomSheetProvider.openCalendarBottomSheet(viewModel.initialSelectionStartDate, v);
         });
 
         // Final decision date picker
         binding.eventDeadlineFinalDecisionDate.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) bottomSheetProvider.openCalendarBottomSheet(model.finalAttendeeSelectionDate, v);
+            if (hasFocus) bottomSheetProvider.openCalendarBottomSheet(viewModel.finalAttendeeSelectionDate, v);
         });
     }
 
     @Override
     public boolean valid(InputFragment inputFragment) {
-        Optional<Date> regStart = model.registrationStartDate.getValue();
-        Optional<Date> regEnd = model.registrationEndDate.getValue();
-        Optional<Date> selStart = model.initialSelectionStartDate.getValue();
-        Optional<Date> selEnd = model.initialSelectionEndDate.getValue();
-        Optional<Date> finSelDate = model.finalAttendeeSelectionDate.getValue();
-        return regStart.isPresent() && regEnd.isPresent() && selStart.isPresent() && selEnd.isPresent() && finSelDate.isPresent()
-            && regStart.get().before(regEnd.get())
-            && regEnd.get().before(selStart.get())
-            && selStart.get().before(selEnd.get())
-            && selEnd.get().before(finSelDate.get());
+        Optional<Date> regStart = viewModel.registrationStartDate.getValue();
+        Optional<Date> selStart = viewModel.initialSelectionStartDate.getValue();
+        Optional<Date> finSelDate = viewModel.finalAttendeeSelectionDate.getValue();
+        return regStart.isPresent() && selStart.isPresent() && finSelDate.isPresent()
+            && regStart.get().before(selStart.get())
+            && selStart.get().before(finSelDate.get());
     }
 
     @Override
     public Event.Builder extract(Event.Builder builder) {
         return builder
-                .registrationStartDate(model.registrationStartDate.getValue().orElseThrow())
-                .registrationEndDate(model.registrationEndDate.getValue().orElseThrow())
-                .initialSelectionStartDate(model.initialSelectionStartDate.getValue().orElseThrow())
-                .initialSelectionEndDate(model.initialSelectionEndDate.getValue().orElseThrow())
-                .finalSelectionDate(model.finalAttendeeSelectionDate.getValue().orElseThrow());
+                .registrationStartDate(viewModel.registrationStartDate.getValue().orElseThrow())
+                .initialSelectionStartDate(viewModel.initialSelectionStartDate.getValue().orElseThrow())
+                .finalSelectionDate(viewModel.finalAttendeeSelectionDate.getValue().orElseThrow());
     }
 
     @Override

@@ -26,7 +26,7 @@ import java.util.Optional;
 public class EventLotteryFragment extends Fragment implements InputFragment {
     private static final String TAG = EventLotteryFragment.class.getSimpleName();
     private ViewInputEventLotteryBinding binding;
-    private CreateEventModel model;
+    private EventLotteryViewModel viewModel;
     private BottomSheetProvider bottomSheetProvider;
 
     @Nullable
@@ -40,8 +40,8 @@ public class EventLotteryFragment extends Fragment implements InputFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Get the shared ViewModel from the parent activity
-        model = new ViewModelProvider(requireActivity()).get(CreateEventModel.class);
+        // Get the ViewModel scoped to the activity to preserve state across fragment replacements
+        viewModel = new ViewModelProvider(requireActivity()).get(EventLotteryViewModel.class);
 
         // Try to get the BottomSheetProvider from the parent activity
         if (requireActivity() instanceof BottomSheetProvider) {
@@ -52,7 +52,7 @@ public class EventLotteryFragment extends Fragment implements InputFragment {
         }
 
         // Bind the model to the view
-        binding.setCreateEvent(model);
+        binding.setViewModel(viewModel);
         binding.setLifecycleOwner(getViewLifecycleOwner());
 
         // Set up input listeners
@@ -70,10 +70,10 @@ public class EventLotteryFragment extends Fragment implements InputFragment {
             @Override
             public void afterTextChanged(Editable s) {
                 if (s.toString().isEmpty()) {
-                    model.waitlistCapacity.setValue(Optional.empty());
+                    viewModel.waitlistCapacity.setValue(Optional.empty());
                 } else {
                     try {
-                        model.waitlistCapacity.setValue(Optional.of(Integer.parseInt(s.toString())));
+                        viewModel.waitlistCapacity.setValue(Optional.of(Integer.parseInt(s.toString())));
                     } catch (NumberFormatException e) {
                         Log.e(TAG, "Invalid waitlist capacity: " + s.toString());
                     }
@@ -92,10 +92,10 @@ public class EventLotteryFragment extends Fragment implements InputFragment {
             @Override
             public void afterTextChanged(Editable s) {
                 if (s.toString().isEmpty()) {
-                    model.eventCapacity.setValue(Optional.empty());
+                    viewModel.eventCapacity.setValue(Optional.empty());
                 } else {
                     try {
-                        model.eventCapacity.setValue(Optional.of(Integer.parseInt(s.toString())));
+                        viewModel.eventCapacity.setValue(Optional.of(Integer.parseInt(s.toString())));
                     } catch (NumberFormatException e) {
                         Log.e(TAG, "Invalid event capacity: " + s.toString());
                     }
@@ -109,38 +109,25 @@ public class EventLotteryFragment extends Fragment implements InputFragment {
             public void onTextChanged(CharSequence s, int start, int before, int count) { }
         });
 
-        // Lottery date picker
-        binding.lotterySectionDateInput.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) bottomSheetProvider.openCalendarBottomSheet(model.lotteryDate, v);
-        });
-
-        // Lottery time picker
-        binding.lotterySectionTimeInput.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) bottomSheetProvider.openTimeBottomSheet(model.lotteryTime, v);
-        });
     }
 
     @Override
     public boolean valid(InputFragment inputFragment) {
-        Optional<Integer> waitlistCapacity = model.waitlistCapacity.getValue();
-        Optional<Integer> eventCapacity = model.eventCapacity.getValue();
-        Optional<Date> lotteryDate = model.lotteryDate.getValue();
-        Optional<Time> lotteryTime = model.lotteryTime.getValue();
+        Optional<Integer> waitlistCapacity = viewModel.waitlistCapacity.getValue();
+        Optional<Integer> eventCapacity = viewModel.eventCapacity.getValue();
 
-        if (model.hasWaitlistCapacity.getValue() && waitlistCapacity.isEmpty())  {
+        if (viewModel.hasWaitlistCapacity.getValue() && waitlistCapacity.isEmpty())  {
             return false;
         }
 
-        return eventCapacity.isPresent() && lotteryDate.isPresent() && lotteryTime.isPresent();
+        return eventCapacity.isPresent();
     }
 
 
     @Override
     public Event.Builder extract(Event.Builder builder) {
-        return builder.waitlistCapacity(model.waitlistCapacity.getValue())
-                .eventCapacity(model.eventCapacity.getValue().orElseThrow())
-                .lotteryDate(model.lotteryDate.getValue().orElseThrow())
-                .lotteryTime(model.lotteryTime.getValue().orElseThrow());
+        return builder.waitlistCapacity(viewModel.waitlistCapacity.getValue())
+                .eventCapacity(viewModel.eventCapacity.getValue().orElseThrow());
     }
 
     @Override
