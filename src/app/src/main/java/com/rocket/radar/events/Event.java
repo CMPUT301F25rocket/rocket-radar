@@ -360,6 +360,8 @@ public class Event implements Serializable {
         return new ArrayList<>(categories);
     }
 
+
+
     /**
      * Sets the categories for the event.
      *
