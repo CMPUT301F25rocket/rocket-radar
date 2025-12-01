@@ -1,4 +1,4 @@
-name: Compile Project and Mirror UML
+name: Mirror UML
 
 # We run anytime changes to the crc folder are pushed to main
 on:
@@ -27,23 +27,22 @@ jobs:
         with:
           path: rocket-radar
           sparse-checkout: |
-            src
             doc
 
       # We do the debug build because it's faster than release and has
       # been configured to emit parameter names into the classfiles.
-      - name: Debug Build
-        shell: bash
-        env:
-          GOOGLE_SERVICES_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON }}
-        run: |
-          cd $GITHUB_WORKSPACE/rocket-radar/src
-          echo "$GOOGLE_SERVICES_BASE64" | base64 --decode > app/google-services.json
-          ./gradlew assembleDebug
-          # Don't know how runner clearing works, but probably better destroy these now.
-          unset GOOGLE_SERVICES_BASE64
-          rm app/google-services.json
-          echo "Build is Good"
+      # - name: Debug Build
+      #   shell: bash
+      #   env:
+      #     GOOGLE_SERVICES_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON }}
+      #   run: |
+      #     cd $GITHUB_WORKSPACE/rocket-radar/src
+      #     echo "$GOOGLE_SERVICES_BASE64" | base64 --decode > app/google-services.json
+      #     ./gradlew assembleDebug
+      #     # Don't know how runner clearing works, but probably better destroy these now.
+      #     unset GOOGLE_SERVICES_BASE64
+      #     rm app/google-services.json
+      #     echo "Build is Good"
 
       # - u
       #   with:
