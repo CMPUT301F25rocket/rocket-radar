@@ -9,31 +9,91 @@ umlink:
 ---
 
 classDiagram
-    direction TB
+direction LR
 
-    class MainActivity 
+%% =====================================
+%% LOGIN VIEW (ENTRY SCREEN)
+%% =====================================
 
-    class LoginViewFragment 
+class LoginViewFragment {
+    - FirebaseAuth mAuth
+    - Button button_start_scanning
+    - Button button_criteria
 
-    class LoginCriteriaFragment 
+    + onCreateView(LayoutInflater,ViewGroup,Bundle) View
+    + onViewCreated(View,Bundle)
+}
+%% citation: :contentReference[oaicite:0]{index=0}
 
-    class LoginStartScanningFragment 
+LoginViewFragment --> LoginStartScanningFragment : navigates
+LoginViewFragment --> LoginCriteriaFragment : navigates
 
-    class ProfileViewModel 
 
-    class ProfileModel 
+%% =====================================
+%% LOGIN CRITERIA SCREEN
+%% =====================================
 
-    %% Relationships
+class LoginCriteriaFragment {
+    - ImageButton button_back
 
-    LoginStartScanningFragment --> ProfileViewModel
-    ProfileViewModel --> ProfileModel
+    + onCreateView(LayoutInflater,ViewGroup,Bundle) View
+}
+%% citation: :contentReference[oaicite:1]{index=1}
 
-    LoginCriteriaFragment --> MainActivity
-    LoginViewFragment --> MainActivity
-    LoginStartScanningFragment --> MainActivity
+LoginCriteriaFragment --> LoginViewFragment : navigateUp()
 
-    LoginViewFragment --> LoginCriteriaFragment : "navigates to"
-    LoginViewFragment --> LoginStartScanningFragment : "navigates to"
-    LoginStartScanningFragment --> EventListFragment : "navigates to"
+
+%% =====================================
+%% LOGIN — USER INPUT & ANONYMOUS SIGN-IN
+%% =====================================
+
+class LoginStartScanningFragment {
+    - Button button_continue
+    - String username
+    - String email
+    - String phoneNumber
+    - String deviceId
+    - String uid
+    - ProfileViewModel profileViewModel
+    - FirebaseAuth mAuth
+    - boolean isObserverInitialized
+
+    + onCreateView(LayoutInflater,ViewGroup,Bundle) View
+    - setupUI(View)
+    + onResume()
+    - updateOrCreateUser()
+    - saveProfile(String)
+}
+%% citation: :contentReference[oaicite:2]{index=2}
+
+LoginStartScanningFragment --> ProfileViewModel : updates profile
+LoginStartScanningFragment --> FirebaseAuth : signs in anonymously
+LoginStartScanningFragment --> LoginViewFragment : back nav via system
+LoginStartScanningFragment --> EventListFragment : navigates on success
+
+
+%% =====================================
+%% VIEWMODEL & PROFILE RELATIONS
+%% =====================================
+
+class ProfileViewModel {
+    <<external>>
+}
+
+class ProfileModel {
+    <<external>>
+}
+
+LoginStartScanningFragment --> ProfileModel : creates default profile
+
+
+%% =====================================
+%% NAVIGATION RELATIONSHIPS
+%% =====================================
+
+LoginViewFragment --> LoginStartScanningFragment : "Start Scanning"
+LoginViewFragment --> LoginCriteriaFragment : "View Criteria"
+
+LoginStartScanningFragment --> EventListFragment : "navigate_to_event_list"
 
 

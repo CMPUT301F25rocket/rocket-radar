@@ -12,56 +12,208 @@ umlink:
 ---
 
 classDiagram
+direction LR
 
-class EventDeadlinesFragment 
-class Section 
-class BottomSheetProvider 
-class CreateEventActivity 
-class EventLotteryFragment 
-class EventDateTimeFragment 
-class Time 
-class EventGeneralFragment 
-class CreateEventModel 
-class InputFragment 
-class EventStyleFragment 
-class DraftEventsFragment 
+%% =======================================
+%% Interfaces
+%% =======================================
 
-DraftEventsFragment --> CreateEventActivity : starts
+class BottomSheetProvider {
+    <<interface>>
+    + openCalendarBottomSheet(MutableLiveData~Optional<Date>~, View)
+    + openTimeBottomSheet(MutableLiveData~Optional<Time>~, View)
+}
+%% citation: :contentReference[oaicite:0]{index=0}
 
-CreateEventActivity "1" o-- "1" EventGeneralFragment : hosts
-CreateEventActivity "1" o-- "1" EventDateTimeFragment : hosts
-CreateEventActivity "1" o-- "1" EventDeadlinesFragment : hosts
-CreateEventActivity "1" o-- "1" EventLotteryFragment : hosts
-CreateEventActivity "1" o-- "1" EventStyleFragment : hosts
+class InputFragment {
+    <<interface>>
+    + valid(InputFragment) boolean
+    + extract(Event.Builder) Event.Builder
+}
+%% citation: :contentReference[oaicite:1]{index=1}
 
-CreateEventActivity "1" o-- "1" CreateEventModel : watches
+%% =======================================
+%% Core Activity
+%% =======================================
 
-%% Event builder relationship
-Event_Builder -- EventGeneralFragment : fills
-Event_Builder -- EventDateTimeFragment : fills
-Event_Builder -- EventDeadlinesFragment : fills
-Event_Builder -- EventLotteryFragment : fills
-Event_Builder -- EventStyleFragment : fills
+class CreateEventActivity {
+    - ActivityCreateEventBinding binding
+    - MutableLiveData~Section~ currentSection
+    - EventRepository eventRepository
+    - EventGeneralFragment eventGeneralFragment
+    - EventLotteryFragment eventLotteryFragment
+    - EventGeneralViewModel eventGeneralViewModel
+    - EventLotteryViewModel eventLotteryViewModel
+    - Fragment fragment
 
-%% Create Event Model Relationship
-CreateEventModel "1" -- "1" EventGeneralFragment : stores input data
-CreateEventModel "1" -- "1" EventDateTimeFragment : stores input data
-CreateEventModel "1" -- "1" EventDeadlinesFragment : stores input data
-CreateEventModel "1" -- "1" EventLotteryFragment : stores input data
-CreateEventModel "1" -- "1" EventStyleFragment : stores input data
+    + onCreate(Bundle)
+    + navigateToSection(Section)
+    + openCalendarBottomSheet(MutableLiveData~Optional<Date>~, View)
+    + openTimeBottomSheet(MutableLiveData~Optional<Time>~, View)
+    + onDestroy()
+}
+%% citation: :contentReference[oaicite:2]{index=2}
 
-CreateEventModel "1" *-- "1" Section : stores
-CreateEventModel "1" --> "1" Section : changes
+CreateEventActivity ..|> BottomSheetProvider : implements
 
-note for Time "This was made because Date objects can't store time"
+%% =======================================
+%% Draft Events Screen
+%% =======================================
 
-%% implements
-BottomSheetProvider <|.. CreateEventActivity
- 
-InputFragment <|.. EventGeneralFragment
-InputFragment <|.. EventDateTimeFragment
-InputFragment <|.. EventDeadlinesFragment
-InputFragment <|.. EventLotteryFragment
-InputFragment <|.. EventStyleFragment
+class DraftEventsFragment {
+    - FragmentDraftEventsBinding binding
+    - ActivityResultLauncher<Intent> createEventLauncher
+    - CreateEventActivity createEventActivity
 
+    + onCreateView()
+    + onViewCreated()
+}
+%% citation: :contentReference[oaicite:3]{index=3}
+
+DraftEventsFragment --> CreateEventActivity : launches (1→1)
+
+%% =======================================
+%% General Section
+%% =======================================
+
+class EventGeneralFragment {
+    <<implements InputFragment>>
+    - ViewInputEventGeneralBinding binding
+    - EventGeneralViewModel viewModel
+    - ActivityResultLauncher<PickVisualMediaRequest> pickMedia
+    - GoogleMap googleMap
+    - AutocompleteSupportFragment autocompleteFragment
+
+    + onCreate()
+    + onCreateView()
+    + onViewCreated()
+    + valid(InputFragment) boolean
+    + extract(Event.Builder) Event.Builder
+    + onMapReady(GoogleMap)
+}
+%% citation: :contentReference[oaicite:4]{index=4}
+
+EventGeneralFragment ..|> InputFragment
+
+class EventGeneralViewModel {
+    - EventGeneralFragment eventGeneralFragment
+    - Section section
+    - Section currentSection
+
+    + MutableLiveData<String> title
+    + MutableLiveData<String> description
+    + MutableLiveData<String> tagline
+    + MutableLiveData<Optional<Uri>> image
+    + MutableLiveData<Double> locationLatitude
+    + MutableLiveData<Double> locationLongitude
+    + MutableLiveData<String> locationName
+    + MutableLiveData<ArrayList<String>> categories
+}
+%% citation: :contentReference[oaicite:5]{index=5}
+
+EventGeneralFragment --> EventGeneralViewModel : 1 .. 1 (uses)
+EventGeneralViewModel --> Section : composes 1 .. 1
+
+%% =======================================
+%% Lottery Section
+%% =======================================
+
+class EventLotteryFragment {
+    <<implements InputFragment>>
+    - ViewInputEventLotteryBinding binding
+    - EventLotteryViewModel viewModel
+    - BottomSheetProvider bottomSheetProvider
+
+    + onCreateView()
+    + onViewCreated()
+    + valid(InputFragment) boolean
+    + extract(Event.Builder)
+}
+%% citation: :contentReference[oaicite:6]{index=6}
+
+EventLotteryFragment ..|> InputFragment
+EventLotteryFragment --> BottomSheetProvider : requires (1)
+
+class EventLotteryViewModel {
+    - EventLotteryFragment eventLotteryFragment
+    - Section section
+    - Section currentSection
+    - SimpleDateFormat dateFormatter
+
+    + MutableLiveData<Boolean> hasWaitlistCapacity
+    + MutableLiveData<Boolean> hasLocationRequirement
+    + MutableLiveData<Optional<Integer>> waitlistCapacity
+    + MutableLiveData<Optional<Integer>> eventCapacity
+
+    + MutableLiveData<Optional<Date>> eventDate
+    + MutableLiveData<Optional<Time>> eventStartTime
+    + MutableLiveData<Optional<Time>> eventEndTime
+
+    + MutableLiveData<Optional<Date>> registrationStartDate
+    + MutableLiveData<Optional<Date>> initialSelectionStartDate
+    + MutableLiveData<Optional<Date>> finalAttendeeSelectionDate
+
+    + waitlistCapacityDisplay() LiveData<String>
+    + eventCapacityDisplay() LiveData<String>
+    + eventDateDisplay() LiveData<String>
+    + eventStartTimeDisplay() LiveData<String>
+    + eventEndTimeDisplay() LiveData<String>
+    + registrationStartDateDisplay() LiveData<String>
+    + initialSelectionStartDateDisplay() LiveData<String>
+    + finalAttendeeSelectionDateDisplay() LiveData<String>
+}
+%% citation: :contentReference[oaicite:7]{index=7}
+
+EventLotteryFragment --> EventLotteryViewModel : 1 .. 1
+EventLotteryViewModel --> Section : composes 1 .. 1
+
+%% =======================================
+%% Supporting Types
+%% =======================================
+
+class Section {
+    <<enum>>
+    + GENERAL
+    + LOTTERY
+    + getTitle() String
+    + isGeneralValid(String,String)
+    + isDatetimeValid(Date,Time,Time)
+}
+%% citation: :contentReference[oaicite:8]{index=8}
+
+class Time {
+    - int hour
+    - int minute
+
+    + Time(int,int)
+    + Time()
+    + getHour()
+    + setHour(int)
+    + getMinute()
+    + setMinute(int)
+    + compareTo(Time)
+    + lessThan(Time)
+    + toString()
+}
+%% citation: :contentReference[oaicite:9]{index=9}
+
+%% =======================================
+%% Relationships to External Types (Event.Builder)
+%% =======================================
+
+EventGeneralFragment --> "1" Event.Builder : extract()
+EventLotteryFragment --> "1" Event.Builder : extract()
+
+%% =======================================
+%% Wizard Flow
+%% =======================================
+
+CreateEventActivity --> EventGeneralFragment : hosts (1→1)
+CreateEventActivity --> EventLotteryFragment : hosts (1→1)
+
+CreateEventActivity --> EventGeneralViewModel : watches (1→1)
+CreateEventActivity --> EventLotteryViewModel : watches (1→1)
+
+EventGeneralViewModel --> EventGeneralFragment : associates (1→1)
+EventLotteryViewModel --> EventLotteryFragment : associates (1→1)
 

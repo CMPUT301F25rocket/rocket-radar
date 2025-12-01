@@ -9,20 +9,149 @@ umlink:
 ---
 
 classDiagram
-class NotificationAdapter 
+direction LR
+
+%% ===========================================
+%% MODEL
+%% ===========================================
+
+class Notification {
+    - String eventTitle
+    - String notificationType
+    - String eventId
+    - int image
+    - Date timestamp
+    - String notificationId
+    - String userNotificationId
+    - boolean readStatus
+
+    + getEventId()
+    + getEventTitle()
+    + getNotificationType()
+    + isReadStatus()
+    + getImage()
+    + getTimestamp()
+    + getNotificationId()
+    + getUserNotificationId()
+
+    + setReadStatus(boolean)
+    + setUserNotificationId(String)
+}
+%% citation: :contentReference[oaicite:0]{index=0}
 
 
-class MyFirebaseMessagingService 
+%% ===========================================
+%% FIREBASE MESSAGING SERVICE (deprecated)
+%% ===========================================
 
-class Notification 
+class MyFirebaseMessagingService {
+    - static String TAG
+    - static String CHANNEL_ID
 
-class NotificationFragment 
+    + onMessageReceived(RemoteMessage)
+    - sendSystemNotification(String,String)
+    + onNewToken(String)
+}
+%% citation: :contentReference[oaicite:1]{index=1}
 
-class NotificationRepository 
 
-Notification -- NotificationAdapter
-Notification -- NotificationFragment
-NotificationRepository -- NotificationAdapter
-NotificationAdapter -- NotificationFragment
-NotificationRepository -- NotificationFragment
+%% ===========================================
+%% REPOSITORY — FIRESTORE FAN-OUT
+%% ===========================================
 
+class NotificationRepository {
+    - FirebaseFirestore db
+    - CollectionReference userNotificationsRef
+
+    + getMyNotifications() LiveData<List<Notification>>
+    + markNotificationAsRead(String)
+    + sendNotificationToGroup(String,String,String,String)
+    - createAndFanOutNotification(String,String,String,List<String>)
+    + getAllNotifications() LiveData<List<Notification>>
+    + sendNotificationToOrganizer(String,String,Event)
+}
+%% citation: :contentReference[oaicite:2]{index=2}
+
+
+NotificationRepository --> Notification : produces
+NotificationRepository --> Event : reads event group membership
+
+
+%% ===========================================
+%% ADAPTER — RecyclerView with caching + transitions
+%% ===========================================
+
+class NotificationAdapter {
+    - Context context
+    - List<Notification> notificationList
+    - NotificationRepository repository
+    - EventRepository eventRepository
+    - Map<String,Event> eventCache
+    - int lastClickedPosition
+    - int separatorIndex
+    - OnItemClickListener onItemClickListener
+
+    + setNotifications(List<Notification>)
+    + updateEventCache(List<Event>)
+    + getLastClickedPosition() int
+}
+%% citation: :contentReference[oaicite:3]{index=3}
+
+class NotificationViewHolder {
+    <<static inner>>
+    ImageView eventImage
+    TextView eventTitle
+    TextView notificationType
+    View unreadIndicator
+}
+
+class SeparatorViewHolder {
+    <<static inner>>
+    TextView separatorText
+}
+
+class EmptyViewHolder {
+    <<static inner>>
+}
+
+NotificationAdapter --> Notification : displays many
+NotificationAdapter --> Event : uses cached events
+NotificationAdapter --> NotificationRepository : marks read
+NotificationAdapter --> EventRepository : fetches event by ID
+
+
+%% ===========================================
+%% UI FRAGMENT — Notification List Screen
+%% ===========================================
+
+class NotificationFragment {
+    - RecyclerView notificationRecyclerView
+    - TextView emptyNotificationsTextView
+    - Button backButton
+    - NotificationAdapter adapter
+    - NotificationRepository notificationRepository
+    - RecyclerView.AdapterDataObserver adapterObserver
+
+    + onCreateView()
+    + onViewCreated()
+    - setupRecyclerView()
+    - observeNotifications()
+    - checkEmpty()
+}
+%% citation: :contentReference[oaicite:4]{index=4}
+
+NotificationFragment --> NotificationAdapter : 1..1
+NotificationFragment --> NotificationRepository : observes
+
+
+%% ===========================================
+%% RELATIONSHIP OVERVIEW
+%% ===========================================
+
+MyFirebaseMessagingService --> NotificationRepository : (conceptual future integration)
+
+NotificationRepository --> FirebaseFirestore : heavy usage
+NotificationRepository --> Notification : materializes Firestore docs
+NotificationRepository --> Event : reads organizer + group data
+
+NotificationAdapter --> EventViewFragment : navigates to event details

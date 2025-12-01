@@ -13,86 +13,215 @@ umlink:
 ---
 
 classDiagram
-class EventRepository 
+direction LR
 
-class EventRepository_WaitlistSizeListener 
+%% =====================================
+%% Core Data Model
+%% =====================================
 
-class EventRepository_WaitlistEntrantsCallback 
+class Event {
+    + String eventId
+    + String eventTitle
+    + String tagline
+    + String description
+    + SortedSet~String~ categories
+    + Date eventStartDate
+    + Optional<Date> eventEndDate
+    + Time eventStartTime
+    + Time eventEndTime
+    + Date registrationStartDate
+    + Date selectionStartDate
+    + Date finalSelectionDate
+    + Optional<Integer> waitlistCapacity
+    + boolean requireLocation
+    + int eventCapacity
+    + String organizerId
+    + String eventLocationName
+    + Double locationLatitude
+    + Double locationLongitude
+    + Blob bannerImageBlob
+    - Bitmap bannerImage
+    + ArrayList<String> eventWaitlistIds
+    + ArrayList<String> eventInvitedIds
+    + ArrayList<String> eventAttendingIds
+    + ArrayList<String> eventCancelledIds
+    + getFormattedDate() String
+    + getEventGeoLocation() GeoPoint
+    + setEventGeoLocation(GeoPoint)
+}
+%% citation: :contentReference[oaicite:0]{index=0}
 
-class EventRepository_UserLocationCallback 
+class Event.Builder {
+    - Event event
+    + title(String)
+    + description(String)
+    + tagline(String)
+    + categories(List<String>)
+    + bannerImage(Bitmap)
+    + waitlistCapacity(Optional<Integer>)
+    + eventCapacity(int)
+    + eventStartDate(Date)
+    + eventEndDate(Date)
+    + eventStartTime(Time)
+    + eventEndTime(Time)
+    + registrationStartDate(Date)
+    + initialSelectionStartDate(Date)
+    + finalSelectionDate(Date)
+    + location(GeoPoint,String)
+    + requireLocation(boolean)
+    + build() Event
+}
 
-class EventRepository_WaitlistLocationsCallback 
+Event "1" *-- "1" Event.Builder : built-by
 
-class EventRepository_InvitedEntrantsCallback 
+%% =====================================
+%% Repository Layer
+%% =====================================
 
-class EventRepository_UserLocationFromInvitedCallback 
+class EventRepository {
+    - FirebaseFirestore firestore
+    - CollectionReference events
+    + getAllEvents() LiveData<List<Event>>
+    + getEvent(String)
+    + getEventById(String, SingleEventListener)
+    + createEvent(Event) String
+    + addUserToWaitlist(Event,String,GeoPoint)
+    + removeUserFromWaitlist(Event,String)
+    + addUserToAttending(Event,String)
+    + addUserToCancelled(Event,String)
+    + removeUserFromInvited(Event,String)
+    + getWaitlistSize(Event,WaitlistSizeListener)
+    + getInvitedSize(Event,InvitedSizeListener)
+    + getCancelledSize(Event,CancelledSizeListener)
+    + getWaitlistLocations(String,WaitlistLocationsCallback)
+    + getInvitedLocations(String,InvitedLocationsCallback)
+    + getCancelledLocations(String,CancelledLocationsCallback)
+    + getAttendingEntrants(String,AttendingEntrantsCallback)
+}
+%% citation: :contentReference[oaicite:1]{index=1}
 
-class EventRepository_InvitedLocationsCallback 
+EventRepository --> Event : serializes/deserializes
 
-class EventRepository_CancelledEntrantsCallback 
+%% =====================================
+%% Event List + Filtering UI
+%% =====================================
 
-class EventRepository_UserLocationFromCancelledCallback 
+class EventListFragment {
+    - RecyclerView eventRecyclerView
+    - EventAdapter adapter
+    - List<Event> displayedEvents
+    - List<Event> allEvents
+    - EventRepository eventRepository
+    - ProfileViewModel profileViewModel
+    - ProfileModel currentUserProfile
+    - NotificationRepository notificationRepository
+    - FilterModel filterModel
+    + onEventClick(int,View)
+}
+%% citation: :contentReference[oaicite:2]{index=2}
 
-class EventRepository_CancelledLocationsCallback 
+EventListFragment --> EventAdapter : 1..1
+EventListFragment --> EventRepository : uses
+EventListFragment --> FilterModel : observes
+EventListFragment --> Event : displays many
 
-class EventRepository_SelectedEntrantsCallback 
+class FilterEventsFragment {
+    - CalendarView calendarView
+    - FilterModel filterModel
+    - ChipGroup chipGroup
+}
+%% citation: :contentReference[oaicite:3]{index=3}
 
-class EventRepository_UserLocationFromSelectedCallback 
+class FilterModel {
+    - MutableLiveData<ArrayList<String>> filters
+    - MutableLiveData<Date> date
+    + setFilters(ArrayList<String>)
+    + setDate(Date)
+}
+%% citation: :contentReference[oaicite:4]{index=4}
 
-class EventRepository_SelectedLocationsCallback 
+FilterEventsFragment --> FilterModel : 1..1
 
-class OrganizerEntrantsFragment 
+%% =====================================
+%% Adapters
+%% =====================================
 
-class EventViewFragment 
+class EventAdapter {
+    - Context context
+    - List<Event> eventList
+    - OnEventListener onEventListener
+    + onBindViewHolder()
+}
+%% citation: :contentReference[oaicite:5]{index=5}
 
-class Event 
+EventAdapter --> Event : many→one
 
-class Event_Builder 
+class EventHistoryAdapter {
+    - Context context
+    - List<Event> eventList
+    - ProfileModel currentUserProfile
+    + onBindViewHolder()
+}
+%% citation: :contentReference[oaicite:6]{index=6}
 
-class EventListFragment 
+EventHistoryAdapter --> Event : many→one
 
-class EventAdapter 
+%% =====================================
+%% Event View Screen (Details)
+%% =====================================
 
-class EventAdapter_MyViewHolder 
+class EventViewFragment {
+    - Event event
+    - ProfileViewModel profileViewModel
+    - EventRepository eventRepo
+    - LotteryLogic lottery
+    - boolean isOrganizer
+    - ImageView eventImageView
+    - ImageView statusBarImage
+    + newInstance(Event)
+    + newInstance(Event,boolean)
+    + handleJoinLeaveWaitlist()
+    + updateEventBannerImage(Uri)
+}
+%% citation: :contentReference[oaicite:7]{index=7}
 
-class EventAdapter_OnEventListener 
+EventViewFragment --> Event : 1
+EventViewFragment --> EventRepository : uses
+EventViewFragment --> LotteryLogic : uses
 
-Event "0..*" --o "1" EventRepository : manages
+%% =====================================
+%% Entrants / Organizer Management
+%% =====================================
 
-%% Nesting Relationships
-EventRepository_WaitlistSizeListener <.. EventRepository : << contains >>
-EventRepository_WaitlistEntrantsCallback <.. EventRepository : << contains >>
-EventRepository_UserLocationCallback <.. EventRepository : << contains >>
-EventRepository_WaitlistLocationsCallback <.. EventRepository : << contains >>
-EventRepository_InvitedEntrantsCallback <.. EventRepository : << contains >>
-EventRepository_UserLocationFromInvitedCallback <.. EventRepository : << contains >>
-EventRepository_InvitedLocationsCallback <.. EventRepository : << contains >>
-EventRepository_CancelledEntrantsCallback <.. EventRepository : << contains >>
-EventRepository_UserLocationFromCancelledCallback <.. EventRepository : << contains >>
-EventRepository_CancelledLocationsCallback <.. EventRepository : << contains >>
-EventRepository_SelectedEntrantsCallback <.. EventRepository : << contains >>
-EventRepository_UserLocationFromSelectedCallback <.. EventRepository : << contains >>
-EventRepository_SelectedLocationsCallback <.. EventRepository : << contains >>
+class OrganizerEntrantsFragment {
+    - Event event
+    - GoogleMap googleMap
+    - EventRepository eventRepository
+    - NotificationRepository notificationRepository
+    - ProfileRepository profileRepository
+    - ArrayList<Map<String,String>> currentEntrants
+    + newInstance(Event)
+    + onMapReady()
+    + filterAndDisplayEntrants()
+    + fetchAndDisplayWaitlistLocations()
+}
+%% citation: :contentReference[oaicite:8]{index=8}
 
-Event_Builder <.. Event : << contains >>
-EventAdapter_OnEventListener <.. EventAdapter : << contains >>
+OrganizerEntrantsFragment --> Event : 1
+OrganizerEntrantsFragment --> EventRepository : heavy-usage
+OrganizerEntrantsFragment --> NotificationRepository : sends notifications
+OrganizerEntrantsFragment --> ProfileRepository : loads entrant profiles
 
-%% OrganizerEntrantsFragment relationships.
-%% shows all entrants for the event
-%% shows entrant map locations
-%% sends notifications to all entrants on waitlist (to different groups)
-%% export final attendees as CSV
-%% cancel entrants
-%% draw replacements
-Event "1" --o "1" OrganizerEntrantsFragment : organizer management of
-EventRepository "1" --o "1" OrganizerEntrantsFragment
-NotificationRepository "1" --o "1" OrganizerEntrantsFragment
-ProfileRepository "1" --o "1" OrganizerEntrantsFragment
+%% =====================================
+%% Supplemental Classes
+%% =====================================
 
+class Time {
+    - int hour
+    - int minute
+    + compareTo(Time)
+    + lessThan(Time)
+}
+%% citation:  (from previous)
 
-Event "1" --o "1" EventViewFragment : shows details for
-EventRepository "1" --o "1" EventViewFragment
-
-Event "1" <-- "1" Event_Builder : assembles
-
-Event "0..*" --o "1" EventListFragment : shows
+Event --> Time : uses

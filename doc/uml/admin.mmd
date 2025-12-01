@@ -9,3 +9,190 @@ umlink:
 ---
 
 classDiagram
+direction LR
+
+%% =========================
+%% Core Admin Management
+%% =========================
+
+class AdminModeManager {
+    - static AdminModeManager instance
+    - SharedPreferences prefs
+    - MutableLiveData~Boolean~ adminModeLiveData
+    - FirebaseFirestore db
+    - FirebaseAuth auth
+    - DocumentReference userDocListener
+    - NavController navController
+    - Context context
+
+    + static getInstance(Context)
+    + setNavController(NavController)
+    + startMonitoringAdminStatus()
+    + stopMonitoringAdminStatus()
+    + isAdminModeOn() Boolean
+    + setAdminModeOn(Boolean)
+    + getAdminModeLiveData() LiveData~Boolean~
+}
+%% citations
+%%  :contentReference[oaicite:0]{index=0}
+
+%% =========================
+%% Repository
+%% =========================
+
+class AdminRepository {
+    - FirebaseFirestore db
+
+    + getAllUsers(OnCompleteListener)
+    + deleteUser(ProfileModel, DeleteUserCallback)
+    + updateUserRole(ProfileModel, UserRole, updateCallback)
+    + deleteEvent(String, DeleteEventCallback)
+    + cleanupNotifications()
+}
+
+class OnCompleteListener~T~ {
+    <<interface>>
+    + onComplete(T)
+}
+
+class DeleteUserCallback {
+    <<interface>>
+    + onSuccess()
+    + onError(Exception)
+}
+
+class updateCallback {
+    <<interface>>
+    + onSuccess()
+    + onError(Exception)
+}
+
+class DeleteEventCallback {
+    <<interface>>
+    + onSuccess()
+    + onError(Exception)
+}
+
+class OnErrorCallback {
+    <<interface>>
+    + onError(Exception)
+}
+
+%% citations
+%%  :contentReference[oaicite:1]{index=1}
+
+%% =========================
+%% UI Fragments
+%% =========================
+
+class AllNotificationsFragment {
+    - RecyclerView notificationRecyclerView
+    - TextView emptyNotificationsTextView
+    - Button backButton
+    - NotificationAdapter adapter
+    - NotificationRepository notificationRepository
+    - AdapterDataObserver adapterObserver
+
+    + onCreateView()
+    + onViewCreated()
+    - setupRecyclerView()
+    - observeNotifications()
+    - updateEmptyState()
+    - updateHeaderCount(int)
+}
+%% citation: :contentReference[oaicite:2]{index=2}
+
+class BrowseImageFragment {
+    - FragmentBrowseImagesBinding binding
+    - List~Event~ events
+    - Event dialogContextEvent
+
+    + onCreateView()
+    + onViewCreated()
+    + startDeleteDialog(int)
+    + onClick(DialogInterface,int)
+}
+%% citation: :contentReference[oaicite:3]{index=3}
+
+class BrowseUsersFragment {
+    - ListView usersListView
+    - UsersListAdapter adapter
+    - List~ProfileModel~ users
+    - AdminRepository adminRepository
+
+    + onCreateView()
+}
+%% citation: :contentReference[oaicite:4]{index=4}
+
+class UserFragment {
+    - ProfileModel userProfile
+    - AdminRepository adminRepository
+    - ImageButton deleteButton
+    - MaterialButton backButton
+    - TextView profileName
+    - TextView profilePhone
+    - TextView profileEmail
+    - RecyclerView myEventRecyclerView
+    - EventAdapter adapter
+    - List~Event~ allEvents
+    - List~Event~ displayedEvents
+    - EventRepository eventRepository
+    - AutoCompleteTextView roleDropdown
+
+    + newInstance(ProfileModel)
+    + onCreate()
+    + onCreateView()
+    + onViewCreated()
+    + onEventClick(int, View)
+    + confirmAccountDelete()
+}
+%% citation: :contentReference[oaicite:5]{index=5}
+
+%% =========================
+%% Adapters
+%% =========================
+
+class ImageAdapter {
+    - List~Bitmap~ images
+    + onCreateViewHolder()
+    + onBindViewHolder()
+    + addOnItemClickListener()
+    + addOnItemLongClickListener()
+}
+
+class UsersListAdapter {
+    - Context context
+    - List~ProfileModel~ users
+
+    + getView(int,View,ViewGroup)
+}
+%% citations: :contentReference[oaicite:6]{index=6}  and  :contentReference[oaicite:7]{index=7}
+
+%% =========================
+%% Relationships
+%% =========================
+
+AdminRepository --> ProfileModel : uses
+AdminRepository --> Event : mutates
+AdminRepository --> Notification : mutates
+AdminRepository --> OnCompleteListener : callback
+AdminRepository --> DeleteUserCallback : callback
+AdminRepository --> DeleteEventCallback : callback
+
+BrowseUsersFragment --> AdminRepository : 1..1
+BrowseUsersFragment --> UsersListAdapter : 1..1
+
+UserFragment --> AdminRepository : 1..1
+UserFragment --> EventRepository : 1..1
+UserFragment --> EventAdapter : 1..1
+
+BrowseImageFragment --> ImageAdapter : 1..1
+BrowseImageFragment --> EventRepository : uses
+
+AllNotificationsFragment --> NotificationAdapter : 1..1
+AllNotificationsFragment --> NotificationRepository : 1..1
+
+AdminModeManager --> FirebaseFirestore : uses
+AdminModeManager --> FirebaseAuth : uses
+AdminModeManager --> NavController : optional 0..1 navigation
+
