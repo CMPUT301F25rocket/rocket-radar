@@ -313,11 +313,15 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
 
-                        EventViewFragment eventViewFragment = EventViewFragment.newInstance(event, isOrganizer);
-                        getSupportFragmentManager().beginTransaction()
-                                .replace(R.id.nav_host_fragment, eventViewFragment)
-                                .addToBackStack(EventViewFragment.TAG)
-                                .commit();
+                        // Use Navigation Controller instead of raw fragment transactions
+                        Bundle bundle = new Bundle();
+                        bundle.putSerializable("event", event);
+                        bundle.putBoolean("is_organizer", isOrganizer);
+                        navController.navigate(R.id.eventViewFragment, bundle);
+
+                        // Clear the intent to prevent re-processing
+                        getIntent().setAction(null);
+                        getIntent().setData(null);
                     })
                     .addOnFailureListener(why -> {
                         MaterialAlertDialogBuilder dialog = new MaterialAlertDialogBuilder(MainActivity.this);
