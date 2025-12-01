@@ -1,6 +1,7 @@
 package com.rocket.radar.events;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -11,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,6 +44,7 @@ import java.io.ByteArrayOutputStream;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * A fragment that displays the details of a specific event.
@@ -152,6 +155,10 @@ public class EventViewFragment extends Fragment {
         TextView eventDescription = view.findViewById(R.id.event_desc);
         TextView eventWaitlistSize = view.findViewById(R.id.waitlist_size);
 
+        LinearLayout locationContainer = view.findViewById(R.id.location_container);
+        TextView eventLocationName = view.findViewById(R.id.event_location_name);
+        TextView eventLocationDetails = view.findViewById(R.id.event_location_details);
+
         // handle image pizza bar logic logic
         if (System.currentTimeMillis() < event.getRegistrationStartDate().getTime()) {
             // set the image to pre-registration status
@@ -173,6 +180,23 @@ public class EventViewFragment extends Fragment {
                 eventDate.setText(FormattedDate);
             }
             eventDescription.setText(event.getDescription());
+
+            // Location
+            if (event.getEventLocationName() != null && !event.getEventLocationName().isEmpty()) {
+                eventLocationName.setText(event.getEventLocationName());
+                locationContainer.setVisibility(View.VISIBLE);
+                locationContainer.setOnClickListener(v -> {
+                    if (event.getLocationLatitude() != null && event.getLocationLongitude() != null) {
+                        String uri = String.format(Locale.ENGLISH, "geo:%f,%f?q=%f,%f(%s)", event.getLocationLatitude(), event.getLocationLongitude(), event.getLocationLatitude(), event.getLocationLongitude(), event.getEventLocationName());
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+                        startActivity(intent);
+                    } else {
+                         Toast.makeText(getContext(), "No location coordinates available.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else {
+                locationContainer.setVisibility(View.GONE);
+            }
 
             // Load and display the event banner image
             if (event.getBannerImageBlob() != null) {
@@ -425,7 +449,6 @@ public class EventViewFragment extends Fragment {
 
         // Setup listeners
         backButton.setOnClickListener(v -> navigateBack());
-        // REMOVED redundant listeners from here as they are now correctly placed inside the if/else block
     }
 
     /**
@@ -454,9 +477,7 @@ public class EventViewFragment extends Fragment {
     /**
      * Navigates back to the previous fragment in the back stack.
      */
-    private void navigateBack() {        // We use the Navigation Controller to pop the stack.
-        // This ensures we return to the previous screen (Profile or List)
-        // exactly as we left it, maintaining the NavController connection.
+    private void navigateBack() {
         if (getView() != null) {
             androidx.navigation.Navigation.findNavController(getView()).popBackStack();
         }
@@ -480,8 +501,6 @@ public class EventViewFragment extends Fragment {
             // Logic for leaving a waitlist (remains unchanged)
             currentProfile.removeOnWaitlistEventId(event.getEventId());
             currentProfile.removeOnMyEventId(event.getEventId());
-            // This needs to be updated to use the correct subcollection name if you changed it
-            // For now assuming the logic in removeUserFromWaitlist is correct
             eventRepo.removeUserFromWaitlist(event, currentProfile.getUid());
             navigateBack();
             Toast.makeText(getContext(), "Removed from waitlist!", Toast.LENGTH_SHORT).show();
@@ -516,15 +535,6 @@ public class EventViewFragment extends Fragment {
         button.setText(onWaitlist ? "Leave Waitlist" : "Join Waitlist");
         button.setEnabled(true);
     }
-
-//    private void updateInviteButton(Button button, ProfileModel profile){
-//        if (event == null || profile == null) {
-//            button.setEnabled(false);
-//            return;
-//        }
-//        button.setText("Reject Invitiation");
-//        button.setEnabled(true);
-//    }
 
     /**
      * Checks if the current user is on the waitlist for the event.

@@ -111,6 +111,7 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/location_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
@@ -130,15 +131,17 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/event_location_name"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="My House"
+                            android:text="Location"
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/event_location_details"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Click to view location details of..." />
+                            android:text="Click to view location details..." />
                     </LinearLayout>
 
                     <ImageView

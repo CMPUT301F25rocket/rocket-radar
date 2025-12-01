@@ -18,9 +18,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.MutableLiveData;
 
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.widget.Autocomplete;
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.firestore.GeoPoint;
 import com.maxkeppeler.sheets.calendar.CalendarSheet;
 import com.maxkeppeler.sheets.calendar.SelectionMode;
 import com.maxkeppeler.sheets.clock.ClockSheet;
@@ -34,7 +39,9 @@ import com.rocket.radar.events.EventRepository;
 
 import org.w3c.dom.Text;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -63,6 +70,11 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         eventRepository = EventRepository.getInstance();
+
+        // Initialize Places API
+        if (!Places.isInitialized()) {
+            Places.initialize(getApplicationContext(), getString(R.string.my_google_api_key));
+        }
 
         // These three lines took way too long to write. ʕノ•ᴥ•ʔノ ︵ ┻━┻
         // WARN: Make sure when you create variables you call setMyVarName(...) on the binding.
@@ -258,7 +270,6 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
             return Unit.INSTANCE;
         });
     }
-
 
     @Override
     public void onDestroy() {

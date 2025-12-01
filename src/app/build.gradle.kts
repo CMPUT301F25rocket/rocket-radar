@@ -115,6 +115,7 @@ dependencies {
     //Phone number authentication
     implementation("com.googlecode.libphonenumber:libphonenumber:8.13.27")
     implementation(libs.core.splashscreen)
+    implementation(libs.places)
 
     //Unit Testing
     testImplementation("junit:junit:4.13.2")
