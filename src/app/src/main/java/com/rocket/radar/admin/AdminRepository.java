@@ -119,16 +119,39 @@ public class AdminRepository {
 
     public void updateUserRole(ProfileModel profile, ProfileModel.UserRole role, updateCallback callback) {
         String uid = profile.getUid();
-        db.collection("users")
-                .document(uid)
-                .update("role", role)
-                .addOnSuccessListener(aVoid -> {
-                    callback.onSuccess();
-                })
-                .addOnFailureListener( e -> {
-                    Log.e("AdminRepository", "Failed to fetch notifications", e);
-                    callback.onError(e);
-                });
+
+        // check if changing to entrant from a role that can create events
+        if (role == ProfileModel.UserRole.ENTRANT) {
+
+            ArrayList<String> eventIds = profile.getOnMyEventIds();
+
+            // delete events the user made
+            deleteUserEvents(uid, eventIds, () -> {
+                // after they get deleted, update the role
+                db.collection("users")
+                        .document(uid)
+                        .update("role", role)
+                        .addOnSuccessListener(aVoid -> {
+                            callback.onSuccess();
+                        })
+                        .addOnFailureListener(e -> {
+                            Log.e("AdminRepository", "Failed to update user role", e);
+                            callback.onError(e);
+                        });
+            }, callback::onError);
+        } else {
+            // no event deletion needed just update role
+            db.collection("users")
+                    .document(uid)
+                    .update("role", role)
+                    .addOnSuccessListener(aVoid -> {
+                        callback.onSuccess();
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("AdminRepository", "Failed to update user role", e);
+                        callback.onError(e);
+                    });
+        }
     }
 
     public interface updateCallback {
@@ -235,6 +258,35 @@ public class AdminRepository {
                     Log.e("AdminRepository", "Failed to query notifications", e);
                     onError.onError(e);
                 });
+    }
+
+    private void deleteUserEvents(String uid, ArrayList<String> eventIds, Runnable onComplete, OnErrorCallback onError) {
+        if (eventIds == null || eventIds.isEmpty()) {
+            onComplete.run();
+            return;
+        }
+
+        final int[] remainingDeletes = {eventIds.size()};
+        final boolean[] hasError = {false};
+
+        for (String eventId : eventIds) {
+            deleteEvent(eventId, new DeleteEventCallback() {
+                @Override
+                public void onSuccess() {
+                    remainingDeletes[0]--;
+                    if (remainingDeletes[0] == 0 && !hasError[0]) {
+                        onComplete.run();
+                    }
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    hasError[0] = true;
+                    Log.e("AdminRepository", "Failed to delete event: " + eventId, e);
+                    onError.onError(e);
+                }
+            });
+        }
     }
 
     public interface DeleteEventCallback {
