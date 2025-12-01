@@ -92,6 +92,7 @@ public class AdminRepository {
         }, callback::onError);
     }
 
+    // cite: The following function was adapted from Claude, "How do I remove all references to a user from the events?" 2025-11-30
     /**
      * Removes all references to the given user from every event's membership subcollections.
      *
@@ -144,7 +145,7 @@ public class AdminRepository {
         void onError(Exception e);
     }
 
-    //cite: The following function is adapted from ChatGPT and Claude, "How do I change a user's role?"
+    //cite: The following function is adapted from ChatGPT and Claude, "How do I change a user's role?", 2025-11-17
     /**
      * Updates the role for the user using the ProfileModel state enum.
      * @param profile profile to update.
@@ -209,7 +210,7 @@ public class AdminRepository {
          */
         void onError(Exception e);
     }
-
+    // cite: the following function was adapted from ChatGPT and Claude, "How do I delete an Event?" 2025-11-17
     /**
      * This function deletes a given event.
      * It removes the event from all users.
