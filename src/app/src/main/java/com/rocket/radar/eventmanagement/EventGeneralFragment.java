@@ -16,6 +16,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.gms.common.api.Status;
@@ -54,6 +55,7 @@ public class EventGeneralFragment extends Fragment implements InputFragment, OnM
     private ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
     private GoogleMap googleMap;
     private AutocompleteSupportFragment autocompleteFragment;
+    private FragmentActivity activity;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -69,6 +71,7 @@ public class EventGeneralFragment extends Fragment implements InputFragment, OnM
                     }
                 }
         );
+        activity = requireActivity();
     }
 
     @Nullable
@@ -198,7 +201,7 @@ public class EventGeneralFragment extends Fragment implements InputFragment, OnM
         Uri uri = viewModel.image.getValue().orElseThrow();
         Bitmap bitmap;
         try {
-            bitmap = MediaStore.Images.Media.getBitmap(requireActivity().getContentResolver(), uri);
+            bitmap = MediaStore.Images.Media.getBitmap(activity.getContentResolver(), uri);
         } catch (FileNotFoundException e) {
             throw new Exception("Provided image could not be read from storage");
         }
