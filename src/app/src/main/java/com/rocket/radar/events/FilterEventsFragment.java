@@ -24,23 +24,9 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * A Fragment that provides a UI for filtering events.
- *
- * <p>This fragment allows users to select specific categories via chips or a minimum date
- * via a calendar. It interacts with the shared {@link FilterModel} to apply these filters
- * to the global event stream observed by the {@link EventListFragment}.</p>
- *
- * <p>It also utilizes an internal {@link FilterEventsFragmentState} ViewModel to persist
- * the state of the UI controls (selected chips, selected date) across configuration changes.</p>
- *
- * <p><strong>Outstanding Issues:</strong>
- * <ul>
- *   <li>The "Confirm" button currently just closes the fragment, as filters are applied immediately
- *       inside the change listeners. The UI implies a transactional "Apply" action which isn't strictly true.</li>
- *   <li>The logic mapping Chip IDs to indices ({@code chipGroup.getChildAt(selectedChipId)}) is fragile
- *       and may break if the layout hierarchy changes.</li>
- * </ul>
- * </p>
+ * Fragment that provides a UI for filtering events by category and date.
+ * Users can select one or more event categories using chips and choose a date
+ * using a calendar view to narrow down the displayed events.
  */
 public class FilterEventsFragment extends Fragment {
     public final static String TAG = FilterEventsFragment.class.getSimpleName();
@@ -48,31 +34,24 @@ public class FilterEventsFragment extends Fragment {
     private ChipGroup chipGroup;
 
     /**
-     * A ViewModel specifically for holding the transient UI state of the filter screen.
-     * This ensures that selected chips and dates persist if the user rotates the screen
-     * or momentarily navigates away.
+     * ViewModel that persists the filter UI state across fragment recreation.
+     * Stores the selected category chips and the selected date.
      */
     public static class FilterEventsFragmentState extends ViewModel {
+        /** List of IDs of the currently selected category chips */
         public List<Integer> selectedChips = null;
+        /** The currently selected date filter */
         public Date selectedDate = null;
 
+        /**
+         * Constructs a new FilterEventsFragmentState with null defaults.
+         */
         public FilterEventsFragmentState() {}
     }
 
     // This persists the fragment state across creations/destruction.
     private FilterEventsFragmentState uiState;
 
-    /**
-     * Called to have the fragment instantiate its user interface view.
-     *
-     * @param inflater           The LayoutInflater object that can be used to inflate
-     *                           any views in the fragment.
-     * @param container          If non-null, this is the parent view that the fragment's
-     *                           UI should be attached to.
-     * @param savedInstanceState If non-null, this fragment is being re-constructed
-     *                           from a previous saved state as given here.
-     * @return Return the View for the fragment's UI.
-     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -80,16 +59,6 @@ public class FilterEventsFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_filter_events, container, false);
     }
 
-    /**
-     * Called immediately after {@link #onCreateView(LayoutInflater, ViewGroup, Bundle)}
-     * has returned, but before any saved state has been restored in to the view.
-     * This method sets up the CalendarView, ChipGroup, and buttons, and binds them to
-     * the {@link FilterModel} for logic and {@link FilterEventsFragmentState} for persistence.
-     *
-     * @param view               The View returned by {@link #onCreateView(LayoutInflater, ViewGroup, Bundle)}.
-     * @param savedInstanceState If non-null, this fragment is being re-constructed
-     *                           from a previous saved state as given here.
-     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);

@@ -46,22 +46,15 @@ import java.util.Objects;
 
 import kotlinx.serialization.descriptors.PrimitiveKind;
 
-
 /**
  * A fragment for event organizers to manage entrants.
+ * This screen displays a list of entrants categorized by their status (Waitlisted, Invited, Selected, Cancelled)
+ * and a map showing the locations of waitlisted users.
+ * Organizers can send notifications to these groups.
  *
- * <p>This screen displays a list of entrants categorized by their status (Waitlisted, Invited,
- * Selected, Cancelled) and a map showing the locations of waitlisted users. It serves as the
- * central hub for running lotteries, viewing entrant profiles, and sending targeted notifications.</p>
- *
- * <p><strong>Outstanding Issues:</strong>
- * <ul>
- *   <li>The "Attending" tab in the UI should be relabeled to "Selected" to match the data model.</li>
- *   <li>The map currently only shows locations for waitlisted users; this could be extended to other statuses.</li>
- *   <li>The {@link #filterAndDisplayEntrants(TabLayout.Tab)} method contains deeply nested callbacks ("callback hell"),
- *       making the logic hard to follow. This should be refactored into a ViewModel or use asynchronous chaining.</li>
- * </ul>
- * </p>
+ * Outstanding Issues:
+ * - The "Attending" tab in the UI should be relabeled to "Selected" to match the data model.
+ * - The map currently only shows locations for waitlisted users, could be extended for other statuses if needed.
  */
 public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCallback {
 
@@ -102,10 +95,10 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
     }
 
     /**
-     * Factory method to create a new instance of this fragment using the provided Event.
+     * Factory method to create a new instance of OrganizerEntrantsFragment with the given event.
      *
-     * @param event The event for which entrants are being managed.
-     * @return A new instance of fragment OrganizerEntrantsFragment.
+     * @param event The event whose entrants will be managed.
+     * @return A new instance of OrganizerEntrantsFragment.
      */
     public static OrganizerEntrantsFragment newInstance(Event event) {
         OrganizerEntrantsFragment fragment = new OrganizerEntrantsFragment();
@@ -115,12 +108,6 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         return fragment;
     }
 
-    /**
-     * Called to do initial creation of a fragment.
-     * Initializes repositories and retrieves the Event object from arguments.
-     *
-     * @param savedInstanceState If the fragment is being re-created from a previous saved state, this is the state.
-     */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -134,27 +121,12 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         currentEntrants = new ArrayList<>();
     }
 
-    /**
-     * Creates and returns the view hierarchy associated with the fragment.
-     *
-     * @param inflater           The LayoutInflater object that can be used to inflate views.
-     * @param container          If non-null, this is the parent view that the fragment's UI should be attached to.
-     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
-     * @return Return the View for the fragment's UI.
-     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_entrants_management, container, false);
     }
 
-    /**
-     * Called immediately after {@link #onCreateView(LayoutInflater, ViewGroup, Bundle)} has returned.
-     * Sets up the ListView adapter, the Google Map, the BottomSheet, tabs, and click listeners.
-     *
-     * @param view               The View returned by {@link #onCreateView(LayoutInflater, ViewGroup, Bundle)}.
-     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
-     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
@@ -197,10 +169,6 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
     }
 
 
-    /**
-     * Called when the fragment is visible to the user and actively running.
-     * Hides the bottom navigation bar to focus the user on entrant management tasks.
-     */
     @Override
     public void onResume() {
         super.onResume();
@@ -209,10 +177,6 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         }
     }
 
-    /**
-     * Called when the Fragment is no longer started.
-     * Restores the visibility of the bottom navigation bar.
-     */
     @Override
     public void onStop() {
         super.onStop();
@@ -221,13 +185,6 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         }
     }
 
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * It sets the initial camera position (defaulting to Edmonton).
-     *
-     * @param map The GoogleMap object.
-     */
     @Override
     public void onMapReady(@NonNull GoogleMap map) {
         googleMap = map;
@@ -236,10 +193,6 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
         // fetchAndDisplayCheckInLocations(); // This will now fetch ALL users
     }
 
-    /**
-     * Fetches geolocation data for waitlisted users from the {@link EventRepository}
-     * and places markers on the Google Map.
-     */
     private void fetchAndDisplayWaitlistLocations() {
         if (event == null || event.getEventId() == null) {
             Log.e(TAG, "Event is null, cannot fetch user locations.");
@@ -265,13 +218,6 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
 
     }
 
-    /**
-     * Filters the entrant list based on the selected tab (Waitlisted, Invited, etc.) and updates the UI.
-     * This method handles fetching user IDs from the event, creating placeholders, and then
-     * asynchronously fetching user profiles to display names.
-     *
-     * @param tab The currently selected TabLayout.Tab.
-     */
     private void filterAndDisplayEntrants(TabLayout.Tab tab) {
         // 1. Clear the member list. The adapter is already connected to this list.
         currentEntrants.clear();
@@ -529,7 +475,6 @@ public class OrganizerEntrantsFragment extends Fragment implements OnMapReadyCal
             entrantsAdapter.notifyDataSetChanged();
         }
     }
-
 
     private void updateEntrantName(String userId, String name) {
         for (Map<String, String> entrant : currentEntrants) {

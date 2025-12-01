@@ -73,7 +73,11 @@ public class MainActivity extends AppCompatActivity {
 
     // Location & Permission services
     private FusedLocationProviderClient fusedLocationClient;
+
+    /** The navigation controller managing fragment navigation within this activity. */
     private NavController navController;
+
+    /** Repository for accessing and updating user profile data in Firestore. */
     private ProfileRepository repo = new ProfileRepository();
 
     private boolean isObserverInitialized = false;
@@ -508,6 +512,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Applies menu item visibility based on user role and admin mode status.
+     * In admin mode, shows admin-specific items (images, users) and hides event creation.
+     * In normal mode, shows items based on user role (entrants cannot create events).
+     *
+     * @param profile The user's profile containing role information.
+     * @param isAdminMode Whether the user is currently in admin mode.
+     */
     private void applyMenuVisibility(ProfileModel profile, boolean isAdminMode) {
         Menu menu = navBarBinding.bottomNavigationView.getMenu();
 
@@ -526,6 +538,13 @@ public class MainActivity extends AppCompatActivity {
             menu.findItem(R.id.browseUsersFragment).setVisible(false);
         }
     }
+
+    /**
+     * Checks all events organized by the user to see if any have passed their selection deadline
+     * without running the lottery. Sends a notification to the organizer if action is required.
+     *
+     * @param profile The organizer's profile containing their event IDs.
+     */
     private void checkOrganizerEventsForLottery(ProfileModel profile) {
         Log.d(TAG, "checkOrganizerEventsForLottery: Starting scan for user: " + profile.getUid());
 

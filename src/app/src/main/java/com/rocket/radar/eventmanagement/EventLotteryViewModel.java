@@ -13,6 +13,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Optional;
 
+/**
+ * ViewModel for the Event Lottery section of event creation.
+ * Manages lottery-related data including waitlist capacity, event capacity,
+ * event date/time information, and registration deadlines.
+ * This ViewModel is scoped to the activity to preserve state across fragment replacements.
+ */
 public class EventLotteryViewModel extends ViewModel {
     @UmlAssociate(selfCard = "1", label = "stores input data", otherCard = "1")
     private EventLotteryFragment eventLotteryFragment;
@@ -54,34 +60,66 @@ public class EventLotteryViewModel extends ViewModel {
         finalAttendeeSelectionDate = new MutableLiveData<>(Optional.empty());
     }
 
+    /**
+     * Gets a LiveData string representation of the waitlist capacity for display.
+     * @return LiveData containing the waitlist capacity as a string, or empty string if not set.
+     */
     public LiveData<String> waitlistCapacityDisplay() {
         return Transformations.map(waitlistCapacity, val -> val.map(Object::toString).orElse(""));
     }
 
+    /**
+     * Gets a LiveData string representation of the event capacity for display.
+     * @return LiveData containing the event capacity as a string, or empty string if not set.
+     */
     public LiveData<String> eventCapacityDisplay() {
         return Transformations.map(eventCapacity, val -> val.map(Object::toString).orElse(""));
     }
 
+    /**
+     * Gets a LiveData string representation of the event date for display.
+     * @return LiveData containing the formatted event date (yyyy/MM/dd), or empty string if not set.
+     */
     public LiveData<String> eventDateDisplay() {
         return Transformations.map(eventDate, date -> date.map(dateFormatter::format).orElse(""));
     }
 
+    /**
+     * Gets a LiveData string representation of the event start time for display.
+     * @return LiveData containing the formatted event start time, or empty string if not set.
+     */
     public LiveData<String> eventStartTimeDisplay() {
         return Transformations.map(eventStartTime, time -> time.map(Time::toString).orElse(""));
     }
 
+    /**
+     * Gets a LiveData string representation of the event end time for display.
+     * @return LiveData containing the formatted event end time, or empty string if not set.
+     */
     public LiveData<String> eventEndTimeDisplay() {
         return Transformations.map(eventEndTime, time -> time.map(Time::toString).orElse(""));
     }
 
+    /**
+     * Gets a LiveData string representation of the registration start date for display.
+     * @return LiveData containing the formatted registration start date (yyyy/MM/dd), or empty string if not set.
+     */
     public LiveData<String> registrationStartDateDisplay() {
         return Transformations.map(registrationStartDate, date -> date.map(dateFormatter::format).orElse(""));
     }
 
+    /**
+     * Gets a LiveData string representation of the initial selection start date for display.
+     * @return LiveData containing the formatted initial selection start date (yyyy/MM/dd), or empty string if not set.
+     */
     public LiveData<String> initialSelectionStartDateDisplay() {
         return Transformations.map(initialSelectionStartDate, date -> date.map(dateFormatter::format).orElse(""));
     }
 
+    /**
+     * Gets a LiveData string representation of the final attendee selection date for display.
+     * @return LiveData containing the formatted final selection date (yyyy/MM/dd), or empty string if not set.
+     */
     public LiveData<String> finalAttendeeSelectionDateDisplay() {
         return Transformations.map(finalAttendeeSelectionDate, date -> date.map(dateFormatter::format).orElse(""));
     }

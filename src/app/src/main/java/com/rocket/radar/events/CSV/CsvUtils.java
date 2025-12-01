@@ -8,8 +8,20 @@ import java.io.File;
 import java.io.FileWriter;
 import java.util.List;
 
+/**
+ * Utility class for exporting event entrant data to CSV format.
+ * Provides functionality to create a CSV file from a list of entrant names
+ * and share it via an Android share intent.
+ */
 public class CsvUtils {
 
+    /**
+     * Exports a list of entrant names to a CSV file and opens a share dialog.
+     * The CSV file is created in the app's cache directory and includes a header row.
+     * @param context The context used to access the file system and start the share intent.
+     * @param entrantNames The list of entrant names to export.
+     * @param filename The desired name for the CSV file (without extension).
+     */
     public static void exportToCsv(Context context, List<String> entrantNames, String filename) {
         try {
             // 1. Create the file in the app's cache directory

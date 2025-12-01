@@ -14,6 +14,11 @@ public class QRGenerator {
     @UmlNavigate(selfCard = "1", label = "generates", otherCard = "1")
     private Bitmap bitmap;
 
+    /**
+     * Formats an event ID into a shareable URL for QR code generation.
+     * @param eventId The unique identifier of the event.
+     * @return A complete URL string that includes the event ID as a query parameter.
+     */
     public static String formatLink(String eventId) {
         // TRIM probably unneded but I'm going crazy
         return "https://radar-65b66.web.app/?eventId=" + eventId.trim();

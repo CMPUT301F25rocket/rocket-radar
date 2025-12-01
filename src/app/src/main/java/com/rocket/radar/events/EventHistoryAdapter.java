@@ -16,12 +16,24 @@ import com.rocket.radar.profile.ProfileModel;
 
 import java.util.List;
 
+/**
+ * RecyclerView adapter for displaying a user's event history.
+ * Shows past events with status information indicating whether the user was selected,
+ * invited, or remained on the waitlist.
+ */
 public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapter.MyViewHolder> {
     Context context;
     List<Event> eventList;
     private ProfileModel currentUserProfile;
     private OnEventListener onEventListener;
 
+    /**
+     * Constructs an EventHistoryAdapter with event data and user profile.
+     * @param context The context for accessing resources.
+     * @param eventList The list of past events to display.
+     * @param currentUserProfile The current user's profile to determine their status for each event.
+     * @param onEventListener The listener for handling event item clicks.
+     */
     public EventHistoryAdapter(Context context, List<Event> eventList, ProfileModel currentUserProfile, OnEventListener onEventListener) {
         this.context = context;
         this.eventList = eventList;
@@ -88,11 +100,20 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
         return eventList.size();
     }
 
+    /**
+     * ViewHolder for event history list items.
+     * Displays event information along with the user's status for that event.
+     */
     public static class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         ImageView eventImage;
         TextView eventTitle, tagline, date, status;
         OnEventListener onEventListener;
 
+        /**
+         * Constructs a ViewHolder for an event history item.
+         * @param itemView The root view of the event history item layout.
+         * @param onEventListener The listener to notify when the item is clicked.
+         */
         public MyViewHolder(@NonNull View itemView, OnEventListener onEventListener) {
             super(itemView);
             eventImage = itemView.findViewById(R.id.event_background_image);
@@ -114,7 +135,15 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
         }
     }
 
+    /**
+     * Callback interface for handling event history item click events.
+     */
     public interface OnEventListener {
+        /**
+         * Called when an event history item is clicked.
+         * @param position The position of the clicked event in the adapter.
+         * @param itemView The view that was clicked.
+         */
         void onEventClick(int position, View itemView);
     }
 }

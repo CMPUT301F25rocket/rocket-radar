@@ -402,6 +402,10 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         return lastClickedPosition;
     }
 
+    /**
+     * ViewHolder for displaying a single notification item.
+     * Holds references to the event image, title, notification type, and unread indicator.
+     */
     public static class NotificationViewHolder extends RecyclerView.ViewHolder {
         ImageView eventImage;
         TextView eventTitle, notificationType;
@@ -416,6 +420,9 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }
     }
 
+    /**
+     * ViewHolder for displaying the separator between unread and read notifications.
+     */
     public static class SeparatorViewHolder extends RecyclerView.ViewHolder {
         TextView separatorText;
         public SeparatorViewHolder(@NonNull View itemView) {
@@ -424,6 +431,9 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }
     }
 
+    /**
+     * ViewHolder for displaying the empty state when there are no notifications.
+     */
     public static class EmptyViewHolder extends RecyclerView.ViewHolder {
         public EmptyViewHolder(@NonNull View itemView) {
             super(itemView);

@@ -32,6 +32,12 @@ public class ProfileViewModel extends ViewModel {
     private ListenerRegistration profileListenerRegistration; // To manage listener lifecycle
 
     private final MutableLiveData<ProfileModel> profileLiveData = new MutableLiveData<>();
+
+    /**
+     * Gets the LiveData containing the current user's profile.
+     * This LiveData updates automatically when the profile changes in Firestore.
+     * @return LiveData containing the ProfileModel.
+     */
     public LiveData<ProfileModel> getProfileLiveData() {
         return this.profileLiveData;
     }

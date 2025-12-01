@@ -13,23 +13,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A RecyclerView.Adapter that displays a list of Bitmap images in a grid layout and
- * supports click and long-click interactions on each image item.
+ * RecyclerView adapter for displaying event banner images in a grid layout.
+ * This adapter is used by the BrowseImageFragment to show all event images
+ * to administrators for review and potential deletion.
  */
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> {
-
     /**
-     * ViewHolder implementation for displaying a single image item.
-     * Handles click and long-click events for the associated ImageView.
+     * ViewHolder that holds an ImageView for each event banner image.
+     * Handles click and long-click events on individual images.
      */
     public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
         private final ImageView imageView;
         private final ImageAdapter adapter;
 
         /**
-         * Creates a new ViewHolder for an ImageView and sets up click listeners.
-         * @param view The ImageView representing the item.
-         * @param adapter The ImageAdapter this ViewHolder is associated with.
+         * Constructs a ViewHolder for an event image.
+         * @param view The ImageView to display the event banner.
+         * @param adapter The parent ImageAdapter instance.
          */
         public ViewHolder(ImageView view, ImageAdapter adapter) {
             super(view);
@@ -40,16 +40,13 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         }
 
         /**
-         * @return The ImageView used to display the image for this item.
+         * Gets the ImageView contained in this ViewHolder.
+         * @return The ImageView displaying the event banner.
          */
         public ImageView getImageView() {
             return imageView;
         }
 
-        /**
-         * Handles a click event by notifying all registered click listeners.
-         * @param v The clicked view.
-         */
         @Override
         public void onClick(View v) {
             int position = getBindingAdapterPosition();
@@ -60,12 +57,6 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
             }
         }
 
-        /**
-         * Handles a long-click event by notifying all registered long-click listeners.
-         *
-         * @param v The long-clicked view.
-         * @return false to allow default long-click behavior to continue.
-         */
         @Override
         public boolean onLongClick(View v) {
             int position = getBindingAdapterPosition();
@@ -81,21 +72,13 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     List<Bitmap> images;
 
     /**
-     * Creates an ImageAdapter for displaying the given list of Bitmaps.
-     *
-     * @param images A list of Bitmaps to display in the RecyclerView.
+     * Constructs an ImageAdapter with a list of event banner images.
+     * @param images The list of Bitmap images to display in the grid.
      */
     public ImageAdapter(List<Bitmap> images) {
         this.images = images;
     }
 
-    /**
-     * Creates and returns a new ViewHolder for displaying an image item.
-     *
-     * @param parent The parent ViewGroup into which the new view will be added.
-     * @param viewType The type of the new view (unused here).
-     * @return A new ViewHolder instance.
-     */
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -107,12 +90,6 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         return new ViewHolder(imageView, this);
     }
 
-    /**
-     * Binds a Bitmap image to the specified ViewHolder.
-     *
-     * @param holder The ViewHolder to bind data to.
-     * @param position The position of the image in the list.
-     */
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ImageView imageView = holder.getImageView();
@@ -120,49 +97,45 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     }
 
     /**
-     * Interface for item click listener
+     * Callback interface for handling item click events.
      */
     public interface ItemClickListener {
         /**
-         * Logic for when click occurs
-         * @param position position where click occurs
+         * Called when an image item is clicked.
+         * @param position The position of the clicked item.
          */
         void onClick(int position);
     }
     private ArrayList<ItemClickListener> clickListeners = new ArrayList<>();
 
     /**
-     * Interface for item long click listener
+     * Callback interface for handling item long-click events.
      */
     public interface ItemLongClickListener {
         /**
-         * Logic for when long click occurs
-         * @param position position where long click occurs
+         * Called when an image item is long-clicked.
+         * @param position The position of the long-clicked item.
          */
         void onItemLongClick(int position);
     }
     private ArrayList<ItemLongClickListener> longClickListeners = new ArrayList<>();
 
     /**
-     * Registers a listener to handle click events on image items.
-     * @param clickListener A listener that is notified when an item is clicked.
+     * Registers a click listener for image items.
+     * @param clickListener The listener to add.
      */
     public void addOnItemClickListener(ItemClickListener clickListener) {
         clickListeners.add(clickListener);
     }
 
     /**
-     * Registers a listener to handle long-click events on image items.
-     * @param longClickListener A listener that is notified when an item is long-pressed.
+     * Registers a long-click listener for image items.
+     * @param longClickListener The listener to add.
      */
     public void addOnItemLongClickListener(ItemLongClickListener longClickListener) {
         longClickListeners.add(longClickListener);
     }
 
-    /**
-     * Returns the size of images.
-     * @return The size of the images.
-     */
     @Override
     public int getItemCount() {
         return images.size();

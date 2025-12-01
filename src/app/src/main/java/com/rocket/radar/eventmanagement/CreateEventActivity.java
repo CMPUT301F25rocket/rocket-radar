@@ -51,32 +51,52 @@ import kotlin.Unit;
 
 /**
  * Activity that walks a user through filling out the various pieces of information needed to create
- * an event. This activity makes heavy use of view and databinding. Here are some relevant pieces of 
+ * an event. This activity makes heavy use of view and databinding. Here are some relevant pieces of
  * information:
  * - https://developer.android.com/reference/com/google/android/material/bottomsheet/BottomSheetBehavior
  * - https://stackoverflow.com/questions/55682256/android-set-bottom-sheet-state-in-xml
  * - https://medium.com/@mananwason/bottoms-sheets-in-android-280c03280072
  */
 public class CreateEventActivity extends AppCompatActivity implements BottomSheetProvider {
+    /** Logging tag for this activity. */
     public static final String TAG = CreateEventActivity.class.getSimpleName();
+
+    /** View binding for the create event layout. */
     ActivityCreateEventBinding binding;
+
+    /** Observable tracking which section (tab) is currently active in the wizard. */
     private MutableLiveData<Section> currentSection;
+
+    /** Repository for creating and managing events in Firestore. */
     EventRepository eventRepository;
 
+    /** Fragment handling the general information section of event creation. */
     @UmlAggregate(selfCard = "1", label = "hosts", otherCard = "1")
     private EventGeneralFragment eventGeneralFragment;
 
+    /** Fragment handling the lottery/draw settings section of event creation. */
     @UmlAggregate(selfCard = "1", label = "hosts", otherCard = "1")
     private EventLotteryFragment eventLotteryFragment;
 
+    /** ViewModel managing general event creation data. */
     @UmlAggregate(selfCard = "1", label = "watches", otherCard = "1")
     private EventGeneralViewModel eventGeneralViewModel;
 
+    /** ViewModel managing lottery/draw settings data. */
     @UmlAggregate(selfCard = "1", label = "watches", otherCard = "1")
     private EventLotteryViewModel eventLotteryViewModel;
 
+    /** The currently displayed fragment. */
     private Fragment fragment;
 
+    /**
+     * Initializes the activity, sets up the tab layout, toolbar, and fragment navigation.
+     * Configures event submission handling and validation.
+     *
+     * @param savedInstanceState If the activity is being re-initialized after
+     *     previously being shut down then this Bundle contains the data it most
+     *     recently supplied in {@link #onSaveInstanceState}.
+     */
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
