@@ -2,6 +2,7 @@ package com.rocket.radar.qr;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import com.rocket.radar.uml.UmlNavigate;
 import io.nayuki.qrcodegen.QrCode;
 
 /**
@@ -10,6 +11,9 @@ import io.nayuki.qrcodegen.QrCode;
  * event ID. It formats the event ID into a URL that can be scanned to check in or view event details.
  */
 public class QRGenerator {
+    @UmlNavigate(selfCard = "1", label = "generates", otherCard = "1")
+    private Bitmap bitmap;
+
     public static String formatLink(String eventId) {
         // TRIM probably unneded but I'm going crazy
         return "https://radar-65b66.web.app/?eventId=" + eventId.trim();

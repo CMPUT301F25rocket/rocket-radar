@@ -17,6 +17,7 @@ import androidx.fragment.app.DialogFragment;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.rocket.radar.databinding.DialogQrcodeBinding;
+import com.rocket.radar.uml.UmlAggregate;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -33,7 +34,10 @@ import java.io.IOException;
  */
 public class QRDialog extends DialogFragment {
     public static final String TAG = QRDialog.class.getSimpleName();
+
+    @UmlAggregate(selfCard = "1", label = "displays", otherCard = "1")
     private final Bitmap bitmap;
+
     private final BitmapDrawable drawable;
     private final String link;
 
