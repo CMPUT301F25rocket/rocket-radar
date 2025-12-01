@@ -1,7 +1,12 @@
 com.rocket.radar
+com.rocket.radar.admin
 com.rocket.radar.eventmanagement
 com.rocket.radar.events
+com.rocket.radar.events.CSV
+com.rocket.radar.loadingscreen
 com.rocket.radar.login
+com.rocket.radar.lottery
 com.rocket.radar.notifications
 com.rocket.radar.profile
 com.rocket.radar.qr
+com.rocket.radar.uml
