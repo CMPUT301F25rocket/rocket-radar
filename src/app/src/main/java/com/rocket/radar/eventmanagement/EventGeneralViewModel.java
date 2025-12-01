@@ -5,6 +5,7 @@ import android.net.Uri;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 public class EventGeneralViewModel extends ViewModel {
@@ -15,6 +16,7 @@ public class EventGeneralViewModel extends ViewModel {
     public MutableLiveData<Double> locationLatitude;
     public MutableLiveData<Double> locationLongitude;
     public MutableLiveData<String> locationName;
+    public MutableLiveData<ArrayList<String>> categories;
 
     public EventGeneralViewModel() {
         title = new MutableLiveData<>("");
@@ -24,5 +26,6 @@ public class EventGeneralViewModel extends ViewModel {
         locationLatitude = new MutableLiveData<>(null);
         locationLongitude = new MutableLiveData<>(null);
         locationName = new MutableLiveData<>("");
+        categories = new MutableLiveData<>(new ArrayList<>());
     }
 }

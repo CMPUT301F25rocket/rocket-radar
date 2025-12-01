@@ -48,7 +48,6 @@ public class EventGeneralFragment extends Fragment implements InputFragment, OnM
     private ViewInputEventGeneralBinding binding;
     private EventGeneralViewModel viewModel;
     private ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
-    ArrayList<String> categories;
     private GoogleMap googleMap;
     private AutocompleteSupportFragment autocompleteFragment;
 
@@ -73,21 +72,11 @@ public class EventGeneralFragment extends Fragment implements InputFragment, OnM
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = ViewInputEventGeneralBinding.inflate(inflater, container, false);
 
-        categories = new ArrayList<>();
-
         for (var category : Event.allEventCategories) {
             CategoryChipBinding chip = CategoryChipBinding.inflate(inflater, binding.createEventGeneralChipGroup.getRoot(), false);
             chip.getRoot().setText(category);
             binding.createEventGeneralChipGroup.getRoot().addView(chip.getRoot());
         }
-
-        binding.createEventGeneralChipGroup.getRoot().setOnCheckedStateChangeListener((group, checkedIds) ->  {
-            categories.clear();
-            for (var viewId : checkedIds) {
-                String category = ((Chip)group.findViewById(viewId)).getText().toString();
-                categories.add(category);
-            }
-        });
 
         return binding.getRoot();
     }
@@ -102,6 +91,27 @@ public class EventGeneralFragment extends Fragment implements InputFragment, OnM
         // Bind the model to the view
         binding.setViewModel(viewModel);
         binding.setLifecycleOwner(getViewLifecycleOwner());
+
+        // Set up chip group listener to update ViewModel when categories change
+        binding.createEventGeneralChipGroup.getRoot().setOnCheckedStateChangeListener((group, checkedIds) ->  {
+            ArrayList<String> selectedCategories = new ArrayList<>();
+            for (var viewId : checkedIds) {
+                String category = ((Chip)group.findViewById(viewId)).getText().toString();
+                selectedCategories.add(category);
+            }
+            viewModel.categories.setValue(selectedCategories);
+        });
+
+        // Restore chip selections from ViewModel
+        ArrayList<String> savedCategories = viewModel.categories.getValue();
+        if (savedCategories != null && !savedCategories.isEmpty()) {
+            for (int i = 0; i < binding.createEventGeneralChipGroup.getRoot().getChildCount(); i++) {
+                Chip chip = (Chip) binding.createEventGeneralChipGroup.getRoot().getChildAt(i);
+                if (savedCategories.contains(chip.getText().toString())) {
+                    chip.setChecked(true);
+                }
+            }
+        }
 
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map_fragment);
         if (mapFragment != null) {
@@ -135,6 +145,13 @@ public class EventGeneralFragment extends Fragment implements InputFragment, OnM
 
         // Set up image picker
         setupImagePicker();
+
+        // Restore image from ViewModel if it exists
+        viewModel.image.observe(getViewLifecycleOwner(), imageUri -> {
+            if (imageUri.isPresent() && binding != null) {
+                binding.inputEventGeneralPickImage.setImageURI(imageUri.get());
+            }
+        });
 
         viewModel.locationLatitude.observe(getViewLifecycleOwner(), lat -> updateMapLocation());
         viewModel.locationLongitude.observe(getViewLifecycleOwner(), lng -> updateMapLocation());
@@ -188,7 +205,7 @@ public class EventGeneralFragment extends Fragment implements InputFragment, OnM
         }
 
         return builder
-                .categories(categories)
+                .categories(viewModel.categories.getValue())
                 .title(this.viewModel.title.getValue())
                 .description(this.viewModel.description.getValue())
                 .tagline(viewModel.tagline.getValue())
