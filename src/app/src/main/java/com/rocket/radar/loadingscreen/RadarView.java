@@ -8,9 +8,24 @@ import android.graphics.Paint;
 import android.graphics.SweepGradient;
 import android.util.AttributeSet;
 import android.view.View;
-
 import androidx.annotation.Nullable;
 
+/**
+ * A custom View that draws a rotating radar-like animation.
+ *
+ * <p>This view is the visual core of the loading screen. It uses a {@link SweepGradient}
+ * and a rotating matrix to simulate a radar sweeping clockwise. It includes logic for
+ * smoothly fading in the grid and the sweep arm when the animation starts.</p>
+ *
+ * <p><strong>Outstanding Issues:</strong>
+ * <ul>
+ *   <li>The color and speed constants are hardcoded; these should ideally be exposed as custom XML attributes
+ *       to allow for easier theming without modifying the Java code.</li>
+ *   <li>The `onDraw` method performs object allocations (e.g., implicitly in some paint operations) or matrix updates
+ *       on every frame, which might impact performance on very low-end devices, though currently acceptable.</li>
+ * </ul>
+ * </p>
+ */
 public class RadarView extends View {
 
     private Paint gridPaint;
@@ -29,16 +44,40 @@ public class RadarView extends View {
     private static final int RADAR_COLOR = Color.parseColor("#000000"); // Neon Green
     private static final float ANIMATION_SPEED = 1.75f; // Scan speed
 
+    /**
+     * Simple constructor to use when creating a RadarView from code.
+     *
+     * @param context The Context the view is running in, through which it can
+     *                access the current theme, resources, etc.
+     */
     public RadarView(Context context) {
         super(context);
         init();
     }
 
+    /**
+     * Constructor that is called when inflating a view from XML.
+     *
+     * @param context The Context the view is running in, through which it can
+     *                access the current theme, resources, etc.
+     * @param attrs   The attributes of the XML tag that is inflating the view.
+     */
     public RadarView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         init();
     }
 
+    /**
+     * Perform inflation from XML and apply a class-specific base style from a
+     * theme attribute.
+     *
+     * @param context      The Context the view is running in, through which it can
+     *                     access the current theme, resources, etc.
+     * @param attrs        The attributes of the XML tag that is inflating the view.
+     * @param defStyleAttr An attribute in the current theme that contains a
+     *                     reference to a style resource that supplies default values for
+     *                     the view. Can be 0 to not look for defaults.
+     */
     public RadarView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
@@ -112,6 +151,10 @@ public class RadarView extends View {
         }
     }
 
+    /**
+     * Starts the radar animation.
+     * Resets the rotation and alpha values to their initial states and triggers the invalidation loop.
+     */
     public void startAnimation() {
         if (!isAnimating) {
             isAnimating = true;
@@ -122,6 +165,10 @@ public class RadarView extends View {
         }
     }
 
+    /**
+     * Stops the radar animation.
+     * This stops the invalidation loop, effectively pausing the view's drawing cycle.
+     */
     public void stopAnimation() {
         isAnimating = false;
     }

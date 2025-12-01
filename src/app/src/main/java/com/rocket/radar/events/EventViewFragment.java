@@ -48,29 +48,33 @@ import java.util.Locale;
 
 /**
  * A fragment that displays the details of a specific event.
- * This view adapts its functionality based on whether the current user is the event organizer
+ *
+ * <p>This view adapts its functionality based on whether the current user is the event organizer
  * or a regular user. Organizers get options to manage entrants and edit the event, while
- * regular users can join or leave the event's waitlist.
- * Outstanding Issues: The "Edit" functionality for organizers is not yet implemented.
+ * regular users can join or leave the event's waitlist. It also handles the logic for
+ * responding to invitations (accept/reject).</p>
+ *
+ * <p><strong>Outstanding Issues:</strong>
+ * <ul>
+ *   <li>The "Edit" functionality for organizers is not yet fully implemented.</li>
+ *   <li>Accept/Reject invitation logic contains TODOs and is not fully wired to the backend.</li>
+ *   <li>The {@link #onViewCreated} method is very large and handles disparate logic (UI setup, specific button logic, listeners); this should be refactored into helper methods.</li>
+ * </ul>
+ * </p>
  */
 public class EventViewFragment extends Fragment {
     public static final String TAG = EventViewFragment.class.getSimpleName();
 
     private static final String ARG_EVENT = "event";
-    // 1. ADD ARG_IS_ORGANIZER CONSTANT
     private static final String ARG_IS_ORGANIZER = "is_organizer";
     private Event event;
     private ProfileViewModel profileViewModel;
     private EventRepository eventRepo = new EventRepository();
     private LotteryLogic lottery;
-
-    // 2. ADD isOrganizer aS A MEMBER VARIABLE
     private boolean isOrganizer;
-
     private ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
     private ImageView eventImageView;
     private ImageView statusBarImage;
-
     private AdminModeManager adminModeManager;
 
     /**
@@ -107,6 +111,13 @@ public class EventViewFragment extends Fragment {
         return fragment;
     }
 
+    /**
+     * Called to do initial creation of a fragment.
+     * Retrieves the Event object and organizer status from the arguments, and registers
+     * the photo picker activity result launcher.
+     *
+     * @param savedInstanceState If the fragment is being re-created from a previous saved state, this is the state.
+     */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -127,12 +138,28 @@ public class EventViewFragment extends Fragment {
         );
     }
 
+    /**
+     * Creates and returns the view hierarchy associated with the fragment.
+     *
+     * @param inflater           The LayoutInflater object that can be used to inflate views.
+     * @param container          If non-null, this is the parent view that the fragment's UI should be attached to.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     * @return Return the View for the fragment's UI.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.event_view, container, false);
     }
 
+    /**
+     * Called immediately after {@link #onCreateView(LayoutInflater, ViewGroup, Bundle)} has returned.
+     * <p>This method initializes the UI components, sets up button listeners based on the user's role
+     * (Organizer, Admin, Entrant, Invited, etc.), handles image loading, and fetches real-time waitlist data.</p>
+     *
+     * @param view               The View returned by {@link #onCreateView(LayoutInflater, ViewGroup, Bundle)}.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);

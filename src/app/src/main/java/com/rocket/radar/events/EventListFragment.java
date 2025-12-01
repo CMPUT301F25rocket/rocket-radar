@@ -59,6 +59,11 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         // Required empty public constructor
     }
 
+    /**
+     * Factory method to create a new instance of EventListFragment with an event parameter.
+     * @param event the event to pass to the fragment
+     * @return a new instance of EventListFragment
+     */
     public static EventListFragment newInstance(Event event) {
         EventListFragment fragment = new EventListFragment();
         Bundle args = new Bundle();
@@ -84,6 +89,12 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         return view;
     }
 
+    /**
+     * Removes filters that are no longer checked in the chip group.
+     * This method is called when the checked state of chips changes.
+     * @param group the chip group containing filter chips
+     * @param selected the list of selected chip IDs
+     */
     public void removeActiveFilter(ChipGroup group, List<Integer> selected) {
         for (int i = 0; i < group.getChildCount(); ++i) {
             View child = group.getChildAt(i);
@@ -96,6 +107,10 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         filterAndDisplayEvents();
     }
 
+    /**
+     * Displays an active filter as a chip in the chip group.
+     * @param filter the event filter to display as a chip
+     */
     public void showActiveFilter(FilterModel.EventFilter filter) {
         CategoryChipBinding binding = CategoryChipBinding.inflate(getLayoutInflater(), chipGroup, false);
         binding.getRoot().setText(filter.getFilterName());
@@ -146,6 +161,10 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         observeUnreadNotifications();
     }
 
+    /**
+     * Observes changes to the event repository and updates the displayed events list.
+     * Shows a loading indicator while fetching events.
+     */
     private void observeEvents() {
         // START LOADING
         if (getActivity() instanceof MainActivity) {
@@ -165,6 +184,10 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         });
     }
 
+    /**
+     * Observes changes to the user profile and updates the UI accordingly.
+     * Updates the displayed events and notification button UI when profile changes.
+     */
     private void observeUserProfile() {
         profileViewModel.getProfileLiveData().observe(getViewLifecycleOwner(), profile -> {
             currentUserProfile = profile;
@@ -203,6 +226,10 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         }
     }
 
+    /**
+     * Observes unread notifications and updates the notification badge.
+     * Displays the count of unread notifications or hides the badge if there are none.
+     */
     private void observeUnreadNotifications() {
         // Observe the list of notifications from the repository
         notificationRepository.getMyNotifications().observe(getViewLifecycleOwner(), notifications -> {
@@ -221,12 +248,21 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         });
     }
 
+    /**
+     * Sets up a listener for the toggle button group that filters events when selection changes.
+     * This allows users to switch between Discover, Waitlist, and Attending views.
+     */
     private void setupToggleListener() {
         toggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             filterAndDisplayEvents();
         });
     }
 
+    /**
+     * Filters and displays events based on the selected feed (Discover, Waitlist, or Attending)
+     * and any active filters from the filter model.
+     * Updates the chip group to show active filters and refreshes the RecyclerView adapter.
+     */
     private void filterAndDisplayEvents() {
         if (allEvents == null || currentUserProfile == null) {
             return;
