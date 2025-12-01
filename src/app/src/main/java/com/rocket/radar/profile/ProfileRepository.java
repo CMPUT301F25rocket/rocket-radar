@@ -233,6 +233,11 @@ public class ProfileRepository {
                 .addOnFailureListener(e -> Log.e("ProfileViewModel", "Error updating user location for UID: " + uid, e));
     }
 
+    /**
+     * Updates the user's invited events list in Firestore by adding an event ID.
+     * @param uid The user ID.
+     * @param eventId The event ID to add to the invited list.
+     */
     public void updateUserInvitedList(String uid, String eventId) {
         db.collection("users")
                 .document(uid)

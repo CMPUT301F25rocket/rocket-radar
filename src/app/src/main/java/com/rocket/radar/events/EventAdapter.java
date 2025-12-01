@@ -15,11 +15,21 @@ import com.rocket.radar.R;
 
 import java.util.List;
 
+/**
+ * RecyclerView adapter for displaying a list of events.
+ * Each event is shown with its banner image, title, tagline, and formatted date.
+ */
 public class EventAdapter extends RecyclerView.Adapter<EventAdapter.MyViewHolder> {
     Context context;
     List<Event> eventList;
     private OnEventListener onEventListener;
 
+    /**
+     * Constructs an EventAdapter with event data and a click listener.
+     * @param context The context for accessing resources.
+     * @param eventList The list of events to display.
+     * @param onEventListener The listener for handling event item clicks.
+     */
     public EventAdapter(Context context, List<Event> eventList, OnEventListener onEventListener) {
         this.context = context;
         this.eventList = eventList;
@@ -60,11 +70,20 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.MyViewHolder
         return eventList.size();
     }
 
+    /**
+     * ViewHolder for event list items.
+     * Holds references to the views for an event and handles click events.
+     */
     public static class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         ImageView eventImage;
         TextView eventTitle, tagline, date;
         OnEventListener onEventListener;
 
+        /**
+         * Constructs a ViewHolder for an event item.
+         * @param itemView The root view of the event list item layout.
+         * @param onEventListener The listener to notify when the item is clicked.
+         */
         public MyViewHolder(@NonNull View itemView, OnEventListener onEventListener) {
             super(itemView);
             eventImage = itemView.findViewById(R.id.event_background_image);
@@ -85,7 +104,15 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.MyViewHolder
         }
     }
 
+    /**
+     * Callback interface for handling event item click events.
+     */
     public interface OnEventListener {
+        /**
+         * Called when an event item is clicked.
+         * @param position The position of the clicked event in the adapter.
+         * @param itemView The view that was clicked.
+         */
         void onEventClick(int position, View itemView);
     }
 }

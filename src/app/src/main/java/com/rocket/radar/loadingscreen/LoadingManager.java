@@ -6,19 +6,9 @@ import com.rocket.radar.R;
 import com.rocket.radar.loadingscreen.RadarView;
 
 /**
- * A helper class that manages the visibility and state of the global loading overlay.
- *
- * <p>This manager encapsulates the logic for finding the loading views within the root layout,
- * updating the loading message, and controlling the custom {@link RadarView} animation.
- * It is designed to be instantiated by the main Activity and used to block user interaction
- * during long-running asynchronous operations.</p>
- *
- * <p><strong>Outstanding Issues:</strong>
- * <ul>
- *   <li>The view IDs (loading_overlay_container, etc.) are hardcoded, assuming they exist in the
- *       root view's hierarchy. This coupling requires the root layout to always include the specific loading stub.</li>
- * </ul>
- * </p>
+ * Manages the display of a loading overlay with a radar animation.
+ * This class provides a simple API to show and hide a loading screen
+ * with a custom message while async operations are in progress.
  */
 public class LoadingManager {
     private final View overlayView;
@@ -26,9 +16,8 @@ public class LoadingManager {
     private final RadarView radarView;
 
     /**
-     * Constructs a new LoadingManager by finding the required views inside the provided root view.
-     *
-     * @param rootView The root view of the Activity or Fragment layout that contains the loading overlay includes.
+     * Constructs a LoadingManager by finding the necessary views in the provided root view.
+     * @param rootView The root view of the fragment or activity containing the loading overlay.
      */
     public LoadingManager(View rootView) {
         // Find views included in the fragment layout
@@ -38,9 +27,8 @@ public class LoadingManager {
     }
 
     /**
-     * Displays the loading overlay with a specific message and starts the radar animation.
-     *
-     * @param message The text to display (e.g., "Loading...", "Scanning...").
+     * Shows the loading overlay with a custom message and starts the radar animation.
+     * @param message The message to display (will be converted to uppercase).
      */
     public void show(String message) {
         if (overlayView == null) return;
@@ -61,7 +49,7 @@ public class LoadingManager {
     }
 
     /**
-     * Hides the loading overlay and stops the radar animation to save resources.
+     * Hides the loading overlay and stops the radar animation.
      */
     public void hide() {
         if (overlayView == null) return;

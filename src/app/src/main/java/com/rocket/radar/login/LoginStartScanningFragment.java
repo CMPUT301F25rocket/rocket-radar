@@ -23,19 +23,9 @@ import com.rocket.radar.profile.ProfileModel;
 import com.rocket.radar.profile.ProfileViewModel;
 
 /**
- * A Fragment that handles the initial user onboarding and login process.
- *
- * <p>This fragment displays a form for users to enter their basic profile information
- * (username, email, phone number) upon first launch. It manages anonymous authentication
- * with Firebase, creates or updates the user's profile in the {@link ProfileViewModel},
- * and navigates to the main event list upon successful completion.</p>
- *
- * <p><strong>Outstanding Issues:</strong>
- * <ul>
- *   <li>The input validation logic inside the click listener is repetitive and could be extracted into a separate validator helper method.</li>
- *   <li>The fragment manually hides the bottom navigation bar, which might cause state inconsistencies if not managed centrally by the Activity navigation graph.</li>
- * </ul>
- * </p>
+ * Fragment for collecting initial user information during the first-time login flow.
+ * This fragment prompts the user to enter their username, email, and phone number,
+ * validates the inputs, and creates or updates their profile in Firebase.
  */
 public class LoginStartScanningFragment extends Fragment {
     private Button button_continue;
@@ -51,18 +41,12 @@ public class LoginStartScanningFragment extends Fragment {
     // A flag to ensure we only set up the observer once.
     private boolean isObserverInitialized = false;
 
-
     /**
-     * Inflates the layout for this fragment which contains three input fields for username, email, and phone number.
-     * This method also hides the bottom navigation bar to ensure the user completes the onboarding flow.
-     *
-     * @param inflater           The LayoutInflater object that can be used to inflate
-     *                           any views in the fragment.
-     * @param container          If non-null, this is the parent view that the fragment's
-     *                           UI should be attached to.
-     * @param savedInstanceState If non-null, this fragment is being re-constructed
-     *                           from a previous saved state as given here.
-     * @return Return the View for the fragment's UI.
+     * Inflates the layout for this fragment which has three input fields for username, email, and phone number.
+     * @param inflater The LayoutInflater object that can be used to inflate any views in the fragment.
+     * @param container If non-null, this is the parent view that the fragment's UI should be attached to.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     * @return The root view of the fragment's layout.
      */
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         ((MainActivity) requireActivity()).setBottomNavigationVisibility(View.GONE);
@@ -78,10 +62,6 @@ public class LoginStartScanningFragment extends Fragment {
 
     /**
      * Sets up the UI elements and their event listeners.
-     * Validates user input (username length, email format, phone format) before
-     * attempting to create a profile and navigate to the app's main screen.
-     *
-     * @param view The root view of the fragment.
      */
     private void setupUI(View view) {
         button_continue = view.findViewById(R.id.button_continue);
@@ -147,9 +127,7 @@ public class LoginStartScanningFragment extends Fragment {
 
     @Override
     /**
-     * Called when the fragment is visible to the user and actively running.
-     * This implementation ensures the bottom navigation bar remains hidden and re-verifies
-     * the Firebase user authentication state (e.g., handling cases where an account was just deleted).
+     * Fix for logging in after just deleting an account. Makes this fragment work again after redirect.
      */
     public void onResume() {
         super.onResume();
@@ -161,7 +139,6 @@ public class LoginStartScanningFragment extends Fragment {
 
     /**
      * Ensures that a Firebase user exists and updates or creates the user profile as needed.
-     * If the user is null or stale, it attempts to sign in anonymously or reload the user.
      */
     private void updateOrCreateUser() {
         deviceId = android.provider.Settings.Secure.getString(
@@ -200,9 +177,7 @@ public class LoginStartScanningFragment extends Fragment {
     }
 
     /**
-     * Saves the user profile information (username, email, phone) to the {@link ProfileViewModel}.
-     *
-     * @param uid The unique ID of the user whose profile is being saved.
+     * Saves the user profile to the profileViewModel.
      */
     private void saveProfile(String uid) {
         ProfileModel defaultProfile = new ProfileModel(uid, username, email, phoneNumber, null, true, true, ProfileModel.UserRole.ORGANIZER);

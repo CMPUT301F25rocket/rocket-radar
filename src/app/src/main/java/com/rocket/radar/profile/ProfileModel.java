@@ -33,10 +33,18 @@ public class ProfileModel implements Serializable {
     private ArrayList<String> attendingEventIds;
     private ArrayList<String> cancelledEventIds;
 
+    /**
+     * Gets the user's last known geographic location.
+     * @return The last known GeoPoint location, or null if not set.
+     */
     public GeoPoint getLastKnownLocation() {
         return lastKnownLocation;
     }
 
+    /**
+     * Sets the user's last known geographic location.
+     * @param lastKnownLocation The GeoPoint location to set.
+     */
     public void setLastKnownLocation(GeoPoint lastKnownLocation) {
         this.lastKnownLocation = lastKnownLocation;
     }
@@ -97,6 +105,10 @@ public class ProfileModel implements Serializable {
         this.onInvitedEventIds = onInvitedEventIds;
     }
 
+    /**
+     * Adds an event ID to the user's invited events list.
+     * @param eventId The event ID to add.
+     */
     public void addOnInvitedEventId(String eventId) {
         if (this.onInvitedEventIds == null) this.onInvitedEventIds = new ArrayList<>();
         this.onInvitedEventIds.add(eventId);
@@ -119,17 +131,29 @@ public class ProfileModel implements Serializable {
         this.attendingEventIds = attendingEventIds;
     }
 
+    /**
+     * Adds an event ID to the user's attending events list.
+     * @param eventId The event ID to add.
+     */
     public void addAttendingEventId(String eventId) {
         if (this.attendingEventIds == null) this.attendingEventIds = new ArrayList<>();
         this.attendingEventIds.add(eventId);
     }
 
+    /**
+     * Removes an event ID from the user's invited events list.
+     * @param eventId The event ID to remove.
+     */
     public void removeInvitedEventId(String eventId) {
         if (this.onInvitedEventIds == null) return;
         this.onInvitedEventIds.remove(eventId);
 
     }
 
+    /**
+     * Gets the list of cancelled event IDs for this user.
+     * @return An ArrayList of cancelled event IDs.
+     */
     public ArrayList<String> getCancelledEventIds() {
         if (this.cancelledEventIds == null) this.cancelledEventIds = new ArrayList<>();
         return cancelledEventIds;
@@ -143,6 +167,10 @@ public class ProfileModel implements Serializable {
         this.cancelledEventIds = cancelledEventIds;
     }
 
+    /**
+     * Adds an event ID to the user's cancelled events list.
+     * @param eventId The event ID to add.
+     */
     public void addCancelledEventId(String eventId) {
         if (this.cancelledEventIds == null) this.cancelledEventIds = new ArrayList<>();
         this.cancelledEventIds.add(eventId);

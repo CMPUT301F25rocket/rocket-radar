@@ -39,6 +39,10 @@ public class EventRepository {
         this.events = firestore.collection("events");
     }
 
+    /**
+     * Gets the singleton instance of EventRepository.
+     * @return The EventRepository instance.
+     */
     public static EventRepository getInstance() {
         if (instance == null) {
             instance = new EventRepository();
@@ -46,7 +50,11 @@ public class EventRepository {
         return instance;
     }
 
-    // 🔹 Test-only hook: replace Firestore and reset singleton
+    /**
+     * Test-only hook to replace Firestore instance and reset singleton.
+     * This should only be used in unit tests.
+     * @param testFirestore The test Firestore instance to use.
+     */
     public static void useFirestoreForTesting(FirebaseFirestore testFirestore) {
         firestore = testFirestore;
         instance = null;
@@ -77,10 +85,20 @@ public class EventRepository {
         return eventsLiveData;
     }
 
+    /**
+     * Gets an event document from Firestore by its ID.
+     * @param eventId The ID of the event to retrieve.
+     * @return A Task containing the DocumentSnapshot for the event.
+     */
     public Task<DocumentSnapshot> getEvent(String eventId) {
         return events.document(eventId).get();
     }
 
+    /**
+     * Asynchronously fetches an event by its ID and returns it via callback.
+     * @param eventId The ID of the event to retrieve.
+     * @param listener Callback to handle success or failure.
+     */
     public void getEventById(String eventId, SingleEventListener listener) {
         events.document(eventId).get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -90,11 +108,28 @@ public class EventRepository {
                 .addOnFailureListener(listener::onError);
     }
 
+    /**
+     * Callback interface for fetching a single event.
+     */
     public interface SingleEventListener {
+        /**
+         * Called when the event is successfully loaded.
+         * @param event The loaded Event object.
+         */
         void onEventLoaded(Event event);
+
+        /**
+         * Called when an error occurs while loading the event.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
+    /**
+     * Adds a user to the attending list of an event.
+     * @param event The event to add the user to.
+     * @param uid The user ID to add.
+     */
     public void addUserToAttending(Event event, String uid) {
         if (event == null || event.getEventId() == null) return;
 
@@ -109,6 +144,11 @@ public class EventRepository {
                 .addOnFailureListener(e -> Log.e(TAG, "Error adding to attending", e));
     }
 
+    /**
+     * Adds a user to the cancelled list of an event.
+     * @param event The event to add the user to.
+     * @param uid The user ID to add.
+     */
     public void addUserToCancelled(Event event, String uid) {
         if (event == null || event.getEventId() == null) return;
 
@@ -123,12 +163,23 @@ public class EventRepository {
                 .addOnFailureListener(e -> Log.e(TAG, "Error adding to cancelled", e));
     }
 
+    /**
+     * Deletes the banner image from an event in Firestore.
+     * @param event The event whose image should be deleted.
+     * @param successListener Callback for successful deletion.
+     * @param failureListener Callback for failed deletion.
+     */
     public void deleteImage(Event event, OnSuccessListener<? super Void> successListener, OnFailureListener failureListener) {
         events.document(event.getEventId()).update("bannerImageBlob", FieldValue.delete())
                 .addOnSuccessListener(successListener)
                 .addOnFailureListener(failureListener);
     }
 
+    /**
+     * Removes a user from the invited list of an event.
+     * @param event The event to remove the user from.
+     * @param uid The user ID to remove.
+     */
     public void removeUserFromInvited(Event event, String uid) {
         if (event == null || event.getEventId() == null || uid == null) return;
 
@@ -140,12 +191,34 @@ public class EventRepository {
     }
 
     // --- Waitlist Size Logic ---
+    /**
+     * Callback interface for fetching waitlist size and entrants.
+     */
     public interface WaitlistSizeListener {
+        /**
+         * Called when the waitlist size is successfully fetched.
+         * @param size The number of users on the waitlist.
+         */
         void onSizeReceived(int size);
+
+        /**
+         * Called when the list of waitlist user IDs is fetched.
+         * @param userIds The list of user IDs on the waitlist.
+         */
         void onWaitlistEntrantsFetched(List<String> userIds);
+
+        /**
+         * Called when an error occurs.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
+    /**
+     * Fetches the size and list of users on the waitlist for an event.
+     * @param event The event to fetch waitlist information for.
+     * @param listener Callback to handle the result.
+     */
     public void getWaitlistSize(Event event, WaitlistSizeListener listener) {
         if (event == null || event.getEventId() == null) {
             listener.onError(new IllegalArgumentException("Event is null or has no ID"));
@@ -164,12 +237,34 @@ public class EventRepository {
     }
 
     // --- Invited Size Logic ---
+    /**
+     * Callback interface for fetching invited size and entrants.
+     */
     public interface InvitedSizeListener {
+        /**
+         * Called when the invited list size is successfully fetched.
+         * @param size The number of users invited.
+         */
         void onSizeReceived(int size);
+
+        /**
+         * Called when the list of invited user IDs is fetched.
+         * @param userIds The list of user IDs invited.
+         */
         void onInvitedEntrantsFetched(List<String> userIds);
+
+        /**
+         * Called when an error occurs.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
+    /**
+     * Fetches the size and list of users invited to an event.
+     * @param event The event to fetch invited information for.
+     * @param listener Callback to handle the result.
+     */
     public void getInvitedSize(Event event, InvitedSizeListener listener) {
         if (event == null || event.getEventId() == null) {
             listener.onError(new IllegalArgumentException("Event is null or has no ID"));
@@ -188,11 +283,28 @@ public class EventRepository {
     }
 
     // --- Cancelled Size Logic ---
+    /**
+     * Callback interface for fetching cancelled list size.
+     */
     public interface CancelledSizeListener {
+        /**
+         * Called when the cancelled list size is successfully fetched.
+         * @param size The number of users who cancelled.
+         */
         void onSizeReceived(int size);
+
+        /**
+         * Called when an error occurs.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
+    /**
+     * Fetches the size of the cancelled list for an event.
+     * @param event The event to fetch cancelled information for.
+     * @param listener Callback to handle the result.
+     */
     public void getCancelledSize(Event event, CancelledSizeListener listener) {
         if (event == null || event.getEventId() == null) {
             listener.onError(new IllegalArgumentException("Event is null or has no ID"));
@@ -206,7 +318,11 @@ public class EventRepository {
     }
 
     /**
-     * This method adds a new event to Firestore.
+     * Creates a new event in Firestore or updates an existing one.
+     * If the event doesn't have an ID, one is generated. If the event doesn't have an organizer ID,
+     * the current user is automatically assigned as the organizer.
+     * @param event The event to create or update.
+     * @return The event ID.
      */
     public String createEvent(Event event) {
         DocumentReference docRef;
@@ -236,6 +352,13 @@ public class EventRepository {
         return event.getEventId();
     }
 
+    /**
+     * Adds a user to the waitlist for an event.
+     * Optionally stores the user's signup location if provided.
+     * @param event The event to add the user to.
+     * @param userId The user ID to add.
+     * @param location The user's location at signup, or null if not required.
+     */
     public void addUserToWaitlist(Event event, String userId, GeoPoint location){
         if (event == null || event.getEventId() == null) {
             Log.e(TAG, "Event is null or has no ID.");
@@ -263,6 +386,11 @@ public class EventRepository {
                     .addOnFailureListener(e -> Log.e(TAG, "Error adding user to waitlist", e));
         }
 
+    /**
+     * Removes a user from the waitlist for an event.
+     * @param event The event to remove the user from.
+     * @param userId The user ID to remove.
+     */
     public void removeUserFromWaitlist(Event event, String userId) {
         if (event == null || event.getEventId() == null) {
             Log.e(TAG, "Event is null or has no ID. Cannot remove user from waitlist.");
@@ -303,7 +431,16 @@ public class EventRepository {
      * Callback interface for fetching a user's location from the waitlist.
      */
     public interface UserLocationCallback {
+        /**
+         * Called when the user's location is successfully fetched.
+         * @param location The user's GeoPoint location, or null if not available.
+         */
         void onLocationFetched(GeoPoint location);
+
+        /**
+         * Called when an error occurs while fetching the location.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
@@ -334,6 +471,11 @@ public class EventRepository {
                 .addOnFailureListener(callback::onError);
     }
 
+    /**
+     * Adds multiple users to the invited list for an event.
+     * @param event The event to add users to.
+     * @param userIds The list of user IDs to invite.
+     */
     public void setInvitedUserIds(Event event, ArrayList<String> userIds) {
         if (event == null || event.getEventId() == null) {
             Log.e(TAG, "Event is null or has no ID.");
@@ -417,7 +559,16 @@ public class EventRepository {
      * Callback interface for fetching invited entrants.
      */
     public interface InvitedEntrantsCallback {
+        /**
+         * Called when the list of invited user IDs is successfully fetched.
+         * @param userIds The list of invited user IDs.
+         */
         void onInvitedEntrantsFetched(List<String> userIds);
+
+        /**
+         * Called when an error occurs while fetching invited entrants.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
@@ -443,7 +594,16 @@ public class EventRepository {
      * Callback interface for fetching a user's location from the invited list.
      */
     public interface UserLocationFromInvitedCallback {
+        /**
+         * Called when the user's location is successfully fetched from the invited list.
+         * @param location The user's GeoPoint location, or null if not available.
+         */
         void onLocationFetched(GeoPoint location);
+
+        /**
+         * Called when an error occurs while fetching the location.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
@@ -472,7 +632,16 @@ public class EventRepository {
      * Callback interface for fetching invited list locations.
      */
     public interface InvitedLocationsCallback {
+        /**
+         * Called when the list of invited locations is successfully fetched.
+         * @param locations The list of GeoPoint locations.
+         */
         void onInvitedLocationsFetched(List<GeoPoint> locations);
+
+        /**
+         * Called when an error occurs while fetching locations.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
@@ -508,7 +677,16 @@ public class EventRepository {
      * Callback interface for fetching cancelled entrants.
      */
     public interface CancelledEntrantsCallback {
+        /**
+         * Called when the list of cancelled user IDs is successfully fetched.
+         * @param userIds The list of cancelled user IDs.
+         */
         void onCancelledEntrantsFetched(List<String> userIds);
+
+        /**
+         * Called when an error occurs while fetching cancelled entrants.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
@@ -534,7 +712,16 @@ public class EventRepository {
      * Callback interface for fetching a user's location from the cancelled list.
      */
     public interface UserLocationFromCancelledCallback {
+        /**
+         * Called when the user's location is successfully fetched from the cancelled list.
+         * @param location The user's GeoPoint location, or null if not available.
+         */
         void onLocationFetched(GeoPoint location);
+
+        /**
+         * Called when an error occurs while fetching the location.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
@@ -563,7 +750,16 @@ public class EventRepository {
      * Callback interface for fetching cancelled list locations.
      */
     public interface CancelledLocationsCallback {
+        /**
+         * Called when the list of cancelled locations is successfully fetched.
+         * @param locations The list of GeoPoint locations.
+         */
         void onCancelledLocationsFetched(List<GeoPoint> locations);
+
+        /**
+         * Called when an error occurs while fetching locations.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
@@ -594,10 +790,19 @@ public class EventRepository {
 
 
     /**
-     * Callback interface for fetching selected entrants.
+     * Callback interface for fetching attending entrants.
      */
     public interface AttendingEntrantsCallback {
+        /**
+         * Called when the list of attending user IDs is successfully fetched.
+         * @param userIds The list of attending user IDs.
+         */
         void AttendingEntrantsFetched(List<String> userIds);
+
+        /**
+         * Called when an error occurs while fetching attending entrants.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
@@ -620,10 +825,19 @@ public class EventRepository {
     }
 
     /**
-     * Callback interface for fetching a user's location from the selected list.
+     * Callback interface for fetching a user's location from the attending/selected list.
      */
     public interface UserLocationFromSelectedCallback {
+        /**
+         * Called when the user's location is successfully fetched from the selected list.
+         * @param location The user's GeoPoint location, or null if not available.
+         */
         void onLocationFetched(GeoPoint location);
+
+        /**
+         * Called when an error occurs while fetching the location.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
@@ -649,10 +863,19 @@ public class EventRepository {
     }
 
     /**
-     * Callback interface for fetching selected list locations.
+     * Callback interface for fetching attending/selected list locations.
      */
     public interface SelectedLocationsCallback {
+        /**
+         * Called when the list of selected locations is successfully fetched.
+         * @param locations The list of GeoPoint locations.
+         */
         void onSelectedLocationsFetched(List<GeoPoint> locations);
+
+        /**
+         * Called when an error occurs while fetching locations.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
