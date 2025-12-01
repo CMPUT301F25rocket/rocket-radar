@@ -36,6 +36,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * This fragment displays when an admin clicks on a user profile.
+ * It is very similar to the profile fragment, but allows for
+ * changing the user role, viewing their optional personal information and deleting their profile
+ */
 public class UserFragment extends Fragment  implements EventAdapter.OnEventListener {
     private static final String USER_PROFILE = "userProfile";
     private static final String FIRST_ADMIN = "aKCDdxvbKmgAnhE0elNxMTTKlck1";
@@ -75,9 +80,7 @@ public class UserFragment extends Fragment  implements EventAdapter.OnEventListe
 
 
     /**
-     * This fragment displays when an admin clicks on a user profile.
-     * It is very similar to the profile fragment, but allows for
-     * changing the user role, viewing their optional personal information and deleting their profile
+     * Inflates ui, adds listeners, creates dialogs, etc.
      * @param inflater The LayoutInflater object that can be used to inflate
      * any views in the fragment,
      * @param container If non-null, this is the parent view that the fragment's

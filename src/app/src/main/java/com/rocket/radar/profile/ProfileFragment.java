@@ -56,6 +56,21 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
     private List<Event> displayedEvents;
     private EventRepository eventRepository;
 
+
+    /**
+     * This fragment inflates the profile fragment layout, initializes UI elements,
+     * and sets up the account settings button and profile name observer.
+     *
+     * @param inflater The LayoutInflater object that can be used to inflate
+     * any views in the fragment,
+     * @param container If non-null, this is the parent view that the fragment's
+     * UI should be attached to.  The fragment should not add the view itself,
+     * but this can be used to generate the LayoutParams of the view.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed
+     * from a previous saved state as given here.
+     *
+     * @return the root view
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
@@ -85,6 +100,13 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
         return view;
     }
 
+    /**
+     * Called after the view is created. Sets up the RecyclerView,
+     * toggle listener, and observes profile and event data.
+     * @param view The View returned by {@link #onCreateView(LayoutInflater, ViewGroup, Bundle)}.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed
+     * from a previous saved state as given here.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -105,6 +127,9 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
         observeEvents();
     }
 
+    /**
+     * Sets up the toggle group listener to filter events when toggled.
+     */
     private void setupToggleListener() {
         toggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             if (isChecked) {
@@ -113,6 +138,9 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
         });
     }
 
+    /**
+     * Observes changes in the user's profile and updates displayed events.
+     */
     private void observeUserProfile() {
         profileViewModel.getProfileLiveData().observe(getViewLifecycleOwner(), profile -> {
             currentUserProfile = profile;
@@ -121,6 +149,9 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
         });
     }
 
+    /**
+     * Observes all events from the repository and updates the displayed list.
+     */
     private void observeEvents() {
         eventRepository.getAllEvents().observe(getViewLifecycleOwner(), newEvents -> {
             allEvents.clear();
@@ -129,6 +160,9 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
         });
     }
 
+    /**
+     * Filters events based on the toggle selection and updates the adapter.
+     */
     private void filterAndDisplayEvents() {
         if (allEvents == null || currentUserProfile == null) {
             return;
@@ -188,6 +222,11 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
         }
     }
 
+    /**
+     * Called when an event is clicked in the RecyclerView.
+     * Opens the EventViewFragment for the selected event.
+     * @param position The position of the clicked item in the adapter.
+     */
     @Override
     public void onEventClick(int position, View itemView) {
         Event selectedEvent = displayedEvents.get(position);
@@ -204,6 +243,9 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
         );
     }
 
+    /**
+     * Called when the fragment resumes. Re-observes events and restores UI visibility.
+     */
     @Override
     public void onResume() {
         super.onResume();
