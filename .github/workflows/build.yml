@@ -100,12 +100,8 @@ jobs:
           echo "{ \"args\": [\"--no-sandbox\"] }" > puppeteer-config.json
           for diagram in ${GITHUB_WORKSPACE}/rocket-radar/doc/uml/*.mmd; do
               name="$(basename ${diagram} .mmd)"
-              mergedFile="${name}.merged.mmd"
-              cat ${diagram} ${GITHUB_WORKSPACE}/rocket-radar/doc/uml/definitions/*.mmd > "${mergedFile}"
               printf "Now generating ${name}.svg\n"
-              # NOTE: Temporarily write to test to avoid overwriting UML before
-              # TA can review.
-              mmdc -p puppeteer-config.json -i "${mergedFile}" -o "${GITHUB_WORKSPACE}/wiki/media/uml-${name}.svg"
+              mmdc -p puppeteer-config.json -i "${diagram}" -o "${GITHUB_WORKSPACE}/wiki/media/uml-${name}.svg"
               mv "${diagram}" "${GITHUB_WORKSPACE}/wiki/media/debug-uml-${name}.mmd"
           done
 
