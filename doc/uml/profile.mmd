@@ -95,16 +95,16 @@ class ProfileRepository {
     + updateLastLogin(String)
     + updateUserProfileLocation(String,GeoPoint)
     + updateUserInvitedList(String,String)
+}
 
-    <<interface>> ReadCallback {
-        + onProfileLoaded(ProfileModel)
-        + onError(Exception)
-    }
+<<interface>> ReadCallback {
+    + onProfileLoaded(ProfileModel)
+    + onError(Exception)
+}
 
-    <<interface>> WriteCallback {
-        + onSuccess()
-        + onError(Exception)
-    }
+<<interface>> WriteCallback {
+    + onSuccess()
+    + onError(Exception)
 }
 %% citation: :contentReference[oaicite:2]{index=2}
 
