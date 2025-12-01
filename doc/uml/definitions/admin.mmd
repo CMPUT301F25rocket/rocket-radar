@@ -1,0 +1,179 @@
+---
+title: admin package
+config:
+  htmlLabels: false
+umlink:
+  select:
+  - field: package
+    pattern: com.rocket.radar.admin
+---
+classDiagram
+class ImageAdapter.ItemLongClickListener {
+  +onItemLongClick(position: int)* void
+}
+<<interface>> ImageAdapter.ItemLongClickListener
+class BrowseImageFragment {
+  -binding: FragmentBrowseImagesBinding
+  +TAG: String$
+  -events: List
+  -dialogContextEvent: Event
+  +onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) View
+  +onViewCreated(view: View, savedInstanceState: Bundle) void
+  +startDeleteDialog(position: int) void
+  +onClick(dialog: DialogInterface, which: int) void
+}
+class AdminRepository {
+  -db: FirebaseFirestore
+  +getAllUsers(listener: AdminRepository.OnCompleteListener) void
+  +deleteUser(profile: ProfileModel, callback: AdminRepository.DeleteUserCallback) void
+  +removeUserFromAllEvents(uid: String, onComplete: Runnable, onError: AdminRepository.OnErrorCallback) void
+  +updateUserRole(profile: ProfileModel, role: ProfileModel.UserRole, callback: AdminRepository.updateCallback) void
+  +deleteEvent(eventId: String, callback: AdminRepository.DeleteEventCallback) void
+  -deleteEventSubcollections(eventId: String, onSuccess: Runnable, onError: AdminRepository.OnErrorCallback) void
+  -removeEventFromAllUsers(eventId: String, onComplete: Runnable, onError: AdminRepository.OnErrorCallback) void
+  -removeNotificationsAboutEvent(eventId: String, onComplete: Runnable, onError: AdminRepository.OnErrorCallback) void
+  -deleteUserEvents(uid: String, eventIds: ArrayList, onComplete: Runnable, onError: AdminRepository.OnErrorCallback) void
+  -sendRoleChangeNotification(userId: String, newRole: ProfileModel.UserRole) void
+  -sendEventDeletedNotification(eventId: String, eventTitle: String) void
+  -sendNotificationToUsers(eventId: String, eventTitle: String, userIds: ArrayList) void
+  +cleanupNotifications() void
+}
+class UsersListAdapter {
+  -context: Context
+  -users: List
+  +getView(position: int, convertView: View, parent: ViewGroup) View
+}
+class BrowseUsersFragment {
+  -usersListView: ListView
+  -adapter: UsersListAdapter
+  -users: List
+  -adminRepository: AdminRepository
+  +onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) View
+}
+class ImageAdapter.ItemClickListener {
+  +onClick(position: int)* void
+}
+<<interface>> ImageAdapter.ItemClickListener
+class ImageAdapter.ViewHolder {
+  -imageView: ImageView
+  -adapter: ImageAdapter
+  +getImageView() ImageView
+  +onClick(v: View) void
+  +onLongClick(v: View) boolean
+}
+class UserFragment {
+  -USER_PROFILE: String$
+  -FIRST_ADMIN: String$
+  -userProfile: ProfileModel
+  -adminRepository: AdminRepository
+  -roleDropdown: AutoCompleteTextView
+  -roleDropdownLayout: TextInputLayout
+  -deleteButton: MaterialButton
+  -backButton: MaterialButton
+  -profileName: TextView
+  -profilePhone: TextView
+  -profileEmail: TextView
+  -profileViewModel: ProfileViewModel
+  -currentUserProfile: ProfileModel
+  -myEventRecyclerView: RecyclerView
+  -adapter: EventAdapter
+  -toggleGroup: MaterialButtonToggleGroup
+  -allEvents: List
+  -displayedEvents: List
+  -eventRepository: EventRepository
+  +newInstance(profile: ProfileModel)$ UserFragment
+  +onCreate(savedInstanceState: Bundle) void
+  +onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) View
+  +onViewCreated(view: View, savedInstanceState: Bundle) void
+  -setupToggleListener() void
+  -observeEvents() void
+  -filterAndDisplayEvents() void
+  +onEventClick(position: int, itemView: View) void
+  +onResume() void
+  +confirmAccountDelete() void
+}
+class AdminRepository.DeleteUserCallback {
+  +onSuccess()* void
+  +onError(e: Exception)* void
+}
+<<interface>> AdminRepository.DeleteUserCallback
+class AdminRepository.OnErrorCallback {
+  +onError(e: Exception)* void
+}
+<<interface>> AdminRepository.OnErrorCallback
+class AllNotificationsFragment {
+  -notificationRecyclerView: RecyclerView
+  -emptyNotificationsTextView: TextView
+  -backButton: Button
+  -headerTextView: TextView
+  -adapter: NotificationAdapter
+  -notificationRepository: NotificationRepository
+  -adapterObserver: RecyclerView.AdapterDataObserver
+  +onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) View
+  +onViewCreated(view: View, savedInstanceState: Bundle) void
+  -setupRecyclerView() void
+  -setupClickListeners() void
+  -observeNotifications() void
+  -updateEmptyState() void
+  -updateHeaderCount(count: int) void
+  +onDestroyView() void
+  +onResume() void
+}
+class ImageAdapter {
+  ~images: List
+  -clickListeners: ArrayList
+  -longClickListeners: ArrayList
+  +onCreateViewHolder(parent: ViewGroup, viewType: int) ImageAdapter.ViewHolder
+  +onBindViewHolder(holder: ImageAdapter.ViewHolder, position: int) void
+  +addOnItemClickListener(clickListener: ImageAdapter.ItemClickListener) void
+  +addOnItemLongClickListener(longClickListener: ImageAdapter.ItemLongClickListener) void
+  +getItemCount() int
+  +onBindViewHolder(holder: RecyclerView.ViewHolder, position: int) void
+  +onCreateViewHolder(parent: ViewGroup, viewType: int) RecyclerView.ViewHolder
+}
+class AdminRepository.OnCompleteListener {
+  +onComplete(result: Object)* void
+}
+<<interface>> AdminRepository.OnCompleteListener
+class AdminRepository.updateCallback {
+  +onSuccess()* void
+  +onError(e: Exception)* void
+}
+<<interface>> AdminRepository.updateCallback
+class AdminModeManager {
+  -PREFS_NAME: String$
+  -KEY_ADMIN_MODE: String$
+  -TAG: String$
+  -instance: AdminModeManager$
+  -prefs: SharedPreferences
+  -adminModeLiveData: MutableLiveData
+  -db: FirebaseFirestore
+  -auth: FirebaseAuth
+  -userDocListener: DocumentReference
+  -navController: NavController
+  -context: Context
+  +getInstance(context: Context)$ AdminModeManager
+  +setNavController(navController: NavController) void
+  +startMonitoringAdminStatus() void
+  +stopMonitoringAdminStatus() void
+  -handleAdminPermissionsRevoked() void
+  +isAdminModeOn() boolean
+  +setAdminModeOn(on: boolean) void
+  +getAdminModeLiveData() LiveData
+}
+class AdminRepository.DeleteEventCallback {
+  +onSuccess()* void
+  +onError(e: Exception)* void
+}
+<<interface>> AdminRepository.DeleteEventCallback
+AllNotificationsFragment --|> Fragment
+BrowseImageFragment --|> Fragment
+BrowseImageFragment ..|> DialogInterface.OnClickListener
+BrowseUsersFragment --|> Fragment
+ImageAdapter --|> RecyclerView.Adapter
+ImageAdapter.ViewHolder --|> RecyclerView.ViewHolder
+ImageAdapter.ViewHolder ..|> View.OnClickListener
+ImageAdapter.ViewHolder ..|> View.OnLongClickListener
+UserFragment --|> Fragment
+UserFragment ..|> EventAdapter.OnEventListener
+UsersListAdapter --|> ArrayAdapter

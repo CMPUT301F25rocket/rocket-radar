@@ -1,0 +1,161 @@
+---
+title: profile package
+config:
+  htmlLabels: false
+umlink:
+  select:
+  - field: package
+    pattern: com.rocket.radar.profile
+---
+classDiagram
+class ProfileRepository.WriteCallback {
+  +onSuccess()* void
+  +onError(e: Exception)* void
+}
+<<interface>> ProfileRepository.WriteCallback
+class ProfileFragment {
+  -accountSettingsButton: ImageButton
+  -criteriaButton: MaterialButton
+  -profileName: TextView
+  -profileViewModel: ProfileViewModel
+  -currentUserProfile: ProfileModel
+  -myEventRecyclerView: RecyclerView
+  -adapter: EventAdapter
+  -historyAdapter: EventHistoryAdapter
+  -toggleGroup: MaterialButtonToggleGroup
+  -allEvents: List
+  -displayedEvents: List
+  -eventRepository: EventRepository
+  +onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) View
+  +onViewCreated(view: View, savedInstanceState: Bundle) void
+  -setupToggleListener() void
+  -observeUserProfile() void
+  -observeEvents() void
+  -filterAndDisplayEvents() void
+  +onEventClick(position: int, itemView: View) void
+  +onResume() void
+}
+class ProfileRepository.ReadCallback {
+  +onProfileLoaded(profile: ProfileModel)* void
+  +onError(e: Exception)* void
+}
+<<interface>> ProfileRepository.ReadCallback
+class AccountSettingsFragment {
+  -backButton: MaterialButton
+  -saveButton: MaterialButton
+  -deleteButton: MaterialButton
+  -adminButton: MaterialButton
+  -usernameField: TextInputEditText
+  -emailField: TextInputEditText
+  -phoneNumberField: TextInputEditText
+  -notificationsEnabled: MaterialSwitch
+  -geolocationEnabled: MaterialSwitch
+  -profileViewModel: ProfileViewModel
+  -adminModeManager: AdminModeManager
+  -uid: String
+  +onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) View
+  +confirmAccountDelete() void
+}
+class ProfileModel.UserRole {
+  ENTRANT
+  ORGANIZER
+  ADMIN
+  -VALUES: ProfileModel.UserRole[]$
+  +values()$ ProfileModel.UserRole[]
+  +valueOf(name: String)$ ProfileModel.UserRole
+  -values()$ ProfileModel.UserRole[]
+}
+<<enumeration>> ProfileModel.UserRole
+class ProfileRepository {
+  -TAG: String$
+  -db: FirebaseFirestore
+  +readProfile(uid: String, callback: ProfileRepository.ReadCallback) void
+  +writeProfile(profile: ProfileModel, callback: ProfileRepository.WriteCallback) void
+  +deleteAccount(user: FirebaseUser, profile: ProfileModel, callback: ProfileRepository.WriteCallback) void
+  +addEventIdToWaitlist(uid: String, eventId: String, callback: ProfileRepository.WriteCallback) void
+  +addEventIdToMyEvent(uid: String, eventId: String, callback: ProfileRepository.WriteCallback) void
+  +updateLastLogin(uid: String) void
+  +updateUserProfileLocation(uid: String, location: GeoPoint) void
+  +updateUserInvitedList(uid: String, eventId: String) void
+}
+class InputValidator {
+  +isValidEmail(email: String)$ boolean
+  +isValidPhone(phone: String)$ boolean
+  +cleanText(field: TextInputEditText)$ String
+}
+class ProfileViewModel {
+  -TAG: String$
+  -db: FirebaseFirestore
+  -auth: FirebaseAuth
+  -profileRepository: ProfileRepository
+  -profileListenerRegistration: ListenerRegistration
+  -profileLiveData: MutableLiveData
+  -deleteSuccess: MutableLiveData
+  +getProfileLiveData() LiveData
+  +getDeleteSuccess() LiveData
+  +setUserIdForProfileListener(uid: String) void
+  +deleteProfile(profile: ProfileModel) void
+  +updateProfile(profile: ProfileModel) void
+  +getProfile(uid: String) void
+  +updateLastLogin(uid: String) void
+  #onCleared() void
+}
+class ProfileModel {
+  -uid: String
+  -name: String
+  -phoneNumber: String
+  -email: String
+  -lastLogin: Timestamp
+  -notificationsEnabled: Boolean
+  -geolocationEnabled: Boolean
+  -onWaitlistEventIds: ArrayList
+  -onMyEventIds: ArrayList
+  -onInvitedEventIds: ArrayList
+  -role: String
+  -attendingEventIds: ArrayList
+  -cancelledEventIds: ArrayList
+  -lastKnownLocation: GeoPoint
+  +getLastKnownLocation() GeoPoint
+  +setLastKnownLocation(lastKnownLocation: GeoPoint) void
+  +getOnInvitedEventIds() ArrayList
+  +setOnInvitedEventIds(onInvitedEventIds: ArrayList) void
+  +addOnInvitedEventId(eventId: String) void
+  +getAttendingEventIds() ArrayList
+  +setAttendingEventIds(attendingEventIds: ArrayList) void
+  +addAttendingEventId(eventId: String) void
+  +removeInvitedEventId(eventId: String) void
+  +getCancelledEventIds() ArrayList
+  +setCancelledEventIds(cancelledEventIds: ArrayList) void
+  +addCancelledEventId(eventId: String) void
+  +getRole() ProfileModel.UserRole
+  +setRole(role: ProfileModel.UserRole) void
+  +getUid() String
+  +setUid(uid: String) void
+  +getName() String
+  +setName(name: String) void
+  +getEmail() String
+  +setEmail(email: String) void
+  +getPhoneNumber() String
+  +setPhoneNumber(phoneNumber: String) void
+  +getLastLogin() Timestamp
+  +setLastLogin(lastLogin: Timestamp) void
+  +isGeolocationEnabled() Boolean
+  +setGeolocationEnabled(geolocationEnabled: Boolean) void
+  +isNotificationsEnabled() Boolean
+  +setNotificationsEnabled(notificationsEnabled: Boolean) void
+  +getOnWaitlistEventIds() ArrayList
+  +getOnMyEventIds() ArrayList
+  +setOnMyEventIds(onMyEventIds: ArrayList) void
+  +setOnWaitlistEventIds(onWaitlistEventIds: ArrayList) void
+  +addOnWaitlistEventId(eventId: String) void
+  +addOnMyEventId(eventId: String) void
+  +removeOnWaitlistEventId(eventId: String) void
+  +removeOnMyEventId(eventId: String) void
+  +clearOnWaitlistEventIds() void
+}
+AccountSettingsFragment --|> Fragment
+ProfileFragment --|> Fragment
+ProfileFragment ..|> EventAdapter.OnEventListener
+ProfileFragment ..|> EventHistoryAdapter.OnEventListener
+ProfileModel ..|> Serializable
+ProfileViewModel --|> ViewModel

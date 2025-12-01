@@ -1,0 +1,25 @@
+---
+title: qr package
+config:
+  htmlLabels: false
+umlink:
+  select:
+  - field: package
+    pattern: com.rocket.radar.qr
+---
+classDiagram
+class QRDialog {
+  +TAG: String$
+  -bitmap: Bitmap
+  -drawable: BitmapDrawable
+  -link: String
+  +onCreateDialog(savedInstanceState: Bundle) Dialog
+  -buttonClick(dialog: DialogInterface, which: int) void
+  -shareQrCode() void
+}
+class QRGenerator {
+  +formatLink(eventId: String)$ String
+  +generate(content: String)$ Bitmap
+}
+QRDialog --|> DialogFragment
+QRGenerator "1" --> "1" Bitmap : generates

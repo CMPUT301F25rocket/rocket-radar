@@ -1,0 +1,37 @@
+---
+title: loadingscreen package
+config:
+  htmlLabels: false
+umlink:
+  select:
+  - field: package
+    pattern: com.rocket.radar.loadingscreen
+---
+classDiagram
+class RadarView {
+  -gridPaint: Paint
+  -sweepPaint: Paint
+  -rotation: float
+  -matrix: Matrix
+  -height: int
+  -maxRadius: float
+  -isAnimating: boolean
+  -currentAlpha: int
+  -TARGET_ALPHA: int$
+  -FADE_SPEED: int$
+  -RADAR_COLOR: int$
+  -ANIMATION_SPEED: float$
+  -init() void
+  #onSizeChanged(w: int, h: int, oldw: int, oldh: int) void
+  #onDraw(canvas: Canvas) void
+  +startAnimation() void
+  +stopAnimation() void
+}
+class LoadingManager {
+  -overlayView: View
+  -loadingText: TextView
+  -radarView: RadarView
+  +show(message: String) void
+  +hide() void
+}
+RadarView --|> View
