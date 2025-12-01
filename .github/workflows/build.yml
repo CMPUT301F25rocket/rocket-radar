@@ -104,6 +104,7 @@ jobs:
               # NOTE: Temporarily write to test to avoid overwriting UML before
               # TA can review.
               mmdc -p puppeteer-config.json -i "${diagram}" -o "${GITHUB_WORKSPACE}/wiki/media/test-uml-${name}.svg"
+              mv "${diagram}" "${GITHUB_WORKSPACE}/wiki/media/test-uml-${name}.mmd"
           done
 
       # Deal with configuring dummy git user and email.
