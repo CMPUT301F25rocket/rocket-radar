@@ -24,11 +24,26 @@ import com.rocket.radar.events.EventViewFragment;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This fragment lets the admin browse all the images in the app and delete offending ones.
+ */
 public class BrowseImageFragment extends Fragment implements DialogInterface.OnClickListener {
     private FragmentBrowseImagesBinding binding;
     public final static String TAG = BrowseImageFragment.class.getSimpleName();
     private List<Event> events;
 
+    /**
+     * Inflates the ui, binds elements, returns the root view.
+     * @param inflater The LayoutInflater object that can be used to inflate
+     * any views in the fragment,
+     * @param container If non-null, this is the parent view that the fragment's
+     * UI should be attached to.  The fragment should not add the view itself,
+     * but this can be used to generate the LayoutParams of the view.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed
+     * from a previous saved state as given here.
+     *
+     * @return the binded root view
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -37,6 +52,16 @@ public class BrowseImageFragment extends Fragment implements DialogInterface.OnC
         return binding.getRoot();
     }
 
+    /**
+     * Called immediately after onCreateView
+     * has returned. Sets up the RecyclerView to display event banner images in a grid.
+     * Initializes click listeners for opening an event detail view and long-press
+     * listeners for deleting an event. Also observes changes to the event list from
+     * the Event Repository to update the displayed images dynamically.
+     * @param view The View returned by onCreateView.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed
+     * from a previous saved state as given here.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         binding.fullImageList.setLayoutManager(new GridLayoutManager(getContext(), 3));
@@ -69,6 +94,11 @@ public class BrowseImageFragment extends Fragment implements DialogInterface.OnC
     }
 
     private Event dialogContextEvent = null;
+
+    /**
+     * Creates the dialog for the delete option.
+     * @param position the position of the dialog to create.
+     */
     public void startDeleteDialog(int position) {
         dialogContextEvent = events.get(position);
         new MaterialAlertDialogBuilder(this.requireContext())
@@ -78,6 +108,13 @@ public class BrowseImageFragment extends Fragment implements DialogInterface.OnC
                 .show();
     }
 
+    /**
+     * Runs when the dialog gets clicked, deletes the image if "yes" is selected, dismisses otherwise.
+     * @param dialog the dialog that received the click
+     * @param which the button that was clicked (ex.
+     *              {@link DialogInterface#BUTTON_POSITIVE}) or the position
+     *              of the item clicked
+     */
     @Override
     public void onClick(DialogInterface dialog, int which) {
         if (which == DialogInterface.BUTTON_POSITIVE) {
