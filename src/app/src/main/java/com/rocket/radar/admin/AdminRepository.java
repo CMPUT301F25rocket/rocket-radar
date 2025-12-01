@@ -23,11 +23,17 @@ import java.util.Map;
 public class AdminRepository {
     private final FirebaseFirestore db;
 
+    /**
+     * Constructor for admin repository
+     */
     public AdminRepository() {
         this(FirebaseFirestore.getInstance());
     }
 
-    // Constructor for testing
+    /**
+     * Dependency injection constructor, also called by default constructor
+     * @param firestore The firestore instance to pass in
+     */
     public AdminRepository(FirebaseFirestore firestore) {
         this.db = firestore;
     }
