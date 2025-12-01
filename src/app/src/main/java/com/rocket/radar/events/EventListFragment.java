@@ -29,6 +29,7 @@ import java.util.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * This fragment is responsible for displaying a list of events.
@@ -38,6 +39,7 @@ import java.util.stream.Collectors;
  */
 public class EventListFragment extends Fragment implements EventAdapter.OnEventListener {
     private static final String ARG_EVENT = "event";
+    private static final String TAG = EventListFragment.class.getSimpleName();
     private RecyclerView eventRecyclerView;
     private EventAdapter adapter;
     private List<Event> displayedEvents;
@@ -50,9 +52,7 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
     private TextView notificationBadge;
     private NotificationRepository notificationRepository;
     private Button filterButton;
-    private List<Integer> categories;
     private ChipGroup chipGroup;
-    private ArrayList<String> selectedFilters;
     private FilterModel filterModel;
 
     public EventListFragment() {
@@ -74,38 +74,37 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         notificationButton = view.findViewById(R.id.btnNotification);
         toggleGroup = view.findViewById(R.id.toggleGroup);
         notificationBadge = view.findViewById(R.id.notification_badge);
-        filterButton = view.findViewById(R.id.button_filter); // Initialize filter button
+        filterButton = view.findViewById(R.id.button_filter);
         chipGroup = view.findViewById(R.id.category_chip_group_event_list);
-        selectedFilters = new ArrayList<>();
         filterModel = new ViewModelProvider(requireActivity()).get(FilterModel.class);
 
-        Log.e("EventListFragment", "Lenght: " + filterModel.getFilters().getValue());
-
-        for (var category : Event.allEventCategories) {
-            CategoryChipBinding binding = CategoryChipBinding.inflate(inflater, chipGroup, false);
-            binding.getRoot().setText(category);
-            chipGroup.addView(binding.getRoot());
-        }
-
-        // initialize chips
+        // We want to hide the filter header by default.
         chipGroup.setVisibility(View.GONE);
         return view;
     }
 
-@Override
-public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-    super.onViewCreated(view, savedInstanceState);
+    public void showActiveFilter(FilterModel.EventFilter filter) {
+        CategoryChipBinding binding = CategoryChipBinding.inflate(getLayoutInflater(), chipGroup, false);
+        binding.getRoot().setText(filter.getFilterName());
+        binding.getRoot().setChecked(true);
+        chipGroup.addView(binding.getRoot());
+    }
 
-    // Initialization
-    eventRepository = EventRepository.getInstance();
-    profileViewModel = new ViewModelProvider(requireActivity()).get(ProfileViewModel.class);
-    allEvents = new ArrayList<>();
-    displayedEvents = new ArrayList<>();
-    adapter = new EventAdapter(getContext(), displayedEvents, this);
-    eventRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-    eventRecyclerView.setAdapter(adapter);
 
-    notificationRepository = new NotificationRepository();
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        // Initialization
+        eventRepository = EventRepository.getInstance();
+        profileViewModel = new ViewModelProvider(requireActivity()).get(ProfileViewModel.class);
+        allEvents = new ArrayList<>();
+        displayedEvents = new ArrayList<>();
+        adapter = new EventAdapter(getContext(), displayedEvents, this);
+        eventRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        eventRecyclerView.setAdapter(adapter);
+
+        notificationRepository = new NotificationRepository();
 
         notificationButton.setOnClickListener(v -> {
             AdminModeManager adminModeManager = AdminModeManager.getInstance(getContext());
@@ -216,105 +215,61 @@ public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceStat
     }
 
     private void filterAndDisplayEvents() {
-        List<Event> filteredList;
         if (allEvents == null || currentUserProfile == null) {
             return;
         }
-        // all selected by default so that all show, but visibility will still be set to gone for now
-        // if an event has the chip name in its categories field, show that event
-        // for testing purposes, we will hardcode the selectedFilters to have "Business" and "Food"
 
-        int checkedId = toggleGroup.getCheckedButtonId();
+        int selectedEventFeed = toggleGroup.getCheckedButtonId();
 
-        ArrayList<String> userWaitlistEventIds = currentUserProfile.getOnWaitlistEventIds();
-        if (userWaitlistEventIds == null) {
-            userWaitlistEventIds = new ArrayList<>();
-        }
+        final ArrayList<String> userWaitlistEventIds = currentUserProfile.getOnWaitlistEventIds();
+        final ArrayList<String> userAttendingEventIds = currentUserProfile.getAttendingEventIds();
 
-        ArrayList<String> userAttendingEventIds = currentUserProfile.getAttendingEventIds();
-        if (userAttendingEventIds == null) {
-            userAttendingEventIds = new ArrayList<>();
-        }
-
-        if (checkedId == R.id.discover_filter_button) {
-            ArrayList<String> finalUserWaitlistEventIds = userWaitlistEventIds;
-
-            // display events who have the selectedFIlters as items in their categories attribute
-            for (Event event : allEvents) {
-                Log.d("EventListFragment", "Event: " + event.toString());
-                //Log.d("EventListFragment", "categories of event: " + event.getCategories().toString());
-                Log.d("EventListFragment", "date of event: " + event.getEventStartDate().toString());
-            }
-            selectedFilters = filterModel.getFilters().getValue();
-            if (selectedFilters.size() > 0) {
-                // Set selected chips
-                for (var selected : selectedFilters) {
-                    for (int i = 0; i < chipGroup.getChildCount(); ++i) {
-                        View view = chipGroup.getChildAt(i);
-                        if (view instanceof Chip) {
-                            Chip chip = (Chip) view;
-                            if (chip.getText().toString().equals(selected)) {
-                                chip.setChecked(true);
-                            }
-                        }
-                    }
-                }
-
-                // also set the chips visibility
-                chipGroup.setVisibility(View.VISIBLE);
-
-                // finally, display the filtered eventrs
-                ArrayList<String> finalSelectedFilters = selectedFilters;
-
-                Date selectedDate = filterModel.getDate().getValue();
-                if (selectedDate == null) {
-                    Log.e("EventListFragment", "selected date is null");
-                }
-
-                List<Event> intermediateList = allEvents.stream()
-                        .filter(event -> event.getCategories().containsAll(finalSelectedFilters))
-                        .filter(event -> !finalUserWaitlistEventIds.contains(event.getEventId()))
-                        .collect(Collectors.toList());
-
-                if (selectedDate != null) {
-                    Log.d("EventListFragment", "date selected: + " + selectedDate);
-
-                    for (Event event : allEvents) {
-                        Log.d("EventListFragment", "Event: " + event.toString());
-                        //Log.d("EventListFragment", "categories of event: " + event.getCategories().toString());
-                        Log.d("EventListFragment", "date of event: " + event.getEventStartDate().toString());
-
-                        Log.d("EventListFragment", "is date of event after selected date?: " + event.getEventStartDate().after(selectedDate));
-                    }
-
-                    filteredList = intermediateList.stream()
-                            .filter(event -> event.getEventStartDate().after(selectedDate))
-                            .collect(Collectors.toList());
-                } else {
-                    filteredList = intermediateList;
-                }
-            } else {
-                chipGroup.setVisibility(View.GONE);
-                ArrayList<String> finalUserWaitlistEventIds3 = userWaitlistEventIds;
-                filteredList = allEvents.stream()
-                        .filter(event -> !finalUserWaitlistEventIds3.contains(event.getEventId()))
-                        .collect(Collectors.toList());
-            }
-        } else if (checkedId == R.id.waitlist_filter_button) {
-            ArrayList<String> finalUserWaitlistEventIds1 = userWaitlistEventIds;
-            filteredList = allEvents.stream()
-                    .filter(event -> finalUserWaitlistEventIds1.contains(event.getEventId()))
-                    .collect(Collectors.toList());
-        } else {
-            ArrayList<String> finalUserAttendingEventIds1 = userAttendingEventIds;
-            filteredList = allEvents.stream()
-                    .filter(event -> finalUserAttendingEventIds1.contains(event.getEventId()))
-                    .collect(Collectors.toList());
-        }
-
-        Log.d("EventListFragment", "Filtered list size: " + filteredList.size());
         displayedEvents.clear();
-        displayedEvents.addAll(filteredList);
+
+        // See if there are any active filters imposed by the filter model and if there are display
+        // them as chips.
+        chipGroup.removeAllViews();
+        if (filterModel.getFilters().findAny().isPresent()) {
+            chipGroup.setVisibility(View.VISIBLE);
+            // We will first add the date tag if it exist so that there is a little structure to the
+            // display.
+            filterModel.getFilters()
+                    .filter(eventFilter -> eventFilter.getFilterCategory().equals("eventDate"))
+                    .forEach(this::showActiveFilter);
+
+            // Then we can go on to display the category filters for the event.
+            filterModel.getFilters()
+                    .filter(eventFilter -> eventFilter.getFilterCategory().equals("category"))
+                    .forEach(this::showActiveFilter);
+        } else {
+            chipGroup.setVisibility(View.GONE);
+        }
+
+        // Fetch the events the current feed should contain by default.
+        Stream<Event> eventsForFeed;
+        if (selectedEventFeed == R.id.discover_filter_button) {
+            eventsForFeed = allEvents.stream()
+                    .filter(event -> userWaitlistEventIds == null
+                            || !userWaitlistEventIds.contains(event.getEventId()))
+                    .filter(event -> userAttendingEventIds == null
+                            || !userAttendingEventIds.contains(event.getEventId()));
+        } else if (selectedEventFeed == R.id.waitlist_filter_button) {
+            eventsForFeed = allEvents.stream()
+                    .filter(event -> userWaitlistEventIds == null
+                            || userWaitlistEventIds.contains(event.getEventId()));
+        } else if (selectedEventFeed == R.id.attending_filter_button) {
+            eventsForFeed = allEvents.stream()
+                    .filter(event ->  userAttendingEventIds == null
+                            || userAttendingEventIds.contains(event.getEventId()));
+        } else {
+            Log.e(TAG, "Unexpected event feed selected with id" + selectedEventFeed);
+            return;
+        }
+
+        filterModel
+            .filter(eventsForFeed)
+            .forEach(event -> displayedEvents.add(event));
+
         adapter.notifyDataSetChanged();
     }
 
