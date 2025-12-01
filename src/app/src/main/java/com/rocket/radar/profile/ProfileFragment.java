@@ -174,6 +174,7 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
         // Get all lists from profile to avoid null pointer exceptions
         ArrayList<String> userWaitlistIds = currentUserProfile.getOnWaitlistEventIds() != null ? currentUserProfile.getOnWaitlistEventIds() : new ArrayList<>();
         ArrayList<String> userInvitedIds = currentUserProfile.getOnInvitedEventIds() != null ? currentUserProfile.getOnInvitedEventIds() : new ArrayList<>();
+        ArrayList<String> userAttendingIds = currentUserProfile.getAttendingEventIds() != null ? currentUserProfile.getAttendingEventIds() : new ArrayList<>();
 
         ArrayList<String> userMyEventIds = currentUserProfile.getOnMyEventIds();
         if (userMyEventIds == null) {
@@ -195,6 +196,7 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
                         // 1. Check if the user was involved (Invited, Waitlisted, or Attending)
                         boolean isInvited = userInvitedIds.contains(event.getEventId());
                         boolean isWaitlisted = userWaitlistIds.contains(event.getEventId());
+                        boolean isAttending = userAttendingIds.contains(event.getEventId());
 
                         // 2. Check if the event has passed
                         // Assuming event.getTimestamp() returns a Firestore Timestamp or similar
@@ -203,7 +205,7 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
                             hasPassed = event.getEventStartDate().getTime() < currentTime;
                         }
 
-                        return (isInvited || isWaitlisted) && hasPassed;
+                        return (isInvited || isWaitlisted || isAttending) && hasPassed;
                     })
                     .collect(Collectors.toList());
 

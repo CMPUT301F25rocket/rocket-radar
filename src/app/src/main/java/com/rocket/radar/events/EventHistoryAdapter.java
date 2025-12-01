@@ -70,7 +70,7 @@ public class EventHistoryAdapter extends RecyclerView.Adapter<EventHistoryAdapte
             }
             else if (currentUserProfile.getOnInvitedEventIds() != null && currentUserProfile.getOnInvitedEventIds().contains(eventId)) {
                 // Option 2: Invited (Selected) but maybe didn't accept/decline in time, or just stayed in invited state
-                status = "Status: You were chosen to participate.";
+                status = "Status: You were selected for this event";
             }
             else if (currentUserProfile.getOnWaitlistEventIds() != null && currentUserProfile.getOnWaitlistEventIds().contains(eventId)) {
                 // Option 3: Still on waitlist when event ended
