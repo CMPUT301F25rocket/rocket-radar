@@ -185,9 +185,5 @@ ProfileFragment "1" --> "1" EventRepository : fetches events
 ProfileFragment "1" --> "1" EventAdapter : displays events
 ProfileFragment "1" --> "1" EventHistoryAdapter : displays history
 
-%% =========================
-%% RELATIONAL OVERVIEW
-%% =========================
-
 ProfileRepository "1" --> "1" FirebaseFirestore : reads/writes
 ProfileViewModel "1" --> "1" ProfileRepository : business logic
