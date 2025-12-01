@@ -63,6 +63,10 @@
         <argument
             android:name="event"
             app:argType="com.rocket.radar.events.Event" />
+        <argument
+            android:name="is_organizer"
+            app:argType="boolean"
+            android:defaultValue="false" />
     </fragment>
 
 

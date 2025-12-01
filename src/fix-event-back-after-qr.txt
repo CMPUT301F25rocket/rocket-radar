@@ -1,0 +1,295 @@
+
+ ▐▛███▜▌   Claude Code v2.0.55
+▝▜█████▛▘  Sonnet 4.5 · Claude Pro
+  ▘▘ ▝▝    ~/git/generic/CMPUT301/rocket-radar/src
+
+> In this android app there is an issue with the MainActivity. Specifically 
+when the MainActivity is started along with the parameters to open up the 
+EventViewFragment something is going wrong with the back stack. If I click 
+on the back button on the EventViewFragment after scanning a QR code in the 
+camera app the back button will take me back to the camera app. Please look 
+through the code and come up with some likely causes of this bug. 
+
+● I'll help you investigate this back stack issue with the MainActivity and
+  EventViewFragment. Let me explore the codebase to understand how
+  navigation is being handled.
+
+● Search(pattern: "**/MainActivity.java")
+  ⎿  Found 1 file (ctrl+o to expand)
+
+● Search(pattern: "**/MainActivity.kt")
+  ⎿  Found 0 files 
+
+● Search(pattern: "**/EventViewFragment.java")
+  ⎿  Found 1 file (ctrl+o to expand)
+
+● Search(pattern: "**/EventViewFragment.kt")
+  ⎿  Found 0 files 
+
+● Read(app/src/main/java/com/rocket/radar/MainActivity.java)
+  ⎿  Read 601 lines
+
+● Read(app/src/main/java/com/rocket/radar/events/EventViewFragment.java)
+  ⎿  Read 613 lines
+
+● Now let me look for any camera-related activities or QR scanning logic to
+  understand the full flow:
+
+● Search(pattern: "camera|Camera|QR|scanner")
+  ⎿  Found 34 files (ctrl+o to expand)
+
+● Read(app/src/main/AndroidManifest.xml)
+  ⎿  Read 102 lines
+
+● Based on my analysis of the code, I've identified several likely causes of
+   the back stack issue when scanning a QR code and opening the
+  EventViewFragment:
+
+  Root Causes:
+
+  1. Fragment Transaction Directly on NavHostFragment 
+  (MainActivity.java:317-320) ⚠️ PRIMARY ISSUE
+
+  EventViewFragment eventViewFragment = EventViewFragment.newInstance(event,
+   isOrganizer);
+  getSupportFragmentManager().beginTransaction()
+          .replace(R.id.nav_host_fragment, eventViewFragment)
+          .addToBackStack(EventViewFragment.TAG)
+          .commit();
+
+  Problem: This code is bypassing the Navigation Component entirely and
+  using raw fragment transactions on the nav_host_fragment container. This
+  creates two separate back stacks:
+  - One managed by the Navigation Controller
+  - One managed by the FragmentManager
+
+  When you press back from EventViewFragment, it tries to pop from the
+  FragmentManager's back stack, which returns you to wherever you were
+  before (the camera app in your case).
+
+  2. Intent Not Being Cleared After Processing (MainActivity.java:270-373)
+
+  In onResume(), the deep link is handled every time the activity resumes.
+  However, there's no call to:
+  setIntent(new Intent()); // Clear the intent
+
+  This means if you return to MainActivity, the same QR scan intent could be
+   processed again.
+
+  3. onNewIntent Sets the Intent but Doesn't Process It 
+  (MainActivity.java:259-262)
+
+  @Override
+  protected void onNewIntent(@NonNull Intent intent) {
+      super.onNewIntent(intent);
+      setIntent(intent);
+  }
+
+  This sets the new intent but doesn't do anything with it. The actual
+  processing happens in onResume(), which could lead to race conditions.
+
+  Recommended Fixes:
+
+  Fix #1 (Most Important): Use Navigation Controller instead of raw fragment
+   transactions at MainActivity.java:316-320:
+
+  // Instead of getSupportFragmentManager().beginTransaction()...
+  Bundle bundle = new Bundle();
+  bundle.putSerializable("event", event);
+  bundle.putBoolean("is_organizer", isOrganizer);
+  navController.navigate(R.id.eventViewFragment, bundle);
+
+  Fix #2: Clear the intent after processing to prevent re-processing:
+
+  // After line 328, add:
+  getIntent().setAction(null);
+  getIntent().setData(null);
+  // OR
+  setIntent(new Intent());
+
+  Fix #3: Consider handling the intent in onNewIntent instead of onResume:
+
+  Move the deep link handling logic from onResume() to onNewIntent() for
+  better control over when intents are processed.
+
+  The primary issue is definitely #1 - mixing Navigation Component with raw
+  FragmentManager transactions breaks the back stack behavior.
+
+> Try using the Navigation Controller. 
+
+● I'll update the MainActivity to use the Navigation Controller instead of
+  raw fragment transactions for handling deep links.
+
+● Search(pattern: "**/res/navigation/*.xml")
+  ⎿  Found 1 file (ctrl+o to expand)
+
+● Read(app/src/main/res/navigation/nav_graph.xml)
+  ⎿  Read 136 lines
+
+● Good! I can see the eventViewFragment is already defined in the navigation
+   graph. Now I need to check how EventViewFragment retrieves its arguments
+  to ensure it can work with Navigation Component arguments:
+  ⎿  Error searching files
+
+● Search(pattern: "getArguments|ARG_EVENT|ARG_IS_ORGANIZER", path:
+        "app/src/main/java/com/rocket/radar/events/EventViewFragment.java",
+        output_mode: "content")
+  ⎿  Found 28 lines (ctrl+o to expand)
+
+● Perfect! The EventViewFragment already uses getArguments() to retrieve the
+   event and isOrganizer flag, so it will work with Navigation Component.
+  Now let me update the MainActivity to use the Navigation Controller
+  instead of raw fragment transactions:
+
+● Update(app/src/main/java/com/rocket/radar/MainActivity.java)
+  ⎿  Updated app/src/main/java/com/rocket/radar/MainActivity.java with 5 
+     additions and 5 removals
+       313                                }
+       314                            }
+       315    
+       316 -                          EventViewFragment eventViewFragment
+           -  = EventViewFragment.newInstance(event, isOrganizer);
+       317 -                          
+           - getSupportFragmentManager().beginTransaction()
+       318 -                                  
+           - .replace(R.id.nav_host_fragment, eventViewFragment)
+       319 -                                  
+           - .addToBackStack(EventViewFragment.TAG)
+       320 -                                  .commit();
+       316 +                          // Use Navigation Controller 
+           + instead of raw fragment transactions
+       317 +                          Bundle bundle = new Bundle();
+       318 +                          bundle.putSerializable("event", 
+           + event);
+       319 +                          bundle.putBoolean("is_organizer", 
+           + isOrganizer);
+       320 +                          
+           + navController.navigate(R.id.eventViewFragment, bundle);
+       321                        })
+       322                        .addOnFailureListener(why -> {
+       323                            MaterialAlertDialogBuilder dialog =
+              new MaterialAlertDialogBuilder(MainActivity.this);
+
+● Now let me also add code to clear the intent after processing to prevent
+  it from being processed again if the user returns to MainActivity:
+
+● Update(app/src/main/java/com/rocket/radar/MainActivity.java)
+  ⎿  Updated app/src/main/java/com/rocket/radar/MainActivity.java with 4 
+     additions
+       318                            bundle.putSerializable("event", 
+             event);
+       319                            bundle.putBoolean("is_organizer", 
+             isOrganizer);
+       320                            
+             navController.navigate(R.id.eventViewFragment, bundle);
+       321 +  
+       322 +                          // Clear the intent to prevent 
+           + re-processing
+       323 +                          getIntent().setAction(null);
+       324 +                          getIntent().setData(null);
+       325                        })
+       326                        .addOnFailureListener(why -> {
+       327                            MaterialAlertDialogBuilder dialog =
+              new MaterialAlertDialogBuilder(MainActivity.this);
+
+● Now I need to check if there are any navigation arguments defined for the
+  is_organizer parameter in the nav_graph.xml. Let me add that argument to
+  the navigation graph:
+
+● Update(app/src/main/res/navigation/nav_graph.xml)
+  ⎿  Updated app/src/main/res/navigation/nav_graph.xml with 4 additions
+       63            <argument
+       64                android:name="event"
+       65                app:argType="com.rocket.radar.events.Event" />
+       66 +          <argument
+       67 +              android:name="is_organizer"
+       68 +              app:argType="boolean"
+       69 +              android:defaultValue="false" />
+       70        </fragment>
+       71    
+       72    
+
+● Perfect! Now let me check if there are any other places in the codebase
+  that use raw fragment transactions to navigate to EventViewFragment, as
+  they would have the same issue:
+
+● Search(pattern: "getSupportFragmentManager.*EventViewFragment|beginTransaction
+        .*EventViewFragment", output_mode: "content")
+  ⎿  Found 0 lines 
+
+● Search(pattern: "getSupportFragmentManager\(\)\.beginTransaction\(\)",
+        output_mode: "content")
+  ⎿  Found 47 lines (ctrl+o to expand)
+
+● I can see there are other places using raw fragment transactions on the
+  nav_host_fragment. Let me check these files to see if they also navigate
+  to EventViewFragment:
+
+● Read(app/src/main/java/com/rocket/radar/notifications/NotificationAdapter.java
+      )
+  ⎿  Read 30 lines
+
+● Read(app/src/main/java/com/rocket/radar/admin/BrowseImageFragment.java)
+  ⎿  Read 10 lines
+
+● I can see that NotificationAdapter.java and BrowseImageFragment.java also
+  use raw fragment transactions to navigate to EventViewFragment. These will
+   have the same back stack issue. Let me create a summary of the changes
+  and test if the main fix works:
+
+● Bash(cd /home/generic/git/generic/CMPUT301/rocket-radar/src && ./gradlew
+      assembleDebug)
+  ⎿ Starting a Gradle Daemon, 1 stopped Daemon could not be reused, use --s
+    tatus for details
+    > Task :app:preBuild UP-TO-DATE
+    … +56 lines (ctrl+o to expand)
+
+
+● Great! The build is successful. Now let me provide you with a summary of
+  the changes and additional issues I found:
+
+  Summary
+
+  I've successfully updated the MainActivity to use the Navigation
+  Controller instead of raw fragment transactions when handling QR code deep
+   links. Here's what was changed:
+
+  Changes Made:
+
+  1. MainActivity.java (lines 316-324): Replaced raw fragment transaction
+  with Navigation Controller
+    - Old approach: getSupportFragmentManager().beginTransaction().replace(.
+  ..).addToBackStack(...)
+    - New approach: navController.navigate(R.id.eventViewFragment, bundle)
+    - Added intent clearing to prevent re-processing:
+  getIntent().setAction(null) and getIntent().setData(null)
+  2. nav_graph.xml (lines 66-69): Added the is_organizer argument definition
+    - Added boolean argument with default value of false
+
+  Why This Fixes the Issue:
+
+  The root cause was that raw fragment transactions were creating a separate
+   back stack managed by FragmentManager, independent from the Navigation
+  Component's back stack. When you pressed back from EventViewFragment, it
+  would pop from the FragmentManager's stack (returning to the camera app)
+  instead of properly navigating within the app's navigation graph.
+
+  By using navController.navigate(), the fragment is now properly managed by
+   the Navigation Component, which maintains a consistent back stack that
+  takes you back to the appropriate location within your app.
+
+  Additional Issues Found:
+
+  I found two other locations that have the same problem:
+
+  1. NotificationAdapter.java:373-379 - Navigates to EventViewFragment using
+   raw fragment transactions (with shared element transitions)
+  2. BrowseImageFragment.java:80-83 - Navigates to EventViewFragment using
+  raw fragment transactions
+
+  These locations will have similar back stack issues and should also be
+  converted to use the Navigation Controller. Would you like me to fix these
+   as well?
+
+
+
