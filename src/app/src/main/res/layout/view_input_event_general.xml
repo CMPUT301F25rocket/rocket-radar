@@ -30,7 +30,9 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Event Name"
+                app:helperText="*required"
+                app:helperTextEnabled="true"
+                android:hint="Event Name*"
                 android:paddingTop="12dp"
                 android:paddingHorizontal="24dp"
                 >
@@ -45,7 +47,9 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Description"
+                android:hint="Description*"
+                app:helperText="*required"
+                app:helperTextEnabled="true"
                 android:paddingTop="12dp"
                 android:paddingHorizontal="24dp"
                 >
@@ -61,7 +65,9 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Tagline"
+                android:hint="Tagline*"
+                app:helperText="*required"
+                app:helperTextEnabled="true"
                 android:paddingTop="12dp"
                 android:paddingHorizontal="24dp"
                 >

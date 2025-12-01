@@ -10,12 +10,100 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clipToPadding="false"
         >
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:paddingBottom="48dp"
             >
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="12dp"
+                >
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:orientation="vertical"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    >
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="20dp"
+                        android:text="Location Requirement"
+                        />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="10dp"
+                        android:text="Toggle to require entrants to join from a specific location."
+                        />
+                </LinearLayout>
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/inputEventLotteryIncludeLocationRequirement"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="24dp"
+                    android:checked="@={viewModel.hasLocationRequirement}"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
+                android:layout_height="1dp" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginHorizontal="24dp"
+                >
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/inputEventLotteryWaitlistCapacity"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Waitlist Capacity"
+                    app:layout_constraintTop_toTopOf="parent"
+                    >
+                    <com.google.android.material.textfield.TextInputEditText
+                        style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
+                        android:id="@+id/lotterySectionWaitlistCapacityInput"
+                        android:inputType="number"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/inputEventLotteryEventCapacity"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:hint="Event Capacity*"
+                    app:helperText="*required"
+                    app:helperTextEnabled="true"
+                    app:layout_constraintTop_toBottomOf="@id/inputEventLotteryWaitlistCapacity"
+                    >
+                    <com.google.android.material.textfield.TextInputEditText
+                        style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
+                        android:id="@+id/lotterySectionEventCapacityInput"
+                        android:inputType="number"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        />
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <!-- Deadlines Section -->
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -24,20 +112,14 @@
                 android:layout_marginTop="24dp"
                 android:layout_marginHorizontal="24dp"
                 >
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/inputEventDetailsRegistrationTextview"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Registration Period"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/inputEventDetailsRegistrationStartDate"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Registration Start Date"
-                    app:layout_constraintTop_toBottomOf="@id/inputEventDetailsRegistrationTextview"
+                    app:helperText="*required"
+                    app:helperTextEnabled="true"
+                    app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     >
@@ -60,20 +142,14 @@
                 android:layout_marginTop="24dp"
                 android:layout_marginHorizontal="24dp"
                 >
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/inputEventDetailsSelectionTextview"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="First Selection Period"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/inputEventDetailsSelectionStartDate"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Selection Start Date"
-                    app:layout_constraintTop_toBottomOf="@id/inputEventDetailsSelectionTextview"
+                    android:hint="Selection Start Date*"
+                    app:helperText="*required"
+                    app:helperTextEnabled="true"
+                    app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     >
@@ -96,20 +172,14 @@
                 android:layout_marginTop="24dp"
                 android:layout_marginHorizontal="24dp"
                 >
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/inputEventDetailsFinalDecisionTextview"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Final Decision on Attendees"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/inputEventDetailsFinalDecisionStartDate"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:hint="Final Decision Date"
-                    app:layout_constraintTop_toBottomOf="@id/inputEventDetailsFinalDecisionTextview"
+                    android:hint="Final Decision Date*"
+                    app:helperText="*required"
+                    app:helperTextEnabled="true"
+                    app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     >
@@ -138,7 +208,9 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    android:hint="Event Date"
+                    android:hint="Event Date*"
+                    app:helperText="*required"
+                    app:helperTextEnabled="true"
                     android:padding="24dp"
                     >
                     <com.google.android.material.textfield.TextInputEditText
@@ -158,7 +230,9 @@
                     android:id="@+id/inputEventDatetimeStartTextInputLayout"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:hint="Start Time"
+                    android:hint="Start Time*"
+                    app:helperText="*required"
+                    app:helperTextEnabled="true"
                     android:layout_marginLeft="24dp"
                     android:layout_marginRight="12dp"
                     app:layout_constraintEnd_toStartOf="@id/inputEventDatetimeEndTextInputLayout"
@@ -178,7 +252,9 @@
                     android:id="@+id/inputEventDatetimeEndTextInputLayout"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:hint="End Time"
+                    android:hint="End Time*"
+                    app:helperText="*required"
+                    app:helperTextEnabled="true"
                     android:layout_marginLeft="12dp"
                     android:layout_marginRight="24dp"
                     app:layout_constraintStart_toEndOf="@id/inputEventDatetimeStartTextInputLayout"
@@ -197,134 +273,6 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <com.google.android.material.divider.MaterialDivider
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="24dp" />
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingVertical="12dp"
-            >
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="24dp"
-                android:orientation="vertical"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                >
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="20dp"
-                    android:text="Waitlist Capacity"
-                    />
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="10dp"
-                    android:text="Set a limit on how many entrants can sign up to be on the waitlist"
-                    />
-            </LinearLayout>
-
-            <com.google.android.material.checkbox.MaterialCheckBox
-                android:id="@+id/inputEventLotteryIncludeWaitlistCapacity"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="24dp"
-                android:checked="@={viewModel.hasWaitlistCapacity}"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingVertical="12dp"
-            >
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="24dp"
-                android:orientation="vertical"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                >
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="20dp"
-                    android:text="Location Requirement"
-                    />
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="10dp"
-                    android:text="Toggle to require entrants to join from a specific location."
-                    />
-            </LinearLayout>
-
-            <com.google.android.material.checkbox.MaterialCheckBox
-                android:id="@+id/inputEventLotteryIncludeLocationRequirement"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="24dp"
-                android:checked="@={viewModel.hasLocationRequirement}"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-        <com.google.android.material.divider.MaterialDivider
-            android:layout_width="match_parent"
-            android:layout_height="1dp" />
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="24dp"
-            >
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/inputEventLotteryWaitlistCapacity"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Waitlist Capacity"
-                android:visibility="@{viewModel.hasWaitlistCapacity ? View.VISIBLE : View.GONE}"
-                app:layout_constraintTop_toTopOf="parent"
-                >
-                <com.google.android.material.textfield.TextInputEditText
-                    style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
-                    android:id="@+id/lotterySectionWaitlistCapacityInput"
-                    android:inputType="number"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/inputEventLotteryEventCapacity"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:hint="Event Capacity"
-                app:layout_constraintTop_toBottomOf="@id/inputEventLotteryWaitlistCapacity"
-                >
-                <com.google.android.material.textfield.TextInputEditText
-                    style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
-                    android:id="@+id/lotterySectionEventCapacityInput"
-                    android:inputType="number"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    />
-            </com.google.android.material.textfield.TextInputLayout>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
         </LinearLayout>
     </ScrollView>
 </layout>
