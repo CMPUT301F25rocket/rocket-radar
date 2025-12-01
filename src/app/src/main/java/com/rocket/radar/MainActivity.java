@@ -8,7 +8,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
-import android.view.View;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -34,18 +33,15 @@ import com.rocket.radar.databinding.NavBarBinding;
 import com.rocket.radar.events.Event;
 import com.rocket.radar.events.EventRepository;
 import com.rocket.radar.events.EventViewFragment;
-import com.rocket.radar.events.FilterModel;
 import com.rocket.radar.loadingscreen.LoadingManager;
 import com.rocket.radar.notifications.NotificationRepository;
 import com.rocket.radar.profile.ProfileModel;
 import com.rocket.radar.profile.ProfileRepository;
 import com.rocket.radar.profile.ProfileViewModel;
 import com.rocket.radar.qr.QRDialog;
-import com.rocket.radar.loadingscreen.LoadingManager;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 /**
  Main activity that handles user authentication, navigation, and location services.
@@ -57,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private FirebaseAuth mAuth;
     private ProfileViewModel profileViewModel;
+    private int previouslySelectedItemId = R.id.eventListFragment;
 
     // --- ADDED: Loading Manager ---
     private LoadingManager loadingManager;
@@ -134,6 +131,19 @@ public class MainActivity extends AppCompatActivity {
                 .findFragmentById(R.id.nav_host_fragment);
         navController = navHostFragment.getNavController();
         NavigationUI.setupWithNavController(navBarBinding.bottomNavigationView, navController);
+
+        // Override the listener and intercept requests to create so we can launch the CreateEventActivity.
+        // All other requests fall through to NavigationUI.
+        navBarBinding.bottomNavigationView.setOnItemSelectedListener(item -> {
+            if (item.getItemId() == R.id.createEventAction) {
+                previouslySelectedItemId = navBarBinding.bottomNavigationView.getSelectedItemId();
+                Intent intent = new Intent(this, com.rocket.radar.eventmanagement.CreateEventActivity.class);
+                startActivity(intent);
+                return true;
+            } else {
+                return NavigationUI.onNavDestinationSelected(item, navController);
+            }
+        });
 
         adminModeManager = AdminModeManager.getInstance(this);
         adminModeManager.setNavController(navController);
@@ -219,6 +229,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        // Restore the previously selected menu item if we returned from CreateEventActivity
+        navBarBinding.bottomNavigationView.setSelectedItemId(previouslySelectedItemId);
+
         Intent intent = getIntent();
         String action = intent.getAction();
         if (action == null) return;
@@ -465,12 +479,12 @@ public class MainActivity extends AppCompatActivity {
 
         if (isAdminMode) {
             // Admin mode overrides role
-            menu.findItem(R.id.draftEventsFragment).setVisible(false);
+            menu.findItem(R.id.createEventAction).setVisible(false);
             menu.findItem(R.id.imagesFragment).setVisible(true);
             menu.findItem(R.id.browseUsersFragment).setVisible(true);
         } else {
             // Normal role-based logic
-            menu.findItem(R.id.draftEventsFragment).setVisible(!isEntrant);
+            menu.findItem(R.id.createEventAction).setVisible(!isEntrant);
 
             menu.findItem(R.id.imagesFragment).setVisible(false);
             menu.findItem(R.id.browseUsersFragment).setVisible(false);

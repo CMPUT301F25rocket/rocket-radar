@@ -318,7 +318,7 @@ public class RadarNavigationTests {
 
         // 1. Create Events
         clickButtonByText("Create");
-        assertCurrentFragmentIs(activityRule, R.id.draftEventsFragment);
+        assertCurrentFragmentIs(activityRule, R.id.createEventAction);
 
         // 2. Click plus to add new draft event
         onView(withId(R.id.organizing_events_create_button)).perform(click());

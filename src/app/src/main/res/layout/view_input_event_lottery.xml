@@ -261,7 +261,6 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/inputEventDatetimeDaterangeTextInputLayout"
                     >
-
                     <com.google.android.material.textfield.TextInputEditText
                         style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
                         android:id="@+id/inputEventDatetimeEndTextInput"
@@ -270,9 +269,7 @@
                         android:layout_height="wrap_content"
                         />
                 </com.google.android.material.textfield.TextInputLayout>
-
             </androidx.constraintlayout.widget.ConstraintLayout>
-
         </LinearLayout>
     </ScrollView>
 </layout>

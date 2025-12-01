@@ -5,7 +5,7 @@
         android:icon="@drawable/ic_view_agenda_24dp" />
 
     <item
-        android:id="@+id/draftEventsFragment"
+        android:id="@+id/createEventAction"
         android:title="@string/menu_action_create_text"
         android:icon="@drawable/ic_add_menu" />
 
