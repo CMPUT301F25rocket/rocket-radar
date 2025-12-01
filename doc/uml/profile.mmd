@@ -121,7 +121,6 @@ class ProfileViewModel {
     + getProfile(String)
     + updateLastLogin(String)
 }
-}
 ProfileViewModel "1" --> "1" ProfileRepository : uses
 ProfileViewModel "1" *-- "0..1" ProfileModel : observes/manages as live data
 
