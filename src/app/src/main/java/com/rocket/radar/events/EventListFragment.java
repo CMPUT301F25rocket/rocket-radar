@@ -80,7 +80,20 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
 
         // We want to hide the filter header by default.
         chipGroup.setVisibility(View.GONE);
+        chipGroup.setOnCheckedStateChangeListener(this::removeActiveFilter);
         return view;
+    }
+
+    public void removeActiveFilter(ChipGroup group, List<Integer> selected) {
+        for (int i = 0; i < group.getChildCount(); ++i) {
+            View child = group.getChildAt(i);
+            if (!(child instanceof Chip)) continue;
+            Chip chip = (Chip)child;
+            if (chip.isChecked()) continue;
+            String filterName = chip.getText().toString();
+            filterModel.removeFilterByName(filterName);
+        }
+        filterAndDisplayEvents();
     }
 
     public void showActiveFilter(FilterModel.EventFilter filter) {
