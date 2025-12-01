@@ -75,9 +75,9 @@ public class UserFragment extends Fragment  implements EventAdapter.OnEventListe
 
 
     /**
-     * This fragment inflates the profile fragment layout, initializes UI elements,
-     * and sets up the account settings button and profile name observer.
-     *
+     * This fragment displays when an admin clicks on a user profile.
+     * It is very similar to the profile fragment, but allows for
+     * changing the user role, viewing their optional personal information and deleting their profile
      * @param inflater The LayoutInflater object that can be used to inflate
      * any views in the fragment,
      * @param container If non-null, this is the parent view that the fragment's
@@ -184,17 +184,29 @@ public class UserFragment extends Fragment  implements EventAdapter.OnEventListe
                 android.R.layout.simple_dropdown_item_1line,
                 roles
         );
+
+        // logic for changing user role.
+        // one of the thing we did is that you can demote someone to be an entrant
+        // this will hide the create event option from the bottom navbar
+        // this was for US 03.07.01 As an administrator I want to remove organizers that violate app policy.
         roleDropdown.setAdapter(adapter);
         roleDropdown.setText(userProfile.getRole().name(), false);
         roleDropdown.setOnItemClickListener((parent, view1, position, id) -> {
             String selected = (String) parent.getItemAtPosition(position);
             userProfile.setRole(ProfileModel.UserRole.valueOf(selected));
             adminRepository.updateUserRole(currentUserProfile, userProfile.getRole(), new AdminRepository.updateCallback() {
+                /**
+                 * Called when update user role succeeds.
+                 */
                 @Override
                 public void onSuccess() {
                     Toast.makeText(getContext(), "User role updated", Toast.LENGTH_SHORT).show();
                 }
 
+                /**
+                 * Called when update user role fails.
+                 * @param e the Exception that occurred.
+                 */
                 @Override
                 public void onError(Exception e) {
                     Toast.makeText(getContext(), "Failed to update user role: " + e.getMessage(), Toast.LENGTH_SHORT).show();

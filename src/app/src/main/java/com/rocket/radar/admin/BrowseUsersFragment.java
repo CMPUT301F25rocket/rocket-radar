@@ -20,6 +20,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class lets the admin browse through a simple list of all the users in the app.
+ * Clicking on a user brings up their profile.
+ */
 public class BrowseUsersFragment extends Fragment {
 
     private ListView usersListView;
@@ -29,6 +33,10 @@ public class BrowseUsersFragment extends Fragment {
 
     @Nullable
     @Override
+    /**
+     * Inflates the view and populates the fragment with UI.
+     * Sets a click listener so that the admin can click on a user, which navigates to UserFragment.
+     */
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_browse_users, container, false);

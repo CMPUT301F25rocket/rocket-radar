@@ -23,9 +23,8 @@ import com.rocket.radar.notifications.NotificationRepository;
 import java.util.ArrayList;
 
 /**
- * AllNotificationsFragment displays all notifications for the current user.
- * This is an enhanced version that shows all notifications with better sorting,
- * filtering, and UI state management.
+ * AllNotificationsFragment displays all notifications for the admin to view.
+ * This is heavily based on the notification fragment in the package, but all notifications in the app get shown to the admin.
  */
 public class AllNotificationsFragment extends Fragment {
 
