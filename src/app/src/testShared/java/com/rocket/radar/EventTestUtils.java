@@ -82,9 +82,8 @@ public class EventTestUtils {
         canvas.drawColor(Color.WHITE);
         drawSampleImage(canvas);
 
-        return new Event.Builder(event)
-                .bannerImage(bitmap)
-                .build();
+        event.setBannerImage(bitmap);
+        return event;
     }
 
     /**

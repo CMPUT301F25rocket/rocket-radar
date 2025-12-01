@@ -2,6 +2,7 @@ package com.rocket.radar;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.graphics.Bitmap;
@@ -10,14 +11,8 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.rocket.radar.eventmanagement.Time;
+import com.google.firebase.firestore.GeoPoint;
 import com.rocket.radar.events.Event;
-import com.rocket.radar.events.EventRepository;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,36 +21,13 @@ import org.robolectric.annotation.Config;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 28)
 public class EventsTests {
-
-    // This method just prepares the local list of dummy data.
-    private List<Event> loadDummyData() {
-        List<Event> eventList = new java.util.ArrayList<>();
-
-        // Using Calendar to create Date objects for the current year
-        Calendar cal = Calendar.getInstance();
-        int currentYear = cal.get(Calendar.YEAR);
-
-        cal.set(currentYear, Calendar.SEPTEMBER, 30);
-        eventList.add(new Event("Watch Party for Oilers", cal.getTime(), "Fun for fanatics", "Join us for an exciting watch party as the Oilers take on their rivals. Great food, great company, and a thrilling game await. Don't miss out on the action!", R.drawable.rogers_image));
-        cal.set(currentYear, Calendar.NOVEMBER, 12);
-        eventList.add(new Event("BBQ Event", cal.getTime(), "Mushroom bros who listen to bangers", "A chill BBQ event for everyone who enjoys good music and even better food. We'll be grilling up a storm and spinning some bangers. Come hang out!", R.drawable.mushroom_in_headphones_amidst_nature));
-        cal.set(currentYear, Calendar.DECEMBER, 18);
-        eventList.add(new Event("Ski Trip", cal.getTime(), "The slopes are calling", "Hit the slopes with us for a weekend of skiing and snowboarding. All skill levels are welcome. Get ready for some fresh powder and stunning mountain views.", R.drawable.ski_trip_banner));
-        cal.set(currentYear + 1, Calendar.JANUARY, 5); // Next year for January
-        eventList.add(new Event("Tech Conference", cal.getTime(), "Innovations in AI", "Discover the latest breakthroughs in Artificial Intelligence at our annual Tech Conference. Featuring keynote speakers from leading tech companies and interactive workshops.", R.drawable.rogers_image));
-        cal.set(currentYear, Calendar.JULY, 22);
-        eventList.add(new Event("Summer Music Festival", cal.getTime(), "Live bands and good vibes", "Experience the best of summer with our annual music festival. Featuring a lineup of incredible live bands, food trucks, and a vibrant atmosphere. Let the good times roll!", R.drawable.mushroom_in_headphones_amidst_nature));
-        cal.set(currentYear, Calendar.AUGUST, 14);
-        eventList.add(new Event("Mountain Hike", cal.getTime(), "Explore scenic trails", "Join our guided hike through breathtaking mountain trails. This is a great opportunity to connect with nature, get some exercise, and enjoy panoramic views.", R.drawable.ski_trip_banner));
-
-        return eventList;
-    }
 
     /**
      * Draws a black square in the middle of a canvas 1/5th the size of the smallest dimension.
@@ -96,7 +68,7 @@ public class EventsTests {
     }
 
     @Test
-    public void testImageSizeReduction() throws Exception {
+    public void testImageSizeReduction() {
         int width = 420;
         int height = 350;
         Bitmap.Config config = Bitmap.Config.ARGB_8888;
@@ -123,22 +95,16 @@ public class EventsTests {
     public void testEventBuilder() throws Exception {
         Event sample = EventTestUtils.sampleEvent();
 
+
         // Make a *mutable copy* so we don't accidentally mutate the original list
         List<String> categories = new ArrayList<>(sample.getCategories());
-
-        // Grab and remove first + last using indices
-        String first = categories.remove(0);
-        String last = categories.remove(categories.size() - 1);
 
         Event copy = new Event.Builder()
                 .title(sample.getEventTitle())
                 .eventStartDate(sample.getEventStartDate())
                 .eventEndDate(sample.getEventEndDate())
                 .tagline(sample.getTagline())
-                //.category(last)
                 .categories(categories)
-                //.category(first)
-                //.category(first)
                 .description(sample.getDescription())
                 .eventStartTime(sample.getEventStartTime())
                 .eventEndTime(sample.getEventEndTime())
@@ -151,5 +117,78 @@ public class EventsTests {
                 .build();
 
         EventTestUtils.assertEventEquals(sample, copy);
+    }
+
+    @Test
+    public void testGetFormattedDate() {
+        Calendar cal = Calendar.getInstance();
+        cal.set(2024, Calendar.OCTOBER, 31); // Month is 0-indexed, October is 9
+        Date date = cal.getTime();
+
+        Event event = new Event();
+        event.setEventStartDate(date);
+
+        // Expected: 31\nOCT
+        String formatted = event.getFormattedDate();
+        assertTrue("Formatted date should contain day", formatted.contains("31"));
+        assertTrue("Formatted date should contain short month", formatted.contains("OCT"));
+    }
+
+    @Test
+    public void testGeoLocationMapping() {
+        Event event = new Event();
+        
+        // Test Setting GeoPoint updates lat/long
+        GeoPoint gp = new GeoPoint(53.5461, -113.4938);
+        event.setEventGeoLocation(gp);
+        
+        assertEquals(53.5461, event.getLocationLatitude(), 0.0001);
+        assertEquals(-113.4938, event.getLocationLongitude(), 0.0001);
+        
+        // Test Getting GeoPoint
+        GeoPoint retrieved = event.getEventGeoLocation();
+        assertNotNull(retrieved);
+        assertEquals(gp.getLatitude(), retrieved.getLatitude(), 0.0001);
+        assertEquals(gp.getLongitude(), retrieved.getLongitude(), 0.0001);
+        
+        // Test null
+        event.setEventGeoLocation(null);
+        assertNull(event.getLocationLatitude());
+        assertNull(event.getLocationLongitude());
+        assertNull(event.getEventGeoLocation());
+    }
+
+    @Test
+    public void testListsInitialization() {
+        Event event = new Event();
+        
+        // Lists should handle null internal state gracefully by returning empty lists
+        assertNotNull(event.getCategories());
+        assertTrue(event.getCategories().isEmpty());
+        
+        assertNotNull(event.getEventWaitlistIds());
+        assertTrue(event.getEventWaitlistIds().isEmpty());
+        
+        assertNotNull(event.getEventInvitedIds());
+        assertTrue(event.getEventInvitedIds().isEmpty());
+        
+        assertNotNull(event.getEventAttendingIds());
+        assertTrue(event.getEventAttendingIds().isEmpty());
+        
+        assertNotNull(event.getEventCancelledIds());
+        assertTrue(event.getEventCancelledIds().isEmpty());
+    }
+    
+    @Test
+    public void testConstructor() {
+        Date now = new Date();
+        Event event = new Event("Title", now, "Tagline", "Description", 123);
+        
+        assertNotNull("Event ID should be generated", event.getEventId());
+        assertEquals("Title", event.getEventTitle());
+        assertEquals(now, event.getEventStartDate());
+        assertEquals("Tagline", event.getTagline());
+        assertEquals("Description", event.getDescription());
+        assertEquals(123, event.getImage());
     }
 }

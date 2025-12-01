@@ -552,6 +552,10 @@ public class Event implements Serializable {
             event = new Event();
             event.eventId = UUID.randomUUID().toString();
         }
+        
+        public Builder(Event event) {
+            this.event = event;
+        }
 
         public Builder title(String title) {
             event.eventTitle = title;
@@ -626,6 +630,11 @@ public class Event implements Serializable {
         public Builder location(GeoPoint geoPoint, String name) {
             event.setEventGeoLocation(geoPoint);
             event.setEventLocationName(name);
+            return this;
+        }
+        
+        public Builder requireLocation(boolean require) {
+            event.setRequireLocation(require);
             return this;
         }
 

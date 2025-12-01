@@ -1,94 +1,78 @@
 package com.rocket.radar;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.GeoPoint;
 import com.rocket.radar.profile.ProfileModel;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-/**
- * Tests for core functionalities within the ProfileModel.
- * This class verifies that user settings (like notifications and geolocation)
- * can be enabled, disabled, and default to the correct state.
- */
+import java.util.ArrayList;
+
 public class ProfileTests {
 
     private ProfileModel profile;
 
-    /**
-     * Sets up a mock user profile before each test case is run.
-     */
     @Before
     public void setUp() {
-        // Initialize with a mock user profile before each test, matching the correct constructor.
-        // The isAdmin flag is added at the end.
         profile = new ProfileModel("testUser", "Test User", "test@example.com", "123-456-7890", Timestamp.now(), true, true, ProfileModel.UserRole.ORGANIZER);
     }
 
-    /**
-     * Verifies that a newly created ProfileModel has notifications enabled by default.
-     */
     @Test
-    public void notificationsAreEnabledByDefaultInNewProfile() {
-        // A completely new profile should have notifications enabled by default
-        ProfileModel newProfile = new ProfileModel();
-        Assert.assertTrue("Notifications should be enabled by default in a new profile", newProfile.isNotificationsEnabled());
+    public void testDefaultConstructor() {
+        ProfileModel p = new ProfileModel();
+        // Firestore style constructor should leave things null or default
+        assertNotNull(p.getOnInvitedEventIds()); // getter initializes list
+        assertNotNull(p.getAttendingEventIds());
+        assertNotNull(p.getOnMyEventIds());
+        assertNotNull(p.getOnWaitlistEventIds());
+        
+        // Boolean defaults via getters
+        assertTrue(p.isNotificationsEnabled()); // defaults to true if null
+        assertFalse(p.isGeolocationEnabled()); // defaults to false if null
     }
 
-    /**
-     * Verifies that notifications can be successfully disabled.
-     */
     @Test
-    public void canDisableNotifications() {
-        // Start with notifications enabled
-        Assert.assertTrue("Precondition: Notifications should be enabled.", profile.isNotificationsEnabled());
-
-        // Disable them
-        profile.setNotificationsEnabled(false);
-
-        // Verify they are now disabled
-        Assert.assertFalse("It should be possible to disable notifications", profile.isNotificationsEnabled());
+    public void testGetSetLastKnownLocation() {
+        GeoPoint gp = new GeoPoint(10.0, 20.0);
+        profile.setLastKnownLocation(gp);
+        assertEquals(gp, profile.getLastKnownLocation());
     }
 
-    /**
-     * Verifies that notifications can be successfully re-enabled after being disabled.
-     */
     @Test
-    public void canEnableNotifications() {
-        // Start with notifications disabled
-        profile.setNotificationsEnabled(false);
-        Assert.assertFalse("Precondition: Notifications should be disabled.", profile.isNotificationsEnabled());
-
-        // Enable them
-        profile.setNotificationsEnabled(true);
-
-        // Verify they are now enabled
-        Assert.assertTrue("It should be possible to re-enable notifications", profile.isNotificationsEnabled());
+    public void testUserRoles() {
+        profile.setRole(ProfileModel.UserRole.ADMIN);
+        assertEquals(ProfileModel.UserRole.ADMIN, profile.getRole());
+        
+        profile.setRole(ProfileModel.UserRole.ENTRANT);
+        assertEquals(ProfileModel.UserRole.ENTRANT, profile.getRole());
+        
+        profile.setRole(null);
+        // Should default to ORGANIZER or keep current? The setter does nothing if null.
+        // The getter defaults to ORGANIZER if the string is null.
+        // If we pass null to setter, the field isn't changed.
+        // Let's test getter default logic by creating a fresh profile
+        ProfileModel empty = new ProfileModel();
+        assertEquals(ProfileModel.UserRole.ORGANIZER, empty.getRole());
     }
 
-    /**
-     * Verifies that a newly created ProfileModel has geolocation disabled by default.
-     */
     @Test
-    public void geolocationIsDisabledByDefaultInNewProfile() {
-        ProfileModel newProfile = new ProfileModel();
-        Assert.assertFalse("Geolocation should be disabled by default in a new profile", newProfile.isGeolocationEnabled());
-    }
-
-    /**
-     * Verifies that geolocation can be successfully enabled.
-     */
-    @Test
-    public void canEnableGeolocation() {
-        // Start with geolocation disabled
-        profile.setGeolocationEnabled(false);
-        Assert.assertFalse("Precondition: Geolocation should be disabled.", profile.isGeolocationEnabled());
-
-        // Enable it
-        profile.setGeolocationEnabled(true);
-
-        // Verify it is now enabled
-        Assert.assertTrue("It should be possible to enable geolocation", profile.isGeolocationEnabled());
+    public void testBasicGettersSetters() {
+        profile.setName("New Name");
+        assertEquals("New Name", profile.getName());
+        
+        profile.setEmail("new@test.com");
+        assertEquals("new@test.com", profile.getEmail());
+        
+        profile.setPhoneNumber("987");
+        assertEquals("987", profile.getPhoneNumber());
+        
+        profile.setUid("uid2");
+        assertEquals("uid2", profile.getUid());
     }
 }
