@@ -144,6 +144,7 @@ public class AdminRepository {
         void onError(Exception e);
     }
 
+    //cite: The following function is adapted from ChatGPT and Claude, "How do I change a user's role?"
     /**
      * Updates the role for the user using the ProfileModel state enum.
      * @param profile profile to update.
@@ -410,6 +411,7 @@ public class AdminRepository {
         void onError(Exception e);
     }
 
+    //cite: the following function is from Chat-GPT, "How do I send a notification when I change a user's role?" 2025-11-30
     /**
      * Sends a role change notification to a specific user.
      * Creates a notification in the top-level collection and fans it out to the user's subcollection.
@@ -468,6 +470,7 @@ public class AdminRepository {
                 });
     }
 
+    //cite: the following function is from Chat-GPT, "How do I send a notification when an event gets deleted?" 2025-11-30
     /**
      * Sends notifications to all users associated with an event when it is deleted.
      * This includes users from the subcollections: attendingUsers, waitlistedUsers, invitedUsers, and cancelledUsers.
@@ -533,6 +536,7 @@ public class AdminRepository {
                 });
     }
 
+    //cite: the following function is from Chat-GPT, "How do I send a notification when an event gets deleted?" 2025-11-30
      /**
      * Helper method to send notifications to a list of users.
      * @param eventId eventId associated with notification.
