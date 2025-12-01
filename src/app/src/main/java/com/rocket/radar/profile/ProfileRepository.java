@@ -7,6 +7,7 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.SetOptions;
+import com.rocket.radar.admin.AdminRepository;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -131,31 +132,37 @@ public class ProfileRepository {
 
         String uid = profile.getUid();
 
-        db.collection("users")
-                .document(uid)
-                .collection("notifications")
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    for (var document : querySnapshot.getDocuments()) { // delete notification docs
-                        document.getReference().delete();
-                    }
-                    db.collection("users") // delete user doc
-                            .document(uid)
-                            .delete()
-                            .addOnSuccessListener(aVoid -> {
-                                Log.d(TAG, "User and notifications deleted successfully");
-                                callback.onSuccess();
-                            })
-                            .addOnFailureListener(e -> {
-                                Log.e(TAG, "Failed to delete Firestore user document", e);
-                                callback.onError(e);
-                            });
+        AdminRepository adminRepository = new AdminRepository();
 
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Failed to retrieve notifications for deletion", e);
-                    callback.onError(e);
-                });
+        // First remove user from all events
+        adminRepository.removeUserFromAllEvents(uid, () -> {
+            // Then delete notifications
+            db.collection("users")
+                    .document(uid)
+                    .collection("notifications")
+                    .get()
+                    .addOnSuccessListener(querySnapshot -> {
+                        for (var document : querySnapshot.getDocuments()) {
+                            document.getReference().delete();
+                        }
+                        // Finally delete user document
+                        db.collection("users")
+                                .document(uid)
+                                .delete()
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d(TAG, "User and notifications deleted successfully");
+                                    callback.onSuccess();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Failed to delete Firestore user document", e);
+                                    callback.onError(e);
+                                });
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Failed to retrieve notifications for deletion", e);
+                        callback.onError(e);
+                    });
+        }, callback::onError);
     }
 
     /**

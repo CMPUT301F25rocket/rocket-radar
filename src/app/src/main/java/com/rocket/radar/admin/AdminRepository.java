@@ -99,7 +99,7 @@ public class AdminRepository {
      * @param onComplete Called once deletions have been requested.
      * @param onError Called if any deletion request fails.
      */
-    private void removeUserFromAllEvents(String uid, Runnable onComplete, OnErrorCallback onError) {
+    public void removeUserFromAllEvents(String uid, Runnable onComplete, OnErrorCallback onError) {
         String[] subcollections = {"attendingUsers", "waitlistedUsers", "invitedUsers", "cancelledUsers"};
 
         db.collection("events")
