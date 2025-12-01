@@ -1,6 +1,7 @@
-// C:/Users/bwood/Cmput301/rocket-radar/src/app/src/main/java/com/rocket/radar/events/EventViewFragment.java
 package com.rocket.radar.events;
 
+import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -11,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,43 +23,59 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.firestore.Blob;
 import com.google.firebase.firestore.GeoPoint;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
+import com.rocket.radar.admin.AdminModeManager;
+import com.rocket.radar.admin.AdminRepository;
+import com.rocket.radar.lottery.LotteryLogic;
+import com.rocket.radar.notifications.NotificationRepository;
 import com.rocket.radar.profile.ProfileModel;
+import com.rocket.radar.profile.ProfileRepository;
 import com.rocket.radar.profile.ProfileViewModel;
+import com.rocket.radar.qr.QRDialog;
 
 import java.io.ByteArrayOutputStream;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * A fragment that displays the details of a specific event.
- * This view adapts its functionality based on whether the current user is the event organizer
+ *
+ * <p>This view adapts its functionality based on whether the current user is the event organizer
  * or a regular user. Organizers get options to manage entrants and edit the event, while
- * regular users can join or leave the event's waitlist.
- * Outstanding Issues: The "Edit" functionality for organizers is not yet implemented.
+ * regular users can join or leave the event's waitlist. It also handles the logic for
+ * responding to invitations (accept/reject).</p>
+ *
+ * <p><strong>Outstanding Issues:</strong>
+ * <ul>
+ *   <li>The "Edit" functionality for organizers is not yet fully implemented.</li>
+ *   <li>Accept/Reject invitation logic contains TODOs and is not fully wired to the backend.</li>
+ *   <li>The {@link #onViewCreated} method is very large and handles disparate logic (UI setup, specific button logic, listeners); this should be refactored into helper methods.</li>
+ * </ul>
+ * </p>
  */
 public class EventViewFragment extends Fragment {
     public static final String TAG = EventViewFragment.class.getSimpleName();
 
     private static final String ARG_EVENT = "event";
-    // 1. ADD ARG_IS_ORGANIZER CONSTANT
     private static final String ARG_IS_ORGANIZER = "is_organizer";
     private Event event;
     private ProfileViewModel profileViewModel;
-    EventRepository repo = new EventRepository();
-
-
-    // 2. ADD isOrganizer aS A MEMBER VARIABLE
+    private EventRepository eventRepo = new EventRepository();
+    private LotteryLogic lottery;
     private boolean isOrganizer;
-
     private ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
     private ImageView eventImageView;
+    private ImageView statusBarImage;
+    private AdminModeManager adminModeManager;
 
     /**
      * Required empty public constructor for fragment instantiation.
@@ -93,6 +111,13 @@ public class EventViewFragment extends Fragment {
         return fragment;
     }
 
+    /**
+     * Called to do initial creation of a fragment.
+     * Retrieves the Event object and organizer status from the arguments, and registers
+     * the photo picker activity result launcher.
+     *
+     * @param savedInstanceState If the fragment is being re-created from a previous saved state, this is the state.
+     */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -113,37 +138,97 @@ public class EventViewFragment extends Fragment {
         );
     }
 
+    /**
+     * Creates and returns the view hierarchy associated with the fragment.
+     *
+     * @param inflater           The LayoutInflater object that can be used to inflate views.
+     * @param container          If non-null, this is the parent view that the fragment's UI should be attached to.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     * @return Return the View for the fragment's UI.
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.event_view, container, false);
     }
 
+    /**
+     * Called immediately after {@link #onCreateView(LayoutInflater, ViewGroup, Bundle)} has returned.
+     * <p>This method initializes the UI components, sets up button listeners based on the user's role
+     * (Organizer, Admin, Entrant, Invited, etc.), handles image loading, and fetches real-time waitlist data.</p>
+     *
+     * @param view               The View returned by {@link #onCreateView(LayoutInflater, ViewGroup, Bundle)}.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         profileViewModel = new ViewModelProvider(requireActivity()).get(ProfileViewModel.class);
+        adminModeManager = AdminModeManager.getInstance(getContext());
 
         // Find views
         Button backButton = view.findViewById(R.id.back_button);
+        Button deleteButton = view.findViewById(R.id.delete_button);
+        Button shareButton = view.findViewById(R.id.share_button);
         Button joinAndLeaveWaitlistButton = view.findViewById(R.id.join_and_leave_waitlist_button);
+
         // 4. DEFINE manageEntrantsButton
         Button manageEntrantsButton = view.findViewById(R.id.manage_entrants);
         eventImageView = view.findViewById(R.id.event_image);
+        statusBarImage = view.findViewById(R.id.status_bar_image);
         TextView eventTitle = view.findViewById(R.id.event_title);
         TextView eventDate = view.findViewById(R.id.event_date);
         TextView eventDescription = view.findViewById(R.id.event_desc);
         TextView eventWaitlistSize = view.findViewById(R.id.waitlist_size);
+        TextView signupDeadlineText = view.findViewById(R.id.signup_deadline_text);
+
+        LinearLayout locationContainer = view.findViewById(R.id.location_container);
+        TextView eventLocationName = view.findViewById(R.id.event_location_name);
+        TextView eventLocationDetails = view.findViewById(R.id.event_location_details);
+
+        // handle image pizza bar logic logic
+        if (System.currentTimeMillis() < event.getRegistrationStartDate().getTime()) {
+            // set the image to pre-registration status
+            statusBarImage.setImageResource(R.drawable.pre_reg_period);
+        } else if (System.currentTimeMillis() >= event.getRegistrationStartDate().getTime() && System.currentTimeMillis() < event.getSelectionStartDate().getTime()) {
+            // display the image for registration period
+            statusBarImage.setImageResource(R.drawable.reg_period);
+        } else  {
+            // set the image to the post-registration status
+            statusBarImage.setImageResource(R.drawable.select_period);
+        }
 
         // Populate static event data
         if (event != null) {
+            lottery = new LotteryLogic(event);
             eventTitle.setText(event.getEventTitle());
             if (event.getEventStartDate() != null) { // Check event.getDate() for null
                 String FormattedDate = DateFormat.getDateInstance(DateFormat.FULL).format(event.getEventStartDate());
                 eventDate.setText(FormattedDate);
             }
+            if (event.getSelectionStartDate() != null) {
+                String formattedDeadline = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.SHORT).format(event.getSelectionStartDate());
+                signupDeadlineText.setText(formattedDeadline);
+            }
             eventDescription.setText(event.getDescription());
+
+            // Location
+            if (event.getEventLocationName() != null && !event.getEventLocationName().isEmpty()) {
+                eventLocationName.setText(event.getEventLocationName());
+                locationContainer.setVisibility(View.VISIBLE);
+                locationContainer.setOnClickListener(v -> {
+                    if (event.getLocationLatitude() != null && event.getLocationLongitude() != null) {
+                        String uri = String.format(Locale.ENGLISH, "geo:%f,%f?q=%f,%f(%s)", event.getLocationLatitude(), event.getLocationLongitude(), event.getLocationLatitude(), event.getLocationLongitude(), event.getEventLocationName());
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+                        startActivity(intent);
+                    } else {
+                         Toast.makeText(getContext(), "No location coordinates available.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else {
+                locationContainer.setVisibility(View.GONE);
+            }
 
             // Load and display the event banner image
             if (event.getBannerImageBlob() != null) {
@@ -153,14 +238,51 @@ public class EventViewFragment extends Fragment {
                 }
             }
 
-            repo.getWaitlistSize(event, new EventRepository.WaitlistSizeListener() {
+            eventRepo.getWaitlistSize(event, new EventRepository.WaitlistSizeListener() {
                 @Override
                 public void onSizeReceived(int size) {
                     // This code runs when the size is successfully fetched.
-                    // Update the UI on the main thread.
                     if (isAdded()) { // Ensure fragment is still attached
                         Log.d("EventViewFragment", "Waitlist size received: " + size);
+
+                        // 1. Display the current size
                         eventWaitlistSize.setText("People on waitlist: " + size);
+
+                        if (isOrganizer) {
+                            return;
+                        }
+                        // 2. Check Capacity Logic
+                        int capacity = 0;
+                        try {
+                            // If getWaitlistCapacity() returns Integer, this handles null safely
+                            if (event.getWaitlistCapacity() != null) {
+                                capacity = event.getWaitlistCapacity();
+                            }
+                        } catch (Exception e) {
+                            capacity = -1; // Treat as unlimited if error occurs
+                        }// Assuming getter exists in Event model
+
+                        // Only apply logic if there is a limit (capacity > 0) AND user is not already on the list
+                        if (capacity > 0 && size >= capacity && !isOnWaitlist(profileViewModel.getProfileLiveData().getValue())) {
+                            joinAndLeaveWaitlistButton.setEnabled(false);
+                            joinAndLeaveWaitlistButton.setText("Waitlist Full");
+                            // Optional: Change background color to grey explicitly if standard disabled state isn't enough
+                            joinAndLeaveWaitlistButton.setBackgroundColor(getResources().getColor(android.R.color.darker_gray, null));
+                        } else if (System.currentTimeMillis() < event.getRegistrationStartDate().getTime()){
+                            joinAndLeaveWaitlistButton.setEnabled(false);
+                            joinAndLeaveWaitlistButton.setText("Registration Not Started");
+                            // Optional: Change background color to grey explicitly if standard disabled state isn't enough
+                            joinAndLeaveWaitlistButton.setBackgroundColor(getResources().getColor(android.R.color.darker_gray, null));
+                        } else if (System.currentTimeMillis() > event.getSelectionStartDate().getTime() && /*not on waitlist */ (!isOnWaitlist(profileViewModel.getProfileLiveData().getValue()) || /*is theyre on the waitlist but the invited list isnt empty, then they didnt get selected so this staement should evaluate to true*/ !event.getEventInvitedIds().isEmpty())){
+                            joinAndLeaveWaitlistButton.setEnabled(false);
+                            joinAndLeaveWaitlistButton.setText("Registration Closed");
+                            // Optional: Change background color to grey explicitly if standard disabled state isn't enough
+                            joinAndLeaveWaitlistButton.setBackgroundColor(getResources().getColor(android.R.color.darker_gray, null));
+                        } else {
+                            // Ensure button is enabled if space is available (or if already on list so they can leave)
+                            // NOTE: The specific text (Join/Leave) is handled in the button setup logic further down in your file
+                            joinAndLeaveWaitlistButton.setEnabled(true);
+                        }
                     }
                 }
 
@@ -184,6 +306,52 @@ public class EventViewFragment extends Fragment {
             return;
         }
 
+        ProfileModel currentProfile = profileViewModel.getProfileLiveData().getValue();
+        boolean isOnWaitlist = isOnWaitlist(currentProfile);
+        ArrayList<String> onInvitedEventIds = currentProfile.getOnInvitedEventIds();
+        Log.d(TAG, "onInvitedEventIds: " + onInvitedEventIds);
+        boolean isInvited = onInvitedEventIds.contains(event.getEventId());
+        Log.d(TAG, "isInvited: " + isInvited);
+        ArrayList<String> onAttendingEventIds = currentProfile.getAttendingEventIds();
+        boolean isAttending = onAttendingEventIds.contains(event.getEventId());
+        Log.d(TAG, "isAttending: " + isAttending);
+
+        shareButton.setOnClickListener(v -> {
+            new QRDialog(requireContext(), event.getEventId()).show(requireActivity().getSupportFragmentManager(), QRDialog.TAG);
+        });
+
+        if (currentProfile.getRole() == ProfileModel.UserRole.ADMIN && adminModeManager.isAdminModeOn()) {
+            deleteButton.setVisibility(View.VISIBLE);
+            deleteButton.setOnClickListener(v -> {
+                new MaterialAlertDialogBuilder(requireContext())
+                        .setTitle("Delete this event?")
+                        .setMessage("This will permanently remove this event and all associated data. This action cannot be undone.")
+                        .setNegativeButton("Cancel", (dialog, which) -> {
+                            dialog.dismiss();
+                        })
+                        .setPositiveButton("Delete Event", (dialog, which) -> {
+                            AdminRepository adminRepository = new AdminRepository();
+                            adminRepository.deleteEvent(event.getEventId(),
+                                    new AdminRepository.DeleteEventCallback() {
+                                        @Override
+                                        public void onSuccess() {
+                                            Log.d(TAG, "Navigating back from deleted event: " + event.getEventId());
+                                            navigateBack();
+                                        }
+
+                                        @Override
+                                        public void onError(Exception e) {
+                                            Log.d(TAG, "Error deleting event: " + event.getEventId() + e.toString());
+                                        }
+                                    }
+                            );
+                        })
+                        .show();
+            });
+        } else {
+            deleteButton.setVisibility(View.GONE);
+        }
+
         // 5. THE LOGIC BLOCK CAN NOW USE THE DEFINED VARIABLES
         if (isOrganizer) {
             // Organizer View
@@ -202,8 +370,36 @@ public class EventViewFragment extends Fragment {
 
             // 2. Repurpose the other button as "Edit"
             joinAndLeaveWaitlistButton.setVisibility(View.VISIBLE); // Make sure it is VISIBLE
-            joinAndLeaveWaitlistButton.setText("Edit");
-            // joinAndLeaveWaitlistButton.setOnClickListener(v -> handleEditEvent()); // Add your edit logic here
+
+            long currentTime = System.currentTimeMillis();
+            long deadlineTime = 0;
+
+            // Assuming getRegistrationDeadline() returns a Date object.
+            // If it returns null, we assume immediate access.
+            if (event.getSelectionStartDate() != null) {
+                deadlineTime = event.getSelectionStartDate().getTime();
+            }
+
+            if (currentTime < deadlineTime) {
+                // Deadline has NOT passed yet
+                joinAndLeaveWaitlistButton.setEnabled(false);
+                joinAndLeaveWaitlistButton.setText("Lottery Locked");
+                joinAndLeaveWaitlistButton.setBackgroundColor(getResources().getColor(android.R.color.darker_gray, null));
+
+                // Optional: Add a small toast or click listener to explain why
+                joinAndLeaveWaitlistButton.setOnClickListener(v ->
+                        Toast.makeText(getContext(), "Waiting for registration deadline to pass.", Toast.LENGTH_SHORT).show()
+                );
+            } else {
+                // Deadline HAS passed
+                joinAndLeaveWaitlistButton.setEnabled(true);
+                joinAndLeaveWaitlistButton.setText("Run Lottery");
+                // Restore original listener
+                joinAndLeaveWaitlistButton.setOnClickListener(v -> lottery.handleRunLottery(event));
+            }
+
+            joinAndLeaveWaitlistButton.setText("Run Lottery");
+            joinAndLeaveWaitlistButton.setOnClickListener(v -> lottery.handleRunLottery(event));
 
             // 3. Allow organizer to click banner image to change it
             eventImageView.setClickable(true);
@@ -214,8 +410,63 @@ public class EventViewFragment extends Fragment {
                 );
             });
 
+        } else if (isAttending) {
+            // user is attending event, hide manage entrants button, and set joinandleavebutton to a message
+            manageEntrantsButton.setVisibility(View.GONE);
+            joinAndLeaveWaitlistButton.setText("We'll see you there!");
+            // joinandlaave button should be unclickable
+            joinAndLeaveWaitlistButton.setClickable(false);
+
+        } else if (isInvited) {
+            // invited user view
+            manageEntrantsButton.setVisibility(View.VISIBLE);
+            manageEntrantsButton.setText("Accept Invitation");
+            manageEntrantsButton.setOnClickListener(v -> {
+                // TODO: Implement accept invitation
+
+                // event side attending list
+                // call to event eventRepo
+                eventRepo.addUserToAttending(event, currentProfile.getUid());
+                eventRepo.removeUserFromInvited(event, currentProfile.getUid());
+
+                // client side list of attending events
+                // call to profile model
+                // Logic for joining a waitlist
+                currentProfile.addAttendingEventId(event.getEventId());
+                currentProfile.removeInvitedEventId(event.getEventId());
+                currentProfile.removeOnWaitlistEventId(event.getEventId());
+
+                // 1. Get the location from the user's profile.
+                // 2. Pass the user ID and location to the eventRepository method.
+
+
+                navigateBack();
+
+                Toast.makeText(getContext(), "Invitation accepted", Toast.LENGTH_SHORT).show();
+            });
+
+            joinAndLeaveWaitlistButton.setVisibility(View.VISIBLE);
+            joinAndLeaveWaitlistButton.setText("Reject Invitation");
+            joinAndLeaveWaitlistButton.setOnClickListener(v -> {
+                // TODO: Implement reject invitation
+                // deal with backend stuff
+                eventRepo.addUserToCancelled(event, currentProfile.getUid());
+                eventRepo.removeUserFromInvited(event, currentProfile.getUid());
+
+                // deal with client side logic
+                currentProfile.addCancelledEventId(event.getEventId());
+                currentProfile.removeInvitedEventId(event.getEventId());
+                currentProfile.removeOnWaitlistEventId(event.getEventId());
+
+                // automatically re-run the lottery for 1 person
+                lottery.handleRunLottery(event, 1);
+
+                navigateBack();
+                Toast.makeText(getContext(), "Invitation rejected (not implemented)", Toast.LENGTH_SHORT).show();
+            });
+
         } else {
-            // Regular User View
+            // regular (non invited/waitlisted) User View
 
             // Hide the organizer button
             manageEntrantsButton.setVisibility(View.GONE);
@@ -230,7 +481,6 @@ public class EventViewFragment extends Fragment {
 
         // Setup listeners
         backButton.setOnClickListener(v -> navigateBack());
-        // REMOVED redundant listeners from here as they are now correctly placed inside the if/else block
     }
 
     /**
@@ -260,8 +510,8 @@ public class EventViewFragment extends Fragment {
      * Navigates back to the previous fragment in the back stack.
      */
     private void navigateBack() {
-        if (getActivity() != null) {
-            getActivity().getSupportFragmentManager().popBackStack();
+        if (getView() != null) {
+            androidx.navigation.Navigation.findNavController(getView()).popBackStack();
         }
     }
 
@@ -277,14 +527,13 @@ public class EventViewFragment extends Fragment {
         }
 
         boolean onWaitlist = isOnWaitlist(currentProfile);
+        boolean isInvited = currentProfile.getOnInvitedEventIds().contains(event.getEventId());
 
         if (onWaitlist) {
             // Logic for leaving a waitlist (remains unchanged)
             currentProfile.removeOnWaitlistEventId(event.getEventId());
             currentProfile.removeOnMyEventId(event.getEventId());
-            // This needs to be updated to use the correct subcollection name if you changed it
-            // For now assuming the logic in removeUserFromWaitlist is correct
-            repo.removeUserFromWaitlist(event, currentProfile.getUid());
+            eventRepo.removeUserFromWaitlist(event, currentProfile.getUid());
             navigateBack();
             Toast.makeText(getContext(), "Removed from waitlist!", Toast.LENGTH_SHORT).show();
         } else {
@@ -294,8 +543,8 @@ public class EventViewFragment extends Fragment {
             // 1. Get the location from the user's profile.
             GeoPoint lastKnownLocation = currentProfile.getLastKnownLocation();
 
-            // 2. Pass the user ID and location to the repository method.
-            repo.addUserToWaitlist(event, currentProfile.getUid(), lastKnownLocation);
+            // 2. Pass the user ID and location to the eventRepository method.
+            eventRepo.addUserToWaitlist(event, currentProfile.getUid(), lastKnownLocation);
 
             navigateBack();
             Toast.makeText(getContext(), "Added to waitlist!", Toast.LENGTH_SHORT).show();
@@ -352,7 +601,7 @@ public class EventViewFragment extends Fragment {
             event.setBannerImageBlob(imageBlob);
 
             // Save to Firebase using createEvent (which uses set() and will update if exists)
-            repo.createEvent(event);
+            eventRepo.createEvent(event);
             Toast.makeText(getContext(), "Event banner updated!", Toast.LENGTH_SHORT).show();
 
         } catch (Exception e) {

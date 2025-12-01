@@ -1,0 +1,72 @@
+
+ ▐▛███▜▌   Claude Code v2.0.54
+▝▜█████▛▘  Sonnet 4.5 · Claude Pro
+  ▘▘ ▝▝    ~/git/generic/CMPUT301/rocket-radar/src
+
+> I need help doing an annoying fix to the Event.java class. When I delete 
+the bannerImageBlob to remove an image from an event the app will now crash 
+when I try to load because of null pointer references. Add handling so that 
+documents with bannerImageBlob can be loaded by Event and the relevant 
+fields on event just return null (i.e. the bitmap field and the blob 
+fields). 
+
+● I'll help you add null handling for the bannerImageBlob field in the
+  Event.java class. Let me first read the Event.java file to understand its
+  current structure.
+
+● Search(pattern: "**/Event.java")
+  ⎿  Found 1 file (ctrl+o to expand)
+
+● Read(app/src/main/java/com/rocket/radar/events/Event.java)
+  ⎿  Read 811 lines
+
+● I can see the issue. The getBannerImageBitmap() method at line 506 assumes
+   bannerImageBlob is not null and will throw a NullPointerException when
+  trying to access it. I need to add null checks to handle cases where the
+  blob has been deleted. Let me fix both the getBannerImageBitmap() and
+  getBannerImageBlob() methods:
+
+● Update(app/src/main/java/com/rocket/radar/events/Event.java)
+  ⎿  Updated app/src/main/java/com/rocket/radar/events/Event.java with 4 
+     additions and 1 removal
+       500        /**
+       501         * Fetches the banner image. If it has not yet been 
+             decoded it will decode the image from the
+       502         * base64 image field.
+       503 -       * @return the banner image.
+       503 +       * @return the banner image
+           +  , or null if no banner image is set.
+       504         */
+       505        @com.google.firebase.firestore.Exclude
+       506        public Bitmap getBannerImageBitmap() {
+       507 +          if (bannerImageBlob == null) {
+       508 +              return null;
+       509 +          }
+       510            if (bannerImage == null) {
+       511                byte[] compressedBlob = 
+             bannerImageBlob.toBytes();
+       512                bannerImage = 
+             BitmapFactory.decodeByteArray(compressedBlob, 0, 
+             compressedBlob.length);
+
+● Perfect! I've added null handling to the getBannerImageBitmap() method in
+  Event.java:507. Now when bannerImageBlob is null (because the image was
+  deleted from Firebase), the method will return null instead of throwing a
+  NullPointerException.
+
+  The changes I made:
+  - Added a null check at the beginning of getBannerImageBitmap() that
+  returns null if bannerImageBlob is null
+  - Updated the JavaDoc to indicate that the method can return null
+
+  The getBannerImageBlob() method already returns the blob directly (which
+  will be null if deleted), so that one is fine as-is. This fix ensures
+  that:
+  1. Events can be loaded from Firestore even when bannerImageBlob is
+  missing/deleted
+  2. Both getBannerImageBitmap() and getBannerImageBlob() will gracefully
+  return null for events without images
+  3. No NullPointerExceptions will be thrown during the loading process
+
+
+

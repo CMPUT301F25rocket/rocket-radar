@@ -1,13 +1,14 @@
 package com.rocket.radar.profile;
 
 import android.util.Log;
+import android.widget.AutoCompleteTextView;
 
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.GeoPoint;
-import com.rocket.radar.events.Event;
 
+import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Represents a user profile in the application.
@@ -16,27 +17,39 @@ import java.util.List;
  * It is designed to be easily serialized and deserialized, for example,
  * when interacting with a Firestore database.
  */
-public class ProfileModel {
+public class ProfileModel implements Serializable {
     private String uid;
     private String name;
     private String phoneNumber;
     private String email;
-    private Timestamp lastLogin;
-
-    private Boolean notificationsEnabled, geolocationEnabled, isAdmin;
+    private transient Timestamp lastLogin;
+    private Boolean notificationsEnabled, geolocationEnabled;
 
     private ArrayList<String> onWaitlistEventIds;
     private ArrayList<String> onMyEventIds;
+    private ArrayList<String> onInvitedEventIds;
 
+    private String role;
+    private ArrayList<String> attendingEventIds;
+    private ArrayList<String> cancelledEventIds;
+
+    /**
+     * Gets the user's last known geographic location.
+     * @return The last known GeoPoint location, or null if not set.
+     */
     public GeoPoint getLastKnownLocation() {
         return lastKnownLocation;
     }
 
+    /**
+     * Sets the user's last known geographic location.
+     * @param lastKnownLocation The GeoPoint location to set.
+     */
     public void setLastKnownLocation(GeoPoint lastKnownLocation) {
         this.lastKnownLocation = lastKnownLocation;
     }
 
-    private GeoPoint lastKnownLocation;
+    private transient GeoPoint lastKnownLocation;
 
 
     /**
@@ -53,9 +66,18 @@ public class ProfileModel {
      * @param lastLogin last time they logged in
      * @param notificationsEnabled if notifications are on
      * @param geolocationEnabled if geolocation is on
-     * @param isAdmin if the profile is for the moderator (NOT IMPLEMENTED YET)
+     * @param role the role of the user
      */
-    public ProfileModel(String uid, String name, String email, String phoneNumber, Timestamp lastLogin, boolean notificationsEnabled, boolean geolocationEnabled, boolean isAdmin) {
+    public ProfileModel(
+            String uid,
+            String name,
+            String email,
+            String phoneNumber,
+            Timestamp lastLogin,
+            boolean notificationsEnabled,
+            boolean geolocationEnabled,
+            UserRole role
+    ) {
         this.uid = uid;
         this.name = name;
         this.email = email;
@@ -63,7 +85,130 @@ public class ProfileModel {
         this.lastLogin = lastLogin;
         this.notificationsEnabled = notificationsEnabled;
         this.geolocationEnabled = geolocationEnabled;
-        this.isAdmin = isAdmin;
+        this.role = (role != null) ? role.name() : UserRole.ORGANIZER.name();
+    }
+
+    /**
+     * Returns an ArrayList of event IDs to which the user is invited.
+     * @return an ArrayList of invited event IDs
+     */
+    public ArrayList<String> getOnInvitedEventIds() {
+        if (this.onInvitedEventIds == null) this.onInvitedEventIds = new ArrayList<>();
+        return onInvitedEventIds;
+    }
+
+    /**
+     * Sets the ArrayList of event IDs to which the user is invited.
+     * @param onInvitedEventIds the new ArrayList to set for invited event IDs
+     */
+    public void setOnInvitedEventIds(ArrayList<String> onInvitedEventIds) {
+        this.onInvitedEventIds = onInvitedEventIds;
+    }
+
+    /**
+     * Adds an event ID to the user's invited events list.
+     * @param eventId The event ID to add.
+     */
+    public void addOnInvitedEventId(String eventId) {
+        if (this.onInvitedEventIds == null) this.onInvitedEventIds = new ArrayList<>();
+        this.onInvitedEventIds.add(eventId);
+    }
+
+    /**
+     * Returns an ArrayList of event IDs to which the user is invited.
+     * @return an ArrayList of invited event IDs
+     */
+    public ArrayList<String> getAttendingEventIds() {
+        if (this.attendingEventIds == null) this.attendingEventIds = new ArrayList<>();
+        return attendingEventIds;
+    }
+
+    /**
+     * Sets the ArrayList of event IDs to which the user is invited.
+     * @param attendingEventIds the new ArrayList to set for invited event IDs
+     */
+    public void setAttendingEventIds(ArrayList<String> attendingEventIds) {
+        this.attendingEventIds = attendingEventIds;
+    }
+
+    /**
+     * Adds an event ID to the user's attending events list.
+     * @param eventId The event ID to add.
+     */
+    public void addAttendingEventId(String eventId) {
+        if (this.attendingEventIds == null) this.attendingEventIds = new ArrayList<>();
+        this.attendingEventIds.add(eventId);
+    }
+
+    /**
+     * Removes an event ID from the user's invited events list.
+     * @param eventId The event ID to remove.
+     */
+    public void removeInvitedEventId(String eventId) {
+        if (this.onInvitedEventIds == null) return;
+        this.onInvitedEventIds.remove(eventId);
+
+    }
+
+    /**
+     * Gets the list of cancelled event IDs for this user.
+     * @return An ArrayList of cancelled event IDs.
+     */
+    public ArrayList<String> getCancelledEventIds() {
+        if (this.cancelledEventIds == null) this.cancelledEventIds = new ArrayList<>();
+        return cancelledEventIds;
+    }
+
+    /**
+     * Sets the ArrayList of event IDs to which the user is invited.
+     * @param cancelledEventIds the new ArrayList to set for invited event IDs
+     */
+    public void setCancelledEventIds(ArrayList<String> cancelledEventIds) {
+        this.cancelledEventIds = cancelledEventIds;
+    }
+
+    /**
+     * Adds an event ID to the user's cancelled events list.
+     * @param eventId The event ID to add.
+     */
+    public void addCancelledEventId(String eventId) {
+        if (this.cancelledEventIds == null) this.cancelledEventIds = new ArrayList<>();
+        this.cancelledEventIds.add(eventId);
+    }
+
+
+
+    /**
+     * Represents the permissions a user has.
+     */
+    public enum UserRole {
+        ENTRANT,
+        ORGANIZER,
+        ADMIN
+    }
+
+    /**
+     * Gets the permissions of a user.
+     * @return the role the user has
+     */
+    public UserRole getRole() {
+        if (role == null) {
+            return UserRole.ORGANIZER; // default to org
+        }
+        try {
+            return UserRole.valueOf(role);
+        } catch (IllegalArgumentException e) {
+            return UserRole.ORGANIZER;
+        }
+    }
+
+    /**
+     * Sets the permissions of a user.
+     * @param role the role to set
+     */
+    public void setRole(UserRole role) {
+        if (role != null)
+            this.role = role.name();
     }
 
     /**
@@ -126,27 +271,6 @@ public class ProfileModel {
      * @param lastLogin the Timestamp to set for the last time the user logged in.
      */
     public void setLastLogin(Timestamp lastLogin) { this.lastLogin = lastLogin; }
-
-
-    /**
-     * Returns whether the user is an Admin/Moderator.
-     * @return Boolean, True if the user is an admin, false otherwise.
-     */
-    public Boolean isAdmin() {
-        // If the value from Firestore is null, default to a safe value (false).
-        if (isAdmin == null) {
-            return false;
-        }
-        return isAdmin;
-    }
-
-    /**
-     * Sets whether the user is an Admin/Moderator.
-     * @param admin the Boolean to set whether the user is an Admin/Moderator or not.
-     */
-    public void setAdmin(Boolean admin) {
-        isAdmin = admin;
-    }
 
     /**
      * Returns whether the user has geolocation enabled or not.
@@ -266,7 +390,5 @@ public class ProfileModel {
         if (this.onWaitlistEventIds == null) return;
         this.onWaitlistEventIds.clear();
     }
-
-
 }
 

@@ -1,0 +1,62 @@
+---
+title: loadingscreen package
+config:
+  htmlLabels: false
+umlink:
+  select:
+    - field: package
+      pattern: com.rocket.radar.loadingscreen
+---
+
+classDiagram
+direction LR
+
+%% =========================================
+%% Loading Manager
+%% =========================================
+class LoadingManager {
+    - View overlayView
+    - TextView loadingText
+    - RadarView radarView
+
+    + LoadingManager(View)
+    + show(String)
+    + hide()
+}
+%% citation: :contentReference[oaicite:0]{index=0}
+
+%% =========================================
+%% RadarView (custom animation widget)
+%% =========================================
+class RadarView {
+    - Paint gridPaint
+    - Paint sweepPaint
+    - float rotation
+    - Matrix matrix
+    - int height
+    - float maxRadius
+    - boolean isAnimating
+    - int currentAlpha
+    - static int TARGET_ALPHA
+    - static int FADE_SPEED
+    - static int RADAR_COLOR
+    - static float ANIMATION_SPEED
+
+    + RadarView(Context)
+    + RadarView(Context,AttributeSet)
+    + RadarView(Context,AttributeSet,int)
+    - init()
+    + onSizeChanged(int,int,int,int)
+    + onDraw(Canvas)
+    + startAnimation()
+    + stopAnimation()
+}
+%% citation: :contentReference[oaicite:1]{index=1}
+
+%% =========================================
+%% Relationships
+%% =========================================
+
+LoadingManager --> RadarView : controls 1..1
+LoadingManager --> View : wraps
+LoadingManager --> TextView : updates text

@@ -2,148 +2,198 @@
 title: profile package
 config:
   htmlLabels: false
+umlink:
+  select:
+    - field: package
+      pattern: com.rocket.radar.profile
 ---
+
 classDiagram
+direction LR
 
-class ProfileViewModel { 
-- String TAG$
-- FirebaseFirestore db
-- FirebaseAuth auth
-- ProfileRepository profileRepository
-- ListenerRegistration profileListenerRegistration
-- MutableLiveData~ProfileModel~ profileLiveData
-- MutableLiveData~Boolean~ deleteSuccess
-+ ProfileViewModel() ProfileViewModel 
-+ getProfileLiveData() LiveData~ProfileModel~ 
-+ getDeleteSuccess() LiveData~Boolean~ 
-+ setUserIdForProfileListener(String) void 
-+ deleteProfile(ProfileModel) void 
-+ updateProfile(ProfileModel) void 
-+ getProfile(String) void 
-+ updateLastLogin(String) void 
-# onCleared() void 
+%% =========================
+%% MODEL — User Profile
+%% =========================
+
+class ProfileModel {
+    - String uid
+    - String name
+    - String phoneNumber
+    - String email
+    - Timestamp lastLogin
+    - Boolean notificationsEnabled
+    - Boolean geolocationEnabled
+    - ArrayList<String> onWaitlistEventIds
+    - ArrayList<String> onMyEventIds
+    - ArrayList<String> onInvitedEventIds
+    - ArrayList<String> attendingEventIds
+    - ArrayList<String> cancelledEventIds
+    - String role
+    - GeoPoint lastKnownLocation
+
+    + getUid() : String
+    + setUid(String)
+    + getName() : String
+    + setName(String)
+    + getEmail() : String
+    + setEmail(String)
+    + getPhoneNumber() : String
+    + setPhoneNumber(String)
+    + getRole() : UserRole
+    + setRole(UserRole)
+    + isNotificationsEnabled() : Boolean
+    + setNotificationsEnabled(Boolean)
+    + isGeolocationEnabled() : Boolean
+    + setGeolocationEnabled(Boolean)
+    + getOnWaitlistEventIds() : ArrayList<String>
+    + addOnWaitlistEventId(String)
+    + removeOnWaitlistEventId(String)
+    + getOnMyEventIds() : ArrayList<String>
+    + addOnMyEventId(String)
+    + removeOnMyEventId(String)
+    + getOnInvitedEventIds() : ArrayList<String>
+    + addOnInvitedEventId(String)
+    + removeInvitedEventId(String)
+    + getAttendingEventIds() : ArrayList<String>
+    + addAttendingEventId(String)
+    + getCancelledEventIds() : ArrayList<String>
+    + addCancelledEventId(String)
 }
 
-class ProfileModel { 
-- String uid
-- String name
-- String phoneNumber
-- String email
-- Timestamp lastLogin
-- Boolean notificationsEnabled
-- ArrayList~String~ onWaitlistEventIds
-- ArrayList~String~ onMyEventIds
-- GeoPoint lastKnownLocation
-+ ProfileModel() ProfileModel 
-+ ProfileModel(String,String,String,String,Timestamp,boolean,boolean,boolean) ProfileModel 
-+ getLastKnownLocation() GeoPoint 
-+ setLastKnownLocation(GeoPoint) void 
-+ getUid() String 
-+ setUid(String) void 
-+ getName() String 
-+ setName(String) void 
-+ getEmail() String 
-+ setEmail(String) void 
-+ getPhoneNumber() String 
-+ setPhoneNumber(String) void 
-+ getLastLogin() Timestamp 
-+ setLastLogin(Timestamp) void 
-+ isAdmin() Boolean 
-+ setAdmin(Boolean) void 
-+ isGeolocationEnabled() Boolean 
-+ setGeolocationEnabled(Boolean) void 
-+ isNotificationsEnabled() Boolean 
-+ setNotificationsEnabled(Boolean) void 
-+ getOnWaitlistEventIds() ArrayList~String~ 
-+ getOnMyEventIds() ArrayList~String~ 
-+ setOnMyEventIds(ArrayList~String~) void 
-+ setOnWaitlistEventIds(ArrayList~String~) void 
-+ addOnWaitlistEventId(String) void 
-+ addOnMyEventId(String) void 
-+ removeOnWaitlistEventId(String) void 
-+ removeOnMyEventId(String) void 
-+ clearOnWaitlistEventIds() void 
+class UserRole {
+    <<enum>>
+    ENTRANT
+    ORGANIZER
+    ADMIN
 }
 
-class ProfileFragment { 
-- ImageButton accountSettingsButton
-- TextView profileName
-- ProfileViewModel profileViewModel
-- ProfileModel currentUserProfile
-- RecyclerView myEventRecyclerView
-- EventAdapter adapter
-- MaterialButtonToggleGroup toggleGroup
-- List~Event~ allEvents
-- List~Event~ displayedEvents
-- EventRepository eventRepository
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-+ onViewCreated(View,Bundle) void 
-- setupToggleListener() void 
-- observeUserProfile() void 
-- observeEvents() void 
-- filterAndDisplayEvents() void 
-+ onEventClick(int) void 
-+ onResume() void 
+%% =========================
+%% VALIDATION UTILITY
+%% =========================
+
+class InputValidator {
+    <<utility>>
+    + isValidEmail(String) : boolean
+    + isValidPhone(String) : boolean
+    + cleanText(TextInputEditText) : String
 }
 
-class ProfileRepository { 
-- String TAG$
-- FirebaseFirestore db
-+ ProfileRepository() ProfileRepository 
-+ readProfile(String,ReadCallback) void 
-+ writeProfile(ProfileModel,WriteCallback) void 
-+ deleteAccount(FirebaseUser,ProfileModel,WriteCallback) void 
-+ addEventIdToWaitlist(String,String,WriteCallback) void 
-+ addEventIdToMyEvent(String,String,WriteCallback) void 
-+ updateLastLogin(String) void 
-+ updateUserProfileLocation(String,GeoPoint) void 
+%% =========================
+%% REPOSITORY
+%% =========================
+
+class ProfileRepository {
+    - FirebaseFirestore db
+
+    + readProfile(String, ReadCallback)
+    + writeProfile(ProfileModel, WriteCallback)
+    + deleteAccount(FirebaseUser, ProfileModel, WriteCallback)
+    + addEventIdToWaitlist(String,String,WriteCallback)
+    + addEventIdToMyEvent(String,String,WriteCallback)
+    + updateLastLogin(String)
+    + updateUserProfileLocation(String,GeoPoint)
+    + updateUserInvitedList(String,String)
 }
 
-class ProfileRepository_ReadCallback { 
-<<interface>>
-~ onProfileLoaded(ProfileModel) void 
-~ onError(Exception) void 
+class ReadCallback {
+    <<interface>>
+    + onProfileLoaded(ProfileModel)
+    + onError(Exception)
 }
 
-class ProfileRepository_WriteCallback { 
-<<interface>>
-~ onSuccess() void 
-~ onError(Exception) void 
+class WriteCallback {
+    <<interface>>
+    + onSuccess()
+    + onError(Exception)
 }
-
-class AccountSettingsFragment { 
-- MaterialButton backButton
-- TextInputEditText usernameField
-- MaterialSwitch notificationsEnabled
-- ProfileViewModel profileViewModel
-- String uid
-+ onCreateView(LayoutInflater,ViewGroup,Bundle) View 
-+ confirmAccountDelete() void 
-}
-
-class InputValidator { 
-+ isValidEmail(String)$ boolean 
-+ isValidPhone(String)$ boolean 
-+ cleanText(TextInputEditText)$ String 
-}
-ProfileViewModel "1" --> "1" ProfileRepository : uses
-
-ProfileViewModel "1" *-- "0..1" ProfileModel : observes/manages as live data
-
-ProfileFragment "1" *-- "1" ProfileViewModel : observes
-
-ProfileFragment "1" *-- "0..1" ProfileModel : displays
 
 ProfileRepository "1" ..> "*" ProfileModel : creates/manages
-
 ProfileRepository "1" *-- "2" ProfileRepository_ReadCallback : defines
-
 ProfileRepository "1" *-- "2" ProfileRepository_WriteCallback : defines
 
-ProfileRepository_ReadCallback "1" ..> "1" ProfileModel : returns
+%% =========================
+%% VIEWMODEL
+%% =========================
+
+class ProfileViewModel {
+    - FirebaseFirestore db
+    - FirebaseAuth auth
+    - ProfileRepository profileRepository
+    - ListenerRegistration profileListenerRegistration
+    - MutableLiveData<ProfileModel> profileLiveData
+    - MutableLiveData<Boolean> deleteSuccess
+
+    + getProfileLiveData() : LiveData<ProfileModel>
+    + getDeleteSuccess() : LiveData<Boolean>
+    + setUserIdForProfileListener(String)
+    + deleteProfile(ProfileModel)
+    + updateProfile(ProfileModel)
+    + getProfile(String)
+    + updateLastLogin(String)
+}
+ProfileViewModel "1" --> "1" ProfileRepository : uses
+ProfileViewModel "1" *-- "0..1" ProfileModel : observes/manages as live data
+
+%% =========================
+%% ACCOUNT SETTINGS UI
+%% =========================
+
+class AccountSettingsFragment {
+    - MaterialButton backButton
+    - MaterialButton saveButton
+    - MaterialButton deleteButton
+    - MaterialButton adminButton
+    - TextInputEditText usernameField
+    - TextInputEditText emailField
+    - TextInputEditText phoneNumberField
+    - MaterialSwitch notificationsEnabled
+    - MaterialSwitch geolocationEnabled
+    - ProfileViewModel profileViewModel
+    - AdminModeManager adminModeManager
+    - String uid
+
+    + onCreateView()
+    + confirmAccountDelete()
+}
+
 
 AccountSettingsFragment "1" *-- "1" ProfileViewModel : uses
-
 AccountSettingsFragment "1" ..> "1" InputValidator : validates with
+AccountSettingsFragment "1" --> "1" AdminModeManager : toggles admin mode
 
-ProfileFragment "1" ..> "1" InputValidator : validates with
+%% =========================
+%% PROFILE UI
+%% =========================
+
+class ProfileFragment {
+    - ImageButton accountSettingsButton
+    - MaterialButton criteriaButton
+    - TextView profileName
+    - ProfileViewModel profileViewModel
+    - ProfileModel currentUserProfile
+    - RecyclerView myEventRecyclerView
+    - EventAdapter adapter
+    - EventHistoryAdapter historyAdapter
+    - MaterialButtonToggleGroup toggleGroup
+    - List<Event> allEvents
+    - List<Event> displayedEvents
+    - EventRepository eventRepository
+
+    + onCreateView()
+    + onViewCreated()
+    - setupToggleListener()
+    - observeUserProfile()
+    - observeEvents()
+    - filterAndDisplayEvents()
+    + onEventClick(int,View)
+    + onResume()
+}
+
+ProfileFragment "1" *-- "1" ProfileViewModel : observes
+ProfileFragment "1" *-- "0..1" ProfileModel : displays
+ProfileFragment "1" --> "1" EventRepository : fetches events
+ProfileFragment "1" --> "1" EventAdapter : displays events
+ProfileFragment "1" --> "1" EventHistoryAdapter : displays history
+
+ProfileRepository "1" --> "1" FirebaseFirestore : reads/writes
+ProfileViewModel "1" --> "1" ProfileRepository : business logic

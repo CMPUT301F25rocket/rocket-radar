@@ -1,0 +1,143 @@
+---
+title: eventmanagement package
+config:
+  class:
+    hideEmptyMembersBox: true
+  layout: elk
+  htmlLabels: false
+umlink:
+  select:
+  - field: package
+    pattern: com.rocket.radar.eventmanagement
+---
+classDiagram
+class EventLotteryFragment {
+  -TAG: String$
+  -binding: ViewInputEventLotteryBinding
+  -viewModel: EventLotteryViewModel
+  -bottomSheetProvider: BottomSheetProvider
+  +onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) View
+  +onViewCreated(view: View, savedInstanceState: Bundle) void
+  -setupDateTimePickers() void
+  -setupInputListeners() void
+  +valid(inputFragment: InputFragment) boolean
+  +extract(builder: Event.Builder) Event.Builder
+  +onDestroyView() void
+}
+class EventLotteryViewModel {
+  -eventLotteryFragment: EventLotteryFragment
+  -dateFormatter: SimpleDateFormat
+  +hasWaitlistCapacity: MutableLiveData
+  +hasLocationRequirement: MutableLiveData
+  +waitlistCapacity: MutableLiveData
+  +eventCapacity: MutableLiveData
+  +eventDate: MutableLiveData
+  +eventStartTime: MutableLiveData
+  +eventEndTime: MutableLiveData
+  +registrationStartDate: MutableLiveData
+  +initialSelectionStartDate: MutableLiveData
+  +finalAttendeeSelectionDate: MutableLiveData
+  +waitlistCapacityDisplay() LiveData
+  +eventCapacityDisplay() LiveData
+  +eventDateDisplay() LiveData
+  +eventStartTimeDisplay() LiveData
+  +eventEndTimeDisplay() LiveData
+  +registrationStartDateDisplay() LiveData
+  +initialSelectionStartDateDisplay() LiveData
+  +finalAttendeeSelectionDateDisplay() LiveData
+}
+class CreateEventActivity {
+  +TAG: String$
+  ~binding: ActivityCreateEventBinding
+  -currentSection: MutableLiveData
+  ~eventRepository: EventRepository
+  -eventGeneralFragment: EventGeneralFragment
+  -eventLotteryFragment: EventLotteryFragment
+  -eventGeneralViewModel: EventGeneralViewModel
+  -eventLotteryViewModel: EventLotteryViewModel
+  -fragment: Fragment
+  #onCreate(savedInstanceState: Bundle) void
+  -navigateToSection(section: Section) void
+  +openCalendarBottomSheet(sink: MutableLiveData, view: View) void
+  +openTimeBottomSheet(sink: MutableLiveData, view: View) void
+  +onDestroy() void
+}
+class EventGeneralFragment {
+  -TAG: String$
+  -binding: ViewInputEventGeneralBinding
+  -viewModel: EventGeneralViewModel
+  -pickMedia: ActivityResultLauncher
+  -googleMap: GoogleMap
+  -autocompleteFragment: AutocompleteSupportFragment
+  -activity: FragmentActivity
+  +onCreate(savedInstanceState: Bundle) void
+  +onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) View
+  +onViewCreated(view: View, savedInstanceState: Bundle) void
+  -updateMapLocation() void
+  -setupImagePicker() void
+  +valid(inputFragment: InputFragment) boolean
+  +extract(builder: Event.Builder) Event.Builder
+  +onDestroyView() void
+  +onMapReady(googleMap: GoogleMap) void
+}
+class Section {
+  GENERAL
+  LOTTERY
+  firstSection
+  lastSection
+  -VALUES: Section[]$
+  +values()$ Section[]
+  +valueOf(name: String)$ Section
+  +getTitle() String
+  +isGeneralValid(title: String, description: String) boolean
+  +isDatetimeValid(eventDate: Date, eventStartTime: Time, eventEndTime: Time) boolean
+  -values()$ Section[]
+}
+<<enumeration>> Section
+class Time {
+  -hour: int
+  -minute: int
+  +getHour() int
+  +setHour(hour: int) void
+  +getMinute() int
+  +setMinute(minute: int) void
+  +toString() String
+  +compareTo(o: Time) int
+  +lessThan(o: Time) boolean
+  +compareTo(o: Object) int
+}
+class BottomSheetProvider {
+  +openCalendarBottomSheet(sink: MutableLiveData, view: View)* void
+  +openTimeBottomSheet(sink: MutableLiveData, view: View)* void
+}
+<<interface>> BottomSheetProvider
+class EventGeneralViewModel {
+  -eventGeneralFragment: EventGeneralFragment
+  +title: MutableLiveData
+  +description: MutableLiveData
+  +tagline: MutableLiveData
+  +image: MutableLiveData
+  +locationLatitude: MutableLiveData
+  +locationLongitude: MutableLiveData
+  +locationName: MutableLiveData
+  +categories: MutableLiveData
+}
+class InputFragment {
+  +valid(inputFragment: InputFragment)* boolean
+  +extract(builder: Event.Builder)* Event.Builder
+}
+<<interface>> InputFragment
+CreateEventActivity --|> AppCompatActivity
+CreateEventActivity ..|> BottomSheetProvider
+EventGeneralFragment --|> Fragment
+EventGeneralFragment ..|> InputFragment
+EventGeneralFragment ..|> OnMapReadyCallback
+EventGeneralViewModel "1" --* "1" Section : stores
+EventGeneralViewModel "1" --> "1" Section : changes
+EventGeneralViewModel --|> ViewModel
+EventLotteryFragment --|> Fragment
+EventLotteryFragment ..|> InputFragment
+EventLotteryViewModel "1" --* "1" Section : stores
+EventLotteryViewModel "1" --> "1" Section : changes
+EventLotteryViewModel --|> ViewModel
+Time ..|> Comparable

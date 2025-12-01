@@ -1,0 +1,430 @@
+---
+title: events package
+config:
+  layout: elk
+  theme: light
+  elk:
+    nodePlacementStrategy: SIMPLE
+  htmlLabels: false
+umlink:
+  select:
+  - field: package
+    pattern: com.rocket.radar.events
+---
+classDiagram
+class EventAdapter.OnEventListener {
+  +onEventClick(position: int, itemView: View)* void
+}
+<<interface>> EventAdapter.OnEventListener
+class EventRepository.InvitedEntrantsCallback {
+  +onInvitedEntrantsFetched(userIds: List)* void
+  +onError(e: Exception)* void
+}
+<<interface>> EventRepository.InvitedEntrantsCallback
+class EventRepository.InvitedLocationsCallback {
+  +onInvitedLocationsFetched(locations: List)* void
+  +onError(e: Exception)* void
+}
+<<interface>> EventRepository.InvitedLocationsCallback
+class EventRepository.SelectedLocationsCallback {
+  +onSelectedLocationsFetched(locations: List)* void
+  +onError(e: Exception)* void
+}
+<<interface>> EventRepository.SelectedLocationsCallback
+class FilterModel {
+  -filters: ArrayList
+  +getFilters() Stream
+  +addFilter(eventFilter: FilterModel.EventFilter) int
+  +removeFilterByName(filterName: String) void
+  +removeFilterById(filterId: int) void
+  +removeFiltersByCategory(category: String) void
+  +clearFilters() void
+  +filter(events: Stream) Stream
+}
+class EventViewFragment {
+  +TAG: String$
+  -ARG_EVENT: String$
+  -ARG_IS_ORGANIZER: String$
+  -event: Event
+  -profileViewModel: ProfileViewModel
+  -eventRepo: EventRepository
+  -lottery: LotteryLogic
+  -isOrganizer: boolean
+  -pickMedia: ActivityResultLauncher
+  -eventImageView: ImageView
+  -statusBarImage: ImageView
+  -adminModeManager: AdminModeManager
+  +newInstance(event: Event)$ EventViewFragment
+  +newInstance(event: Event, isOrganizer: boolean)$ EventViewFragment
+  +onCreate(savedInstanceState: Bundle) void
+  +onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) View
+  +onViewCreated(view: View, savedInstanceState: Bundle) void
+  +onResume() void
+  +onStop() void
+  -navigateBack() void
+  -handleJoinLeaveWaitlist() void
+  -updateWaitlistButton(button: Button, profile: ProfileModel) void
+  -isOnWaitlist(profile: ProfileModel) boolean
+  -updateEventBannerImage(uri: Uri) void
+}
+class EventRepository.UserLocationFromInvitedCallback {
+  +onLocationFetched(location: GeoPoint)* void
+  +onError(e: Exception)* void
+}
+<<interface>> EventRepository.UserLocationFromInvitedCallback
+class FilterEventsFragment.FilterEventsFragmentState {
+  +selectedChips: List
+  +selectedDate: Date
+}
+class EventRepository.WaitlistSizeListener {
+  +onSizeReceived(size: int)* void
+  +onWaitlistEntrantsFetched(userIds: List)* void
+  +onError(e: Exception)* void
+}
+<<interface>> EventRepository.WaitlistSizeListener
+class EventListFragment {
+  -ARG_EVENT: String$
+  -TAG: String$
+  -eventRecyclerView: RecyclerView
+  -adapter: EventAdapter
+  -displayedEvents: List
+  -allEvents: List
+  -eventRepository: EventRepository
+  -profileViewModel: ProfileViewModel
+  -currentUserProfile: ProfileModel
+  -notificationButton: Button
+  -toggleGroup: MaterialButtonToggleGroup
+  -notificationBadge: TextView
+  -notificationRepository: NotificationRepository
+  -filterButton: Button
+  -chipGroup: ChipGroup
+  -filterModel: FilterModel
+  +newInstance(event: Event)$ EventListFragment
+  +onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) View
+  +removeActiveFilter(group: ChipGroup, selected: List) void
+  +showActiveFilter(filter: FilterModel.EventFilter) void
+  +onViewCreated(view: View, savedInstanceState: Bundle) void
+  -observeEvents() void
+  -observeUserProfile() void
+  -updateNotificationButtonUI(profile: ProfileModel) void
+  -observeUnreadNotifications() void
+  -setupToggleListener() void
+  -filterAndDisplayEvents() void
+  +onEventClick(position: int, itemView: View) void
+  +onResume() void
+}
+class EventRepository.AttendingEntrantsCallback {
+  +AttendingEntrantsFetched(userIds: List)* void
+  +onError(e: Exception)* void
+}
+<<interface>> EventRepository.AttendingEntrantsCallback
+class Event {
+  +allEventCategories: List$
+  -eventId: String
+  ~eventTitle: String
+  ~tagline: String
+  ~description: String
+  ~categories: SortedSet
+  -eventStartDate: Date
+  -eventEndDate: Optional
+  -eventStartTime: Time
+  -eventEndTime: Time
+  -registrationStartDate: Date
+  -selectionStartDate: Date
+  -finalSelectionDate: Date
+  -waitlistCapacity: Optional
+  -requireLocation: boolean
+  -eventCapacity: int
+  -organizerId: String
+  -eventLocationName: String
+  -locationLatitude: Double
+  -locationLongitude: Double
+  -bannerImageBlob: Blob
+  -bannerImage: Bitmap
+  ~eventWaitlistIds: ArrayList
+  ~eventInvitedIds: ArrayList
+  ~eventAttendingIds: ArrayList
+  ~eventCancelledIds: ArrayList
+  ~image: int
+  +resizeBanner(image: Bitmap, width: int, height: int)$ Bitmap
+  +getEventTitle() String
+  +getEventStartDate() Date
+  +getFormattedDate() String
+  +getTagline() String
+  +getEventId() String
+  +setEventId(eventId: String) void
+  +getEventCapacity() int
+  +setEventCapacity(eventCapacity: int) void
+  +isRequireLocation() boolean
+  +setRequireLocation(requireLocation: boolean) void
+  +getWaitlistCapacity() Integer
+  +setWaitlistCapacity(waitlistCapacity: Integer) void
+  +getFinalSelectionDate() Date
+  +setFinalSelectionDate(finalSelectionDate: Date) void
+  +getSelectionStartDate() Date
+  +setSelectionStartDate(selectionStartDate: Date) void
+  +getRegistrationStartDate() Date
+  +setRegistrationStartDate(registrationStartDate: Date) void
+  +getEventEndTime() Time
+  +setEventEndTime(eventEndTime: Time) void
+  +getEventStartTime() Time
+  +setEventStartTime(eventStartTime: Time) void
+  +getEventEndDate() Date
+  +setEventEndDate(eventEndDate: Date) void
+  +setOrganizerId(organizerId: String) void
+  +getOrganizerId() String
+  +setEventStartDate(eventStartDate: Date) void
+  +getCategories() List
+  +setCategories(categories: List) void
+  +setTagline(tagline: String) void
+  +setEventTitle(eventTitle: String) void
+  +getImage() int
+  +getDescription() String
+  +setDescription(description: String) void
+  +getBannerImageBlob() Blob
+  +setBannerImageBlob(bannerImageBlob: Blob) void
+  +getBannerImageBitmap() Bitmap
+  +setBannerImage(bannerImage: Bitmap) void
+  +getEventLocationName() String
+  +setEventLocationName(eventLocationName: String) void
+  +getLocationLatitude() Double
+  +setLocationLatitude(locationLatitude: Double) void
+  +getLocationLongitude() Double
+  +setLocationLongitude(locationLongitude: Double) void
+  +getEventGeoLocation() GeoPoint
+  +setEventGeoLocation(geoPoint: GeoPoint) void
+  +getEventWaitlistIds() ArrayList
+  +getEventInvitedIds() ArrayList
+  +getEventAttendingIds() ArrayList
+  +getEventCancelledIds() ArrayList
+}
+class EventRepository.WaitlistEntrantsCallback {
+  +onWaitlistEntrantsFetched(userIds: List)* void
+  +onError(e: Exception)* void
+}
+<<interface>> EventRepository.WaitlistEntrantsCallback
+class EventHistoryAdapter.MyViewHolder {
+  ~eventImage: ImageView
+  ~eventTitle: TextView
+  ~tagline: TextView
+  ~date: TextView
+  ~status: TextView
+  ~onEventListener: EventHistoryAdapter.OnEventListener
+  +onClick(v: View) void
+}
+class EventRepository.CancelledLocationsCallback {
+  +onCancelledLocationsFetched(locations: List)* void
+  +onError(e: Exception)* void
+}
+<<interface>> EventRepository.CancelledLocationsCallback
+class EventRepository.CancelledEntrantsCallback {
+  +onCancelledEntrantsFetched(userIds: List)* void
+  +onError(e: Exception)* void
+}
+<<interface>> EventRepository.CancelledEntrantsCallback
+class EventHistoryAdapter.OnEventListener {
+  +onEventClick(position: int, itemView: View)* void
+}
+<<interface>> EventHistoryAdapter.OnEventListener
+class EventRepository.InvitedSizeListener {
+  +onSizeReceived(size: int)* void
+  +onInvitedEntrantsFetched(userIds: List)* void
+  +onError(e: Exception)* void
+}
+<<interface>> EventRepository.InvitedSizeListener
+class EventHistoryAdapter {
+  ~context: Context
+  ~eventList: List
+  -currentUserProfile: ProfileModel
+  -onEventListener: EventHistoryAdapter.OnEventListener
+  +onCreateViewHolder(parent: ViewGroup, viewType: int) EventHistoryAdapter.MyViewHolder
+  +onBindViewHolder(holder: EventHistoryAdapter.MyViewHolder, position: int) void
+  +getItemCount() int
+  +onBindViewHolder(holder: RecyclerView.ViewHolder, position: int) void
+  +onCreateViewHolder(parent: ViewGroup, viewType: int) RecyclerView.ViewHolder
+}
+class EventRepository.UserLocationFromSelectedCallback {
+  +onLocationFetched(location: GeoPoint)* void
+  +onError(e: Exception)* void
+}
+<<interface>> EventRepository.UserLocationFromSelectedCallback
+class EventRepository.CancelledSizeListener {
+  +onSizeReceived(size: int)* void
+  +onError(e: Exception)* void
+}
+<<interface>> EventRepository.CancelledSizeListener
+class FilterModel.EventFilter {
+  +filter(event: Event)* boolean
+  +getFilterName()* String
+  #getFilterCategory() String
+}
+<<abstract>> FilterModel.EventFilter
+class EventRepository.UserLocationFromCancelledCallback {
+  +onLocationFetched(location: GeoPoint)* void
+  +onError(e: Exception)* void
+}
+<<interface>> EventRepository.UserLocationFromCancelledCallback
+class EventAdapter {
+  ~context: Context
+  ~eventList: List
+  -onEventListener: EventAdapter.OnEventListener
+  +onCreateViewHolder(parent: ViewGroup, viewType: int) EventAdapter.MyViewHolder
+  +onBindViewHolder(holder: EventAdapter.MyViewHolder, position: int) void
+  +getItemCount() int
+  +onBindViewHolder(holder: RecyclerView.ViewHolder, position: int) void
+  +onCreateViewHolder(parent: ViewGroup, viewType: int) RecyclerView.ViewHolder
+}
+class EventRepository.SingleEventListener {
+  +onEventLoaded(event: Event)* void
+  +onError(e: Exception)* void
+}
+<<interface>> EventRepository.SingleEventListener
+class EventRepository {
+  -TAG: String$
+  -firestore: FirebaseFirestore$
+  -events: CollectionReference
+  -instance: EventRepository$
+  +getInstance()$ EventRepository
+  +useFirestoreForTesting(testFirestore: FirebaseFirestore)$ void
+  +getAllEvents() LiveData
+  +getEvent(eventId: String) Task
+  +getEventById(eventId: String, listener: EventRepository.SingleEventListener) void
+  +addUserToAttending(event: Event, uid: String) void
+  +addUserToCancelled(event: Event, uid: String) void
+  +deleteImage(event: Event, successListener: OnSuccessListener, failureListener: OnFailureListener) void
+  +removeUserFromInvited(event: Event, uid: String) void
+  +getWaitlistSize(event: Event, listener: EventRepository.WaitlistSizeListener) void
+  +getInvitedSize(event: Event, listener: EventRepository.InvitedSizeListener) void
+  +getCancelledSize(event: Event, listener: EventRepository.CancelledSizeListener) void
+  +createEvent(event: Event) String
+  +addUserToWaitlist(event: Event, userId: String, location: GeoPoint) void
+  +removeUserFromWaitlist(event: Event, userId: String) void
+  +getUserLocationFromWaitlist(userId: String, eventId: String, callback: EventRepository.UserLocationCallback) void
+  +setInvitedUserIds(event: Event, userIds: ArrayList) void
+  +getWaitlistLocations(eventId: String, callback: EventRepository.WaitlistLocationsCallback) void
+  +getInvitedEntrants(eventId: String, callback: EventRepository.InvitedEntrantsCallback) void
+  +getUserLocationFromInvited(userId: String, eventId: String, callback: EventRepository.UserLocationFromInvitedCallback) void
+  +getInvitedLocations(eventId: String, callback: EventRepository.InvitedLocationsCallback) void
+  +getCancelledEntrants(eventId: String, callback: EventRepository.CancelledEntrantsCallback) void
+  +getUserLocationFromCancelled(userId: String, eventId: String, callback: EventRepository.UserLocationFromCancelledCallback) void
+  +getCancelledLocations(eventId: String, callback: EventRepository.CancelledLocationsCallback) void
+  +getAttendingEntrants(eventId: String, callback: EventRepository.AttendingEntrantsCallback) void
+  +getUserLocationFromSelected(userId: String, eventId: String, callback: EventRepository.UserLocationFromSelectedCallback) void
+  +getSelectedLocations(eventId: String, callback: EventRepository.SelectedLocationsCallback) void
+}
+class EventRepository.WaitlistLocationsCallback {
+  +onWaitlistLocationsFetched(locations: List)* void
+  +onError(e: Exception)* void
+}
+<<interface>> EventRepository.WaitlistLocationsCallback
+class OrganizerEntrantsFragment {
+  -ARG_EVENT: String$
+  -TAG: String$
+  -googleMap: GoogleMap
+  -bottomSheetBehavior: BottomSheetBehavior
+  -TUPLE_NAME_KEY: String$
+  -entrantsListView: ListView
+  -entrantsAdapter: SimpleAdapter
+  -currentEntrants: ArrayList
+  -event: Event
+  -eventRepository: EventRepository
+  -notificationRepository: NotificationRepository
+  -profileRepository: ProfileRepository
+  -Csv: CsvUtils
+  -waitlistActions: LinearLayout
+  -invitedActions: LinearLayout
+  -selectedActions: LinearLayout
+  -cancelledActions: LinearLayout
+  -sendNotificationDialog: MaterialCardView
+  -dialogScrim: View
+  -notificationTitleInput: EditText
+  -notificationBodyInput: EditText
+  -tabs: TabLayout
+  -allEntrantsList: ArrayList
+  -filteredEntrantsList: ArrayList
+  -userMarkers: Map
+  -bottomSheet: MaterialCardView
+  +newInstance(event: Event)$ OrganizerEntrantsFragment
+  +onCreate(savedInstanceState: Bundle) void
+  +onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) View
+  +onViewCreated(view: View, savedInstanceState: Bundle) void
+  +onResume() void
+  +onStop() void
+  +onMapReady(map: GoogleMap) void
+  -fetchAndDisplayWaitlistLocations() void
+  -filterAndDisplayEntrants(tab: TabLayout.Tab) void
+  -updateEntrantName(userId: String, name: String) void
+  -getStatusStringForTab(tab: TabLayout.Tab) String
+  -onEntrantListItemClick(userId: String) void
+  -setupBottomSheet(view: View) void
+  -setupActionBars() void
+  -setupTabs(view: View) void
+  -setupButtons(view: View) void
+  -updateActionButtons(tab: TabLayout.Tab) void
+  -setupDialog(view: View) void
+  -showSendNotificationDialog(show: boolean) void
+  -getGroupFieldForCurrentTab() String
+  -getGroupForCurrentTab() String
+}
+class CsvUtils {
+  +exportToCsv(context: Context, entrantNames: List, filename: String)$ void
+  -shareFile(context: Context, file: File)$ void
+}
+class EventAdapter.MyViewHolder {
+  ~eventImage: ImageView
+  ~eventTitle: TextView
+  ~tagline: TextView
+  ~date: TextView
+  ~onEventListener: EventAdapter.OnEventListener
+  +onClick(v: View) void
+}
+class FilterEventsFragment {
+  +TAG: String$
+  -filterModel: FilterModel
+  -chipGroup: ChipGroup
+  -uiState: FilterEventsFragment.FilterEventsFragmentState
+  +onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) View
+  +onViewCreated(view: View, savedInstanceState: Bundle) void
+}
+class Event.Builder {
+  -eventGeneralFragment: EventGeneralFragment
+  -eventLotteryFragment: EventLotteryFragment
+  -event: Event
+  +title(title: String) Event.Builder
+  +description(description: String) Event.Builder
+  +tagline(tagline: String) Event.Builder
+  +categories(categories: List) Event.Builder
+  +bannerImage(bitmap: Bitmap) Event.Builder
+  +waitlistCapacity(capacity: Optional) Event.Builder
+  +eventCapacity(capacity: int) Event.Builder
+  +eventStartDate(date: Date) Event.Builder
+  +eventEndDate(date: Date) Event.Builder
+  +eventStartTime(time: Time) Event.Builder
+  +eventEndTime(time: Time) Event.Builder
+  +registrationStartDate(date: Date) Event.Builder
+  +initialSelectionStartDate(date: Date) Event.Builder
+  +finalSelectionDate(date: Date) Event.Builder
+  +location(geoPoint: GeoPoint, name: String) Event.Builder
+  +requireLocation(require: boolean) Event.Builder
+  +build() Event
+}
+class EventRepository.UserLocationCallback {
+  +onLocationFetched(location: GeoPoint)* void
+  +onError(e: Exception)* void
+}
+<<interface>> EventRepository.UserLocationCallback
+Event ..|> Serializable
+EventAdapter --|> RecyclerView.Adapter
+EventAdapter.MyViewHolder --|> RecyclerView.ViewHolder
+EventAdapter.MyViewHolder ..|> View.OnClickListener
+EventHistoryAdapter --|> RecyclerView.Adapter
+EventHistoryAdapter.MyViewHolder --|> RecyclerView.ViewHolder
+EventHistoryAdapter.MyViewHolder ..|> View.OnClickListener
+EventListFragment --|> Fragment
+EventListFragment ..|> EventAdapter.OnEventListener
+EventViewFragment --|> Fragment
+FilterEventsFragment --|> Fragment
+FilterEventsFragment.FilterEventsFragmentState --|> ViewModel
+FilterModel --|> ViewModel
+OrganizerEntrantsFragment --|> Fragment
+OrganizerEntrantsFragment ..|> OnMapReadyCallback

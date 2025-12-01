@@ -1,0 +1,107 @@
+---
+title: notifications package
+config:
+  htmlLabels: false
+umlink:
+  select:
+  - field: package
+    pattern: com.rocket.radar.notifications
+---
+classDiagram
+class NotificationRepository {
+  -TAG: String$
+  -db: FirebaseFirestore
+  -userNotificationsRef: CollectionReference
+  +getMyNotifications() LiveData
+  +markNotificationAsRead(userNotificationId: String) void
+  +sendNotificationToGroup(title: String, body: String, eventId: String, groupCollection: String) void
+  -createAndFanOutNotification(title: String, body: String, eventId: String, usersToNotify: List) void
+  +getAllNotifications() LiveData
+  +sendNotificationToOrganizer(title: String, body: String, event: Event) void
+}
+class NotificationFragment {
+  -notificationRecyclerView: RecyclerView
+  -emptyNotificationsTextView: TextView
+  -backButton: Button
+  -adapter: NotificationAdapter
+  -notificationRepository: NotificationRepository
+  -adapterObserver: RecyclerView.AdapterDataObserver
+  +onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) View
+  +onViewCreated(view: View, savedInstanceState: Bundle) void
+  -setupRecyclerView() void
+  -setupClickListeners() void
+  -observeNotifications() void
+  -checkEmpty() void
+  +onDestroyView() void
+}
+class NotificationAdapter.OnItemClickListener {
+  +onItemClick(position: int)* void
+}
+<<interface>> NotificationAdapter.OnItemClickListener
+class MyFirebaseMessagingService {
+  -TAG: String$
+  -CHANNEL_ID: String$
+  +onMessageReceived(remoteMessage: RemoteMessage) void
+  -sendSystemNotification(title: String, body: String) void
+  +onNewToken(token: String) void
+}
+class NotificationAdapter {
+  -VIEW_TYPE_NOTIFICATION: int$
+  -VIEW_TYPE_SEPARATOR: int$
+  -VIEW_TYPE_EMPTY: int$
+  -context: Context
+  -notificationList: List
+  -repository: NotificationRepository
+  -eventRepository: EventRepository
+  -eventCache: Map
+  -lastClickedPosition: int
+  -separatorIndex: int
+  -onItemClickListener: NotificationAdapter.OnItemClickListener
+  +setOnItemClickListener(listener: NotificationAdapter.OnItemClickListener) void
+  +setNotifications(newNotifications: List) void
+  +updateEventCache(events: List) void
+  -calculateSeparatorIndex() void
+  +getItemViewType(position: int) int
+  +onCreateViewHolder(parent: ViewGroup, viewType: int) RecyclerView.ViewHolder
+  +onBindViewHolder(holder: RecyclerView.ViewHolder, position: int) void
+  -navigateToEvent(v: View, event: Event, holder: NotificationAdapter.NotificationViewHolder) void
+  -fallbackManualNavigation(event: Event, holder: NotificationAdapter.NotificationViewHolder) void
+  +getItemCount() int
+  +getLastClickedPosition() int
+}
+class NotificationAdapter.SeparatorViewHolder {
+  ~separatorText: TextView
+}
+class NotificationAdapter.NotificationViewHolder {
+  ~eventImage: ImageView
+  ~eventTitle: TextView
+  ~notificationType: TextView
+  ~unreadIndicator: View
+}
+class NotificationAdapter.EmptyViewHolder
+class Notification {
+  -eventTitle: String
+  -notificationType: String
+  -eventId: String
+  -image: int
+  -timestamp: Date
+  -notificationId: String
+  -userNotificationId: String
+  -readStatus: boolean
+  +getEventId() String
+  +getEventTitle() String
+  +getNotificationType() String
+  +isReadStatus() boolean
+  +getImage() int
+  +getTimestamp() Date
+  +getNotificationId() String
+  +getUserNotificationId() String
+  +setReadStatus(readStatus: boolean) void
+  +setUserNotificationId(userNotificationId: String) void
+}
+MyFirebaseMessagingService --|> FirebaseMessagingService
+NotificationAdapter --|> RecyclerView.Adapter
+NotificationAdapter.EmptyViewHolder --|> RecyclerView.ViewHolder
+NotificationAdapter.NotificationViewHolder --|> RecyclerView.ViewHolder
+NotificationAdapter.SeparatorViewHolder --|> RecyclerView.ViewHolder
+NotificationFragment --|> Fragment

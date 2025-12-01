@@ -1,0 +1,20 @@
+---
+title: lottery package
+config:
+  htmlLabels: false
+umlink:
+  select:
+  - field: package
+    pattern: com.rocket.radar.lottery
+---
+classDiagram
+class LotteryLogic {
+  -event: Event
+  ~TAG: String
+  ~eventRepository: EventRepository
+  ~notificationRepository: NotificationRepository
+  -profileRepository: ProfileRepository
+  +handleRunLottery(event: Event) void
+  +handleRunLottery(event: Event, sampleNum: Integer) void
+  -moveUserToInvited(userId: String, invitedUsers: List) void
+}

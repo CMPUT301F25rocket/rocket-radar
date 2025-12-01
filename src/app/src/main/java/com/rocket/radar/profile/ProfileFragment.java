@@ -1,50 +1,56 @@
 package com.rocket.radar.profile;
 
+import android.icu.text.ListFormatter;
 import android.os.Bundle;
+import android.provider.CalendarContract;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
 import com.rocket.radar.events.Event;
 import com.rocket.radar.events.EventAdapter;
+import com.rocket.radar.events.EventHistoryAdapter;
 import com.rocket.radar.events.EventRepository;
 import com.rocket.radar.events.EventViewFragment;
 
-import org.checkerframework.checker.units.qual.A;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
  * This fragment is where the user can see their name, their events and their history.
  * It observes the ProfileViewModel and EventRepository for updates.
  */
-public class ProfileFragment extends Fragment implements EventAdapter.OnEventListener {
-
+public class ProfileFragment extends Fragment implements EventAdapter.OnEventListener, EventHistoryAdapter.OnEventListener {
 
     private ImageButton accountSettingsButton;
+    private MaterialButton criteriaButton;
     private TextView profileName;
 
     private ProfileViewModel profileViewModel;
     private ProfileModel currentUserProfile;
     private RecyclerView myEventRecyclerView;
     private EventAdapter adapter;
+    private EventHistoryAdapter historyAdapter;
     private MaterialButtonToggleGroup toggleGroup;
     private List<Event> allEvents;
     private List<Event> displayedEvents;
@@ -67,12 +73,18 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
      */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view =  inflater.inflate(R.layout.fragment_profile, container, false);
+        View view = inflater.inflate(R.layout.fragment_profile, container, false);
         profileName = view.findViewById(R.id.profile_name);
         accountSettingsButton = view.findViewById(R.id.account_settings_button);
         accountSettingsButton.setOnClickListener(v -> {
             NavHostFragment.findNavController(this)
                     .navigate(R.id.action_profile_to_accountSettings);
+        });
+
+        criteriaButton = view.findViewById(R.id.app_criteria_button);
+        criteriaButton.setOnClickListener(v -> {
+            NavHostFragment.findNavController(this)
+                    .navigate(R.id.action_profile_to_criteria);
         });
 
         profileViewModel = new ViewModelProvider(requireActivity()).get(ProfileViewModel.class);
@@ -84,7 +96,6 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
 
         myEventRecyclerView = view.findViewById(R.id.my_event_recycler_view);
         toggleGroup = view.findViewById(R.id.profileToggleGroup);
-
 
         return view;
     }
@@ -104,7 +115,10 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
         profileViewModel = new ViewModelProvider(requireActivity()).get(ProfileViewModel.class);
         allEvents = new ArrayList<>();
         displayedEvents = new ArrayList<>();
+
         adapter = new EventAdapter(getContext(), displayedEvents, this);
+        historyAdapter = new EventHistoryAdapter(getContext(), displayedEvents, currentUserProfile, this);
+
         myEventRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         myEventRecyclerView.setAdapter(adapter);
 
@@ -118,7 +132,9 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
      */
     private void setupToggleListener() {
         toggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-            filterAndDisplayEvents();
+            if (isChecked) {
+                filterAndDisplayEvents();
+            }
         });
     }
 
@@ -128,6 +144,7 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
     private void observeUserProfile() {
         profileViewModel.getProfileLiveData().observe(getViewLifecycleOwner(), profile -> {
             currentUserProfile = profile;
+            historyAdapter = new EventHistoryAdapter(getContext(), displayedEvents, currentUserProfile, this);
             filterAndDisplayEvents();
         });
     }
@@ -137,7 +154,6 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
      */
     private void observeEvents() {
         eventRepository.getAllEvents().observe(getViewLifecycleOwner(), newEvents -> {
-            Log.d("EventListFragment", "Data updated. " + newEvents.size() + " events received.");
             allEvents.clear();
             allEvents.addAll(newEvents);
             filterAndDisplayEvents();
@@ -148,40 +164,64 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
      * Filters events based on the toggle selection and updates the adapter.
      */
     private void filterAndDisplayEvents() {
-        // 1. Wait until both the profile and event list are loaded.
         if (allEvents == null || currentUserProfile == null) {
             return;
-        }int checkedId = toggleGroup.getCheckedButtonId();
-        List<Event> filteredList;
-
-        // 2. Get the actual event IDs from the user's profile.
-        ArrayList<String> userMyEventIds = currentUserProfile.getOnMyEventIds();
-        if (userMyEventIds == null) {
-            // Ensure the list is not null to prevent crashes.
-            userMyEventIds = new ArrayList<>();
         }
 
-        Log.d("ProfileFragment", "Filtering with " + userMyEventIds.size() + " event IDs for My Events.");
+        int checkedId = toggleGroup.getCheckedButtonId();
+        List<Event> filteredList;
 
+        // Get all lists from profile to avoid null pointer exceptions
+        ArrayList<String> userWaitlistIds = currentUserProfile.getOnWaitlistEventIds() != null ? currentUserProfile.getOnWaitlistEventIds() : new ArrayList<>();
+        ArrayList<String> userInvitedIds = currentUserProfile.getOnInvitedEventIds() != null ? currentUserProfile.getOnInvitedEventIds() : new ArrayList<>();
+        ArrayList<String> userAttendingIds = currentUserProfile.getAttendingEventIds() != null ? currentUserProfile.getAttendingEventIds() : new ArrayList<>();
+
+        ArrayList<String> userMyEventIds = currentUserProfile.getOnMyEventIds();
+        if (userMyEventIds == null) {
+            userMyEventIds = new ArrayList<>();
+        }
 
         if (checkedId == R.id.my_events_filter_button) {
             ArrayList<String> finalUserMyEventIds = userMyEventIds;
             filteredList = allEvents.stream()
                     .filter(event -> finalUserMyEventIds.contains(event.getEventId()))
                     .collect(Collectors.toList());
+            myEventRecyclerView.setAdapter(adapter);
         } else if (checkedId == R.id.my_history_filter_button) {
-            ArrayList<String> finalUserMyEventIds1 = userMyEventIds;
+            // Get current time for comparison
+            long currentTime = System.currentTimeMillis();
+
             filteredList = allEvents.stream()
-                    .filter(event -> !finalUserMyEventIds1.contains(event.getEventId()))
+                    .filter(event -> {
+                        // 1. Check if the user was involved (Invited, Waitlisted, or Attending)
+                        boolean isInvited = userInvitedIds.contains(event.getEventId());
+                        boolean isWaitlisted = userWaitlistIds.contains(event.getEventId());
+                        boolean isAttending = userAttendingIds.contains(event.getEventId());
+
+                        // 2. Check if the event has passed
+                        // Assuming event.getTimestamp() returns a Firestore Timestamp or similar
+                        boolean hasPassed = false;
+                        if (event.getEventStartDate() != null) {
+                            hasPassed = event.getEventStartDate().getTime() < currentTime;
+                        }
+
+                        return (isInvited || isWaitlisted || isAttending) && hasPassed;
+                    })
                     .collect(Collectors.toList());
+
+            // Switch to history adapter for "My History" to show status lines
+            myEventRecyclerView.setAdapter(historyAdapter);
+
         } else {
-            filteredList = new ArrayList<>(allEvents);
+            filteredList = new ArrayList<>();
+            myEventRecyclerView.setAdapter(adapter);
         }
 
-        Log.d("EventListFragment", "Filtered list size: " + filteredList.size());
         displayedEvents.clear();
         displayedEvents.addAll(filteredList);
-        adapter.notifyDataSetChanged();
+        if (myEventRecyclerView.getAdapter() != null) {
+            myEventRecyclerView.getAdapter().notifyDataSetChanged();
+        }
     }
 
     /**
@@ -190,21 +230,19 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
      * @param position The position of the clicked item in the adapter.
      */
     @Override
-    public void onEventClick(int position) {
-        Event clickedEvent = displayedEvents.get(position);
+    public void onEventClick(int position, View itemView) {
+        Event selectedEvent = displayedEvents.get(position);
+
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("event", selectedEvent);
 
         boolean isOrganizer = (toggleGroup.getCheckedButtonId() == R.id.my_events_filter_button);
+        bundle.putBoolean("is_organizer", isOrganizer);
 
-        EventViewFragment eventViewFragment =
-                EventViewFragment.newInstance(clickedEvent, isOrganizer);
-
-        // The transaction code remains the same
-        if (getActivity() != null) {
-            getActivity().getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.nav_host_fragment, eventViewFragment)
-                    .addToBackStack(null)
-                    .commit();
-        }
+        Navigation.findNavController(itemView).navigate(
+                R.id.eventViewFragment,
+                bundle
+        );
     }
 
     /**
@@ -213,11 +251,9 @@ public class ProfileFragment extends Fragment implements EventAdapter.OnEventLis
     @Override
     public void onResume() {
         super.onResume();
-        Log.d("EventListFragment", "onResume called.");
         if (eventRepository != null) {
             observeEvents();
         }
-
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).setBottomNavigationVisibility(View.VISIBLE);
         }

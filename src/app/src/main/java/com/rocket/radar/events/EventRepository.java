@@ -4,7 +4,11 @@ import android.util.Log;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -12,41 +16,59 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.rocket.radar.R;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
-// FIXME: This is functionally a singleton we should store the global instance in a static and return
-// that instead of creating many of these objects.
+/**
+ * Event fetching, management and control.
+ */
 public class EventRepository {
 
     private static final String TAG = "EventRepository";
-    private final FirebaseFirestore db;
-    private final CollectionReference eventRef;
 
-    // This constructor now correctly initializes Firestore.
+    // Source of truth for Firestore
+    private static FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+
+    private final CollectionReference events;
+    private static EventRepository instance = null;
+
     public EventRepository() {
-        this.db = FirebaseFirestore.getInstance();
-        this.eventRef = db.collection("events"); // Use "events" collection
+        this.events = firestore.collection("events");
     }
 
     /**
-     * This is the method you asked for, adapted from your lab.
-     * It listens for real-time updates from the "events" collection in Firestore
-     * and returns the data wrapped in LiveData.
+     * Gets the singleton instance of EventRepository.
+     * @return The EventRepository instance.
      */
-    // FIXME: This is bad practice and going to spike our firestore reads really hard.
-    // TODO: EventListFragment should query the firestore for events upcoming soon, and as the user
-    // nears the bottom of the list should load additional events as they are required.
-    // But that's hard and annoying so part 4 it is.
+    public static EventRepository getInstance() {
+        if (instance == null) {
+            instance = new EventRepository();
+        }
+        return instance;
+    }
+
+    /**
+     * Test-only hook to replace Firestore instance and reset singleton.
+     * This should only be used in unit tests.
+     * @param testFirestore The test Firestore instance to use.
+     */
+    public static void useFirestoreForTesting(FirebaseFirestore testFirestore) {
+        firestore = testFirestore;
+        instance = null;
+    }
+
+    /**
+     * Listens for real-time updates from the "events" collection.
+     * Because this uses addSnapshotListener, new events created will
+     * automatically trigger this and update the LiveData.
+     */
     public LiveData<List<Event>> getAllEvents() {
         MutableLiveData<List<Event>> eventsLiveData = new MutableLiveData<>();
-        eventRef.addSnapshotListener((value, error) -> {
+
+        events.addSnapshotListener((value, error) -> {
             if (error != null) {
                 Log.e(TAG, "Listen failed.", error);
                 return;
@@ -64,79 +86,287 @@ public class EventRepository {
     }
 
     /**
-     * @param eventId UUID of the event we want to fetch.
-     * @return Task yielding a {@code DocumentSnapshot} which can be converted into an {@code Event}
+     * Gets an event document from Firestore by its ID.
+     * @param eventId The ID of the event to retrieve.
+     * @return A Task containing the DocumentSnapshot for the event.
      */
     public Task<DocumentSnapshot> getEvent(String eventId) {
-        return eventRef.document(eventId).get();
+        return events.document(eventId).get();
     }
 
-    public interface WaitlistSizeListener {
-        void onSizeReceived(int size);
+    /**
+     * Asynchronously fetches an event by its ID and returns it via callback.
+     * @param eventId The ID of the event to retrieve.
+     * @param listener Callback to handle success or failure.
+     */
+    public void getEventById(String eventId, SingleEventListener listener) {
+        events.document(eventId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    Event event = documentSnapshot.toObject(Event.class);
+                    listener.onEventLoaded(event);
+                })
+                .addOnFailureListener(listener::onError);
+    }
 
-        void onWaitlistEntrantsFetched(List<String> userIds);
+    /**
+     * Callback interface for fetching a single event.
+     */
+    public interface SingleEventListener {
+        /**
+         * Called when the event is successfully loaded.
+         * @param event The loaded Event object.
+         */
+        void onEventLoaded(Event event);
+
+        /**
+         * Called when an error occurs while loading the event.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
     /**
-     * Asynchronously fetches the size of the waitlist for a given event.
-     * @param event The event whose waitlist size is needed.
-     * @param listener The callback to be invoked with the result.
+     * Adds a user to the attending list of an event.
+     * @param event The event to add the user to.
+     * @param uid The user ID to add.
+     */
+    public void addUserToAttending(Event event, String uid) {
+        if (event == null || event.getEventId() == null) return;
+
+        DocumentReference attendingRef = events.document(event.getEventId())
+                .collection("attendingUsers").document(uid);
+
+        Map<String, Object> attendingData = new HashMap<>();
+        attendingData.put("timestamp", FieldValue.serverTimestamp());
+
+        attendingRef.set(attendingData)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "User added to attending: " + uid))
+                .addOnFailureListener(e -> Log.e(TAG, "Error adding to attending", e));
+    }
+
+    /**
+     * Adds a user to the cancelled list of an event.
+     * @param event The event to add the user to.
+     * @param uid The user ID to add.
+     */
+    public void addUserToCancelled(Event event, String uid) {
+        if (event == null || event.getEventId() == null) return;
+
+        DocumentReference cancelledRef = events.document(event.getEventId())
+                .collection("cancelledUsers").document(uid);
+
+        Map<String, Object> cancelledData = new HashMap<>();
+        cancelledData.put("timestamp", FieldValue.serverTimestamp());
+
+        cancelledRef.set(cancelledData)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "User added to cancelled: " + uid))
+                .addOnFailureListener(e -> Log.e(TAG, "Error adding to cancelled", e));
+    }
+
+    /**
+     * Deletes the banner image from an event in Firestore.
+     * @param event The event whose image should be deleted.
+     * @param successListener Callback for successful deletion.
+     * @param failureListener Callback for failed deletion.
+     */
+    public void deleteImage(Event event, OnSuccessListener<? super Void> successListener, OnFailureListener failureListener) {
+        events.document(event.getEventId()).update("bannerImageBlob", FieldValue.delete())
+                .addOnSuccessListener(successListener)
+                .addOnFailureListener(failureListener);
+    }
+
+    /**
+     * Removes a user from the invited list of an event.
+     * @param event The event to remove the user from.
+     * @param uid The user ID to remove.
+     */
+    public void removeUserFromInvited(Event event, String uid) {
+        if (event == null || event.getEventId() == null || uid == null) return;
+
+        events.document(event.getEventId())
+                .collection("invitedUsers").document(uid)
+                .delete()
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "User removed from invited: " + uid))
+                .addOnFailureListener(e -> Log.e(TAG, "Error removing from invited", e));
+    }
+
+    // --- Waitlist Size Logic ---
+    /**
+     * Callback interface for fetching waitlist size and entrants.
+     */
+    public interface WaitlistSizeListener {
+        /**
+         * Called when the waitlist size is successfully fetched.
+         * @param size The number of users on the waitlist.
+         */
+        void onSizeReceived(int size);
+
+        /**
+         * Called when the list of waitlist user IDs is fetched.
+         * @param userIds The list of user IDs on the waitlist.
+         */
+        void onWaitlistEntrantsFetched(List<String> userIds);
+
+        /**
+         * Called when an error occurs.
+         * @param e The exception that occurred.
+         */
+        void onError(Exception e);
+    }
+
+    /**
+     * Fetches the size and list of users on the waitlist for an event.
+     * @param event The event to fetch waitlist information for.
+     * @param listener Callback to handle the result.
      */
     public void getWaitlistSize(Event event, WaitlistSizeListener listener) {
-        if (event == null || event.getEventTitle() == null || event.getEventTitle().isEmpty()) {
-            Log.e(TAG, "Event is null or has no Title.");
-            listener.onError(new IllegalArgumentException("Event is null or has no title"));
+        if (event == null || event.getEventId() == null) {
+            listener.onError(new IllegalArgumentException("Event is null or has no ID"));
             return;
         }
 
-        // CORRECT PATH: events -> {event-id} -> waitlistedUsers
-        CollectionReference waitlistRef = db.collection("events").document(event.getEventId())
-                .collection("waitlistedUsers");
-
-        waitlistRef.get().addOnSuccessListener(queryDocumentSnapshots -> {
-            // This code runs when the database call is successful.
-            listener.onSizeReceived(queryDocumentSnapshots.size());
-            List<String> userIds = new ArrayList<>();
-            queryDocumentSnapshots.forEach(doc -> userIds.add(doc.getId()));
-            listener.onWaitlistEntrantsFetched(userIds);
-        }).addOnFailureListener(e -> {
-            // This code runs if the call fails.
-            Log.e(TAG, "Error getting waitlist size", e);
-            listener.onError(e);
-        });
+        events.document(event.getEventId()).collection("waitlistedUsers")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    listener.onSizeReceived(queryDocumentSnapshots.size());
+                    List<String> userIds = new ArrayList<>();
+                    queryDocumentSnapshots.forEach(doc -> userIds.add(doc.getId()));
+                    listener.onWaitlistEntrantsFetched(userIds);
+                })
+                .addOnFailureListener(listener::onError);
     }
 
+    // --- Invited Size Logic ---
+    /**
+     * Callback interface for fetching invited size and entrants.
+     */
+    public interface InvitedSizeListener {
+        /**
+         * Called when the invited list size is successfully fetched.
+         * @param size The number of users invited.
+         */
+        void onSizeReceived(int size);
+
+        /**
+         * Called when the list of invited user IDs is fetched.
+         * @param userIds The list of user IDs invited.
+         */
+        void onInvitedEntrantsFetched(List<String> userIds);
+
+        /**
+         * Called when an error occurs.
+         * @param e The exception that occurred.
+         */
+        void onError(Exception e);
+    }
 
     /**
-     * This method adds a new event to Firestore.
-     * @return The UUID of the created event.
+     * Fetches the size and list of users invited to an event.
+     * @param event The event to fetch invited information for.
+     * @param listener Callback to handle the result.
+     */
+    public void getInvitedSize(Event event, InvitedSizeListener listener) {
+        if (event == null || event.getEventId() == null) {
+            listener.onError(new IllegalArgumentException("Event is null or has no ID"));
+            return;
+        }
+
+        events.document(event.getEventId()).collection("invitedUsers")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    listener.onSizeReceived(queryDocumentSnapshots.size());
+                    List<String> userIds = new ArrayList<>();
+                    queryDocumentSnapshots.forEach(doc -> userIds.add(doc.getId()));
+                    listener.onInvitedEntrantsFetched(userIds);
+                })
+                .addOnFailureListener(listener::onError);
+    }
+
+    // --- Cancelled Size Logic ---
+    /**
+     * Callback interface for fetching cancelled list size.
+     */
+    public interface CancelledSizeListener {
+        /**
+         * Called when the cancelled list size is successfully fetched.
+         * @param size The number of users who cancelled.
+         */
+        void onSizeReceived(int size);
+
+        /**
+         * Called when an error occurs.
+         * @param e The exception that occurred.
+         */
+        void onError(Exception e);
+    }
+
+    /**
+     * Fetches the size of the cancelled list for an event.
+     * @param event The event to fetch cancelled information for.
+     * @param listener Callback to handle the result.
+     */
+    public void getCancelledSize(Event event, CancelledSizeListener listener) {
+        if (event == null || event.getEventId() == null) {
+            listener.onError(new IllegalArgumentException("Event is null or has no ID"));
+            return;
+        }
+
+        events.document(event.getEventId()).collection("cancelledUsers")
+                .get()
+                .addOnSuccessListener(q -> listener.onSizeReceived(q.size()))
+                .addOnFailureListener(listener::onError);
+    }
+
+    /**
+     * Creates a new event in Firestore or updates an existing one.
+     * If the event doesn't have an ID, one is generated. If the event doesn't have an organizer ID,
+     * the current user is automatically assigned as the organizer.
+     * @param event The event to create or update.
+     * @return The event ID.
      */
     public String createEvent(Event event) {
-        // Use the event's title as the document ID for simplicity, or use .add() for auto-ID
-        eventRef.document(event.getEventId()).set(event)
+        DocumentReference docRef;
+
+        if (event.getEventId() == null || event.getEventId().isEmpty()) {
+            docRef = events.document();
+            event.setEventId(docRef.getId());
+        } else {
+            docRef = events.document(event.getEventId());
+        }
+
+        // Safety Check: Ensure organizerId is set before writing
+        if (event.getOrganizerId() == null || event.getOrganizerId().isEmpty()) {
+            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            if (currentUser != null) {
+                event.setOrganizerId(currentUser.getUid());
+                Log.d(TAG, "createEvent: Auto-assigned organizerId to current user: " + currentUser.getUid());
+            } else {
+                Log.w(TAG, "createEvent: Warning - Event created without an organizerId.");
+            }
+        }
+
+        docRef.set(event)
                 .addOnSuccessListener(aVoid -> Log.d(TAG, "Event successfully written: " + event.getEventTitle()))
                 .addOnFailureListener(e -> Log.e(TAG, "Error writing event", e));
+
         return event.getEventId();
     }
 
-    // Helper to add all the dummy data to Firestore
-    public void addDummyDatatodb() {
-        List<Event> dummyEvents = loadDummyData();
-        for (Event event : dummyEvents) {
-            createEvent(event);
-        }
-    }
-
+    /**
+     * Adds a user to the waitlist for an event.
+     * Optionally stores the user's signup location if provided.
+     * @param event The event to add the user to.
+     * @param userId The user ID to add.
+     * @param location The user's location at signup, or null if not required.
+     */
     public void addUserToWaitlist(Event event, String userId, GeoPoint location){
         if (event == null || event.getEventId() == null) {
             Log.e(TAG, "Event is null or has no ID.");
             return;
         }
-        else {
-            // 1. Get the correct path: events -> {event-id} -> waitlistedUsers -> {user-id}
-            DocumentReference waitlistRef = db.collection("events").document(event.getEventId())
-                    .collection("waitlistedUsers").document(userId);
+
+        DocumentReference waitlistRef = events.document(event.getEventId())
+                .collection("waitlistedUsers").document(userId);
 
             // 2. Create a map to hold some data, like a timestamp.
             // Firestore documents cannot be completely empty.
@@ -155,9 +385,12 @@ public class EventRepository {
                     .addOnSuccessListener(aVoid -> Log.d(TAG, "User " + userId + " successfully added to waitlist for event " + event.getEventId()))
                     .addOnFailureListener(e -> Log.e(TAG, "Error adding user to waitlist", e));
         }
-    }
 
-
+    /**
+     * Removes a user from the waitlist for an event.
+     * @param event The event to remove the user from.
+     * @param userId The user ID to remove.
+     */
     public void removeUserFromWaitlist(Event event, String userId) {
         if (event == null || event.getEventId() == null) {
             Log.e(TAG, "Event is null or has no ID. Cannot remove user from waitlist.");
@@ -167,7 +400,7 @@ public class EventRepository {
             Log.e(TAG, "User ID is null or empty. Cannot remove user from waitlist.");
             return;
         }
-        DocumentReference userDocumentInWaitlist = db.collection("events").document(event.getEventId())
+        DocumentReference userDocumentInWaitlist = events.document(event.getEventId())
                 .collection("waitlistedUsers").document(userId);
 
         // 2. Call .delete() on that specific document reference.
@@ -175,32 +408,6 @@ public class EventRepository {
                 .addOnSuccessListener(aVoid -> Log.d(TAG, "User " + userId + " successfully removed from waitlist for event " + event.getEventId()))
                 .addOnFailureListener(e -> Log.e(TAG, "Error removing user " + userId + " from waitlist", e));
     }
-
-    // This method just prepares the local list of dummy data.
-    private List<Event> loadDummyData() {
-        List<Event> eventList = new java.util.ArrayList<>();
-
-        // Using Calendar to create Date objects for the current year
-        Calendar cal = Calendar.getInstance();
-        int currentYear = cal.get(Calendar.YEAR);
-
-        cal.set(currentYear, Calendar.SEPTEMBER, 30);
-        eventList.add(new Event("Watch Party for Oilers", cal.getTime(), "Fun for fanatics", "Join us for an exciting watch party as the Oilers take on their rivals. Great food, great company, and a thrilling game await. Don't miss out on the action!", R.drawable.rogers_image));
-
-        cal.set(currentYear, Calendar.NOVEMBER, 12);
-        eventList.add(new Event("BBQ Event", cal.getTime(), "Mushroom bros who listen to bangers", "A chill BBQ event for everyone who enjoys good music and even better food. We'll be grilling up a storm and spinning some bangers. Come hang out!", R.drawable.mushroom_in_headphones_amidst_nature));
-        cal.set(currentYear, Calendar.DECEMBER, 18);
-        eventList.add(new Event("Ski Trip", cal.getTime(), "The slopes are calling", "Hit the slopes with us for a weekend of skiing and snowboarding. All skill levels are welcome. Get ready for some fresh powder and stunning mountain views.", R.drawable.ski_trip_banner));
-        cal.set(currentYear + 1, Calendar.JANUARY, 5); // Next year for January
-        eventList.add(new Event("Tech Conference", cal.getTime(), "Innovations in AI", "Discover the latest breakthroughs in Artificial Intelligence at our annual Tech Conference. Featuring keynote speakers from leading tech companies and interactive workshops.", R.drawable.rogers_image));
-        cal.set(currentYear, Calendar.JULY, 22);
-        eventList.add(new Event("Summer Music Festival", cal.getTime(), "Live bands and good vibes", "Experience the best of summer with our annual music festival. Featuring a lineup of incredible live bands, food trucks, and a vibrant atmosphere. Let the good times roll!", R.drawable.mushroom_in_headphones_amidst_nature));
-        cal.set(currentYear, Calendar.AUGUST, 14);
-        eventList.add(new Event("Mountain Hike", cal.getTime(), "Explore scenic trails", "Join our guided hike through breathtaking mountain trails. This is a great opportunity to connect with nature, get some exercise, and enjoy panoramic views.", R.drawable.ski_trip_banner));
-
-        return eventList;
-    }
-
 
     /**
      * Callback interface for fetching waitlist entrants.
@@ -224,7 +431,16 @@ public class EventRepository {
      * Callback interface for fetching a user's location from the waitlist.
      */
     public interface UserLocationCallback {
+        /**
+         * Called when the user's location is successfully fetched.
+         * @param location The user's GeoPoint location, or null if not available.
+         */
         void onLocationFetched(GeoPoint location);
+
+        /**
+         * Called when an error occurs while fetching the location.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
@@ -242,7 +458,7 @@ public class EventRepository {
         }
 
         // The path is events -> {eventId} -> waitlistedUsers -> {userId}
-        db.collection("events").document(eventId).collection("waitlistedUsers").document(userId)
+        events.document(eventId).collection("waitlistedUsers").document(userId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
@@ -253,6 +469,39 @@ public class EventRepository {
                     }
                 })
                 .addOnFailureListener(callback::onError);
+    }
+
+    /**
+     * Adds multiple users to the invited list for an event.
+     * @param event The event to add users to.
+     * @param userIds The list of user IDs to invite.
+     */
+    public void setInvitedUserIds(Event event, ArrayList<String> userIds) {
+        if (event == null || event.getEventId() == null) {
+            Log.e(TAG, "Event is null or has no ID.");
+            return;
+        }
+        else {
+            for (String userId : userIds) {
+                // 1. Get the correct path: events -> {event-id} -> waitlistedUsers -> {user-id}
+                DocumentReference invitedRef = events.document(event.getEventId())
+                        .collection("invitedUsers").document(userId);
+                // 2. Create a map to hold some data, like a timestamp.
+                // Firestore documents cannot be completely empty.
+
+                Map<String, Object> invitedData = new HashMap<>();
+                invitedData.put("timestamp", FieldValue.serverTimestamp());
+
+                // 3. Set the data. If the document already exists, this overwrites it but
+                // that's fine. If it doesn't exist, it is created.
+                invitedRef.set(invitedData)
+                        .addOnSuccessListener(aVoid -> Log.d(TAG, "User " + userId + " successfully added to invited users for event " + event.getEventId()))
+                        .addOnFailureListener(e -> Log.e(TAG, "Error adding user to invited users", e));
+            }
+
+
+        }
+
     }
 
 
@@ -286,7 +535,7 @@ public class EventRepository {
         }
 
         // The path is events -> {eventId} -> waitlistedUsers
-        db.collection("events").document(eventId).collection("waitlistedUsers")
+        events.document(eventId).collection("waitlistedUsers")
             .get()
             .addOnSuccessListener(queryDocumentSnapshots -> {
                 List<GeoPoint> locations = new ArrayList<>();
@@ -310,7 +559,16 @@ public class EventRepository {
      * Callback interface for fetching invited entrants.
      */
     public interface InvitedEntrantsCallback {
+        /**
+         * Called when the list of invited user IDs is successfully fetched.
+         * @param userIds The list of invited user IDs.
+         */
         void onInvitedEntrantsFetched(List<String> userIds);
+
+        /**
+         * Called when an error occurs while fetching invited entrants.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
@@ -322,7 +580,7 @@ public class EventRepository {
             callback.onError(new IllegalArgumentException("Event ID cannot be null or empty."));
             return;
         }
-        db.collection("events").document(eventId).collection("invitedUsers")
+        events.document(eventId).collection("invitedUsers")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<String> userIds = new ArrayList<>();
@@ -336,7 +594,16 @@ public class EventRepository {
      * Callback interface for fetching a user's location from the invited list.
      */
     public interface UserLocationFromInvitedCallback {
+        /**
+         * Called when the user's location is successfully fetched from the invited list.
+         * @param location The user's GeoPoint location, or null if not available.
+         */
         void onLocationFetched(GeoPoint location);
+
+        /**
+         * Called when an error occurs while fetching the location.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
@@ -348,7 +615,7 @@ public class EventRepository {
             callback.onError(new IllegalArgumentException("Event ID and User ID cannot be null or empty."));
             return;
         }
-        db.collection("events").document(eventId).collection("invitedUsers").document(userId)
+        events.document(eventId).collection("invitedUsers").document(userId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
@@ -365,7 +632,16 @@ public class EventRepository {
      * Callback interface for fetching invited list locations.
      */
     public interface InvitedLocationsCallback {
+        /**
+         * Called when the list of invited locations is successfully fetched.
+         * @param locations The list of GeoPoint locations.
+         */
         void onInvitedLocationsFetched(List<GeoPoint> locations);
+
+        /**
+         * Called when an error occurs while fetching locations.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
@@ -377,7 +653,7 @@ public class EventRepository {
             callback.onError(new IllegalArgumentException("Event ID cannot be null or empty."));
             return;
         }
-        db.collection("events").document(eventId).collection("invitedUsers")
+        events.document(eventId).collection("invitedUsers")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<GeoPoint> locations = new ArrayList<>();
@@ -397,12 +673,20 @@ public class EventRepository {
     // --- END OF INVITED ENTRANTS METHODS ---
 
     // --- START OF CANCELLED ENTRANTS METHODS ---
-
     /**
      * Callback interface for fetching cancelled entrants.
      */
     public interface CancelledEntrantsCallback {
+        /**
+         * Called when the list of cancelled user IDs is successfully fetched.
+         * @param userIds The list of cancelled user IDs.
+         */
         void onCancelledEntrantsFetched(List<String> userIds);
+
+        /**
+         * Called when an error occurs while fetching cancelled entrants.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
@@ -414,7 +698,7 @@ public class EventRepository {
             callback.onError(new IllegalArgumentException("Event ID cannot be null or empty."));
             return;
         }
-        db.collection("events").document(eventId).collection("cancelledUsers")
+        events.document(eventId).collection("cancelledUsers")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<String> userIds = new ArrayList<>();
@@ -428,7 +712,16 @@ public class EventRepository {
      * Callback interface for fetching a user's location from the cancelled list.
      */
     public interface UserLocationFromCancelledCallback {
+        /**
+         * Called when the user's location is successfully fetched from the cancelled list.
+         * @param location The user's GeoPoint location, or null if not available.
+         */
         void onLocationFetched(GeoPoint location);
+
+        /**
+         * Called when an error occurs while fetching the location.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
@@ -440,7 +733,7 @@ public class EventRepository {
             callback.onError(new IllegalArgumentException("Event ID and User ID cannot be null or empty."));
             return;
         }
-        db.collection("events").document(eventId).collection("cancelledUsers").document(userId)
+        events.document(eventId).collection("cancelledUsers").document(userId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
@@ -457,7 +750,16 @@ public class EventRepository {
      * Callback interface for fetching cancelled list locations.
      */
     public interface CancelledLocationsCallback {
+        /**
+         * Called when the list of cancelled locations is successfully fetched.
+         * @param locations The list of GeoPoint locations.
+         */
         void onCancelledLocationsFetched(List<GeoPoint> locations);
+
+        /**
+         * Called when an error occurs while fetching locations.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
@@ -469,7 +771,7 @@ public class EventRepository {
             callback.onError(new IllegalArgumentException("Event ID cannot be null or empty."));
             return;
         }
-        db.collection("events").document(eventId).collection("cancelledUsers")
+        events.document(eventId).collection("cancelledUsers")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<GeoPoint> locations = new ArrayList<>();
@@ -488,36 +790,54 @@ public class EventRepository {
 
 
     /**
-     * Callback interface for fetching selected entrants.
+     * Callback interface for fetching attending entrants.
      */
-    public interface SelectedEntrantsCallback {
-        void onSelectedEntrantsFetched(List<String> userIds);
+    public interface AttendingEntrantsCallback {
+        /**
+         * Called when the list of attending user IDs is successfully fetched.
+         * @param userIds The list of attending user IDs.
+         */
+        void AttendingEntrantsFetched(List<String> userIds);
+
+        /**
+         * Called when an error occurs while fetching attending entrants.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
     /**
      * Asynchronously fetches the list of user IDs from the selected list of a specific event.
      */
-    public void getSelectedEntrants(String eventId, SelectedEntrantsCallback callback) {
+    public void getAttendingEntrants(String eventId, AttendingEntrantsCallback callback) {
         if (eventId == null || eventId.isEmpty()) {
             callback.onError(new IllegalArgumentException("Event ID cannot be null or empty."));
             return;
         }
-        db.collection("events").document(eventId).collection("selectedUsers")
+        events.document(eventId).collection("attendingUsers")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<String> userIds = new ArrayList<>();
                     queryDocumentSnapshots.forEach(doc -> userIds.add(doc.getId()));
-                    callback.onSelectedEntrantsFetched(userIds);
+                    callback.AttendingEntrantsFetched(userIds);
                 })
                 .addOnFailureListener(callback::onError);
     }
 
     /**
-     * Callback interface for fetching a user's location from the selected list.
+     * Callback interface for fetching a user's location from the attending/selected list.
      */
     public interface UserLocationFromSelectedCallback {
+        /**
+         * Called when the user's location is successfully fetched from the selected list.
+         * @param location The user's GeoPoint location, or null if not available.
+         */
         void onLocationFetched(GeoPoint location);
+
+        /**
+         * Called when an error occurs while fetching the location.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
@@ -529,7 +849,7 @@ public class EventRepository {
             callback.onError(new IllegalArgumentException("Event ID and User ID cannot be null or empty."));
             return;
         }
-        db.collection("events").document(eventId).collection("selectedUsers").document(userId)
+        events.document(eventId).collection("selectedUsers").document(userId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
@@ -543,10 +863,19 @@ public class EventRepository {
     }
 
     /**
-     * Callback interface for fetching selected list locations.
+     * Callback interface for fetching attending/selected list locations.
      */
     public interface SelectedLocationsCallback {
+        /**
+         * Called when the list of selected locations is successfully fetched.
+         * @param locations The list of GeoPoint locations.
+         */
         void onSelectedLocationsFetched(List<GeoPoint> locations);
+
+        /**
+         * Called when an error occurs while fetching locations.
+         * @param e The exception that occurred.
+         */
         void onError(Exception e);
     }
 
@@ -558,7 +887,7 @@ public class EventRepository {
             callback.onError(new IllegalArgumentException("Event ID cannot be null or empty."));
             return;
         }
-        db.collection("events").document(eventId).collection("selectedUsers")
+        events.document(eventId).collection("selectedUsers")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     List<GeoPoint> locations = new ArrayList<>();

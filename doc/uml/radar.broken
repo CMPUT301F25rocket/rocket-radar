@@ -1,0 +1,111 @@
+---
+title: whole app
+config:
+  layout: elk
+  htmlLabels: false
+umlink:
+  select:
+---
+%% This is an overview of the main fragments in our app. And how they relate to 
+%% eachother.
+
+classDiagram
+class MainActivity 
+
+namespace qr {
+class QRDialog 
+}
+
+namespace notifications {
+class NotificationFragment 
+
+class NotificationRepository 
+
+class Notification 
+}
+
+namespace profile {
+class AccountSettingsFragment 
+
+class ProfileFragment 
+
+class ProfileRepository 
+}
+
+namespace eventmanagement {
+class CreateEventActivity 
+
+class DraftEventsFragment 
+
+class EventLotteryFragment 
+
+class EventDeadlinesFragment 
+
+class EventDateTimeFragment 
+
+class EventGeneralFragment 
+
+class EventStyleFragment 
+}
+
+
+class EventRepository 
+
+class RadarDefaultViewFragment 
+
+namespace events {
+class Event 
+
+class EventViewFragment 
+
+class EventListFragment 
+
+class OrganizerEntrantsFragment 
+}
+
+namespace login {
+class LoginStartScanningFragment 
+
+class LoginCriteriaFragment 
+
+class LoginViewFragment 
+}
+
+%% Main Fragment Navigation
+MainActivity "1" o-- "1" EventListFragment : Hosts
+MainActivity "1" o-- "1" ProfileFragment : Hosts
+MainActivity "1" o-- "1" DraftEventsFragment: Hosts
+
+note for EventViewFragment "If you create with ProfileFragment then you can see organizer controls."
+EventViewFragment "0..*" <-- "1" EventListFragment : Navigates to
+EventViewFragment "0..*" <-- "1" ProfileFragment : Navigates to
+
+DraftEventsFragment "1" --> "0..*" CreateEventActivity: Switches to
+
+EventListFragment "1" --> "1" NotificationFragment : Navigates to
+
+%% 
+CreateEventActivity "1" --> "1" Event : Makes
+
+%% The Repositories are conceptually singletons
+note for NotificationRepository "Singleton"
+note for ProfileRepository "Singleton"
+note for EventRepository "Singleton"
+
+%% Fragment Extension.
+Fragment <|-- EventViewFragment : Extends
+Fragment <|-- EventStyleFragment : Extends
+Fragment <|-- NotificationFragment : Extends
+Fragment <|-- DraftEventsFragment : Extends
+Fragment <|-- LoginStartScanningFragment : Extends
+Fragment <|-- ProfileFragment : Extends
+Fragment <|-- AccountSettingsFragment : Extends
+Fragment <|-- EventLotteryFragment : Extends
+Fragment <|-- EventDeadlinesFragment : Extends
+Fragment <|-- EventDateTimeFragment : Extends
+Fragment <|-- LoginViewFragment : Extends
+Fragment <|-- OrganizerEntrantsFragment : Extends
+Fragment <|-- EventGeneralFragment : Extends
+Fragment <|-- EventListFragment : Extends
+Fragment <|-- LoginCriteriaFragment : Extends
+

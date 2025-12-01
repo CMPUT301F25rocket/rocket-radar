@@ -20,6 +20,7 @@
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
             android:contentDescription="@string/event_background_image_description"
+            android:transitionName="event_image_transition"
             tools:srcCompat="@tools:sample/backgrounds/scenic" />
 
         <!-- 2. Dark Overlay/Scrim for Text Readability -->
@@ -38,6 +39,7 @@
             android:text="@string/sample_date"
             android:textColor="#FFFFFF"
             android:textSize="42sp"
+            android:transitionName="event_date_transition"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/event_title_text"
             app:layout_constraintHorizontal_bias="0.16"
@@ -57,6 +59,7 @@
             android:textColor="@android:color/white"
             android:textSize="24sp"
             android:textStyle="bold"
+            android:transitionName="event_title_transition"
             app:layout_constraintBottom_toTopOf="@+id/event_tagline_text"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

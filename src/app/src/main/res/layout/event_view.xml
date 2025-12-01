@@ -27,6 +27,7 @@
                 android:layout_height="250dp"
                 android:scaleType="centerCrop"
                 android:src="@drawable/mushroom_in_headphones_amidst_nature"
+                android:transitionName="event_image_transition"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -42,6 +43,7 @@
                 android:elevation="4dp"
                 android:padding="8dp"
                 android:text="BBQ Event"
+                android:transitionName="event_title_transition"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
                 android:textColor="@android:color/black"
                 app:layout_constraintStart_toStartOf="parent"
@@ -103,11 +105,13 @@
                             android:id="@+id/event_date"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:transitionName="event_date_transition"
                             android:text="July 14th, 5-9 pm" />
                     </LinearLayout>
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/location_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
@@ -127,15 +131,17 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/event_location_name"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="My House"
+                            android:text="Location"
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/event_location_details"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Click to view location details of..." />
+                            android:text="Click to view location details..." />
                     </LinearLayout>
 
                     <ImageView
@@ -205,6 +211,7 @@
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/signup_deadline_text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Click to view information about signup deadline and selection process" />
@@ -274,5 +281,42 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="48dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/share_button"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/button_background_color"
+            android:elevation="8dp"
+            android:text="Share"
+            android:layout_marginEnd="8dp"
+            android:textColor="@android:color/black"
+            app:icon="@drawable/ic_share_24dp"
+            app:iconPadding="4dp"
+            app:iconTint="@android:color/black"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/delete_button"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/button_background_color"
+            android:elevation="8dp"
+            android:text="Delete"
+            android:textColor="@android:color/black"
+            app:icon="@drawable/delete_24dp"
+            app:iconPadding="4dp"
+            app:iconTint="@android:color/black"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

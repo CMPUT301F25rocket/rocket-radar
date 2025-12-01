@@ -4,6 +4,4 @@
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
-
-    <style name="Theme.Radar" parent="Base.Theme.Radar" />
 </resources>

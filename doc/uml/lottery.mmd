@@ -1,0 +1,69 @@
+---
+title: lottery package
+config:
+  htmlLabels: false
+umlink:
+  select:
+    - field: package
+      pattern: com.rocket.radar.lottery
+---
+
+classDiagram
+direction LR
+
+%% =====================================
+%% LOTTERY ENGINE
+%% =====================================
+
+class LotteryLogic {
+    - Event event
+    - String TAG
+    - EventRepository eventRepository
+    - NotificationRepository notificationRepository
+    - ProfileRepository profileRepository
+
+    + LotteryLogic(Event)
+    + handleRunLottery(Event)
+    + handleRunLottery(Event, Integer)
+    - moveUserToInvited(String, List~String~)
+}
+%% citation: :contentReference[oaicite:0]{index=0}
+
+
+%% =====================================
+%% DEPENDENCIES — event & repos
+%% =====================================
+
+class Event {
+    <<external>>
+    + getEventCapacity() int
+    + getEventId() String
+    + getEventTitle() String
+}
+
+class EventRepository {
+    <<external>>
+    + getWaitlistSize(Event, WaitlistSizeListener)
+    + removeUserFromWaitlist(Event,String)
+    + setInvitedUserIds(Event,List~String~)
+}
+
+class NotificationRepository {
+    <<external>>
+    + sendNotificationToGroup(String,String,String,String)
+}
+
+class ProfileRepository {
+    <<external>>
+    + updateUserInvitedList(String,String)
+}
+
+
+%% =====================================
+%% RELATIONSHIPS
+%% =====================================
+
+LotteryLogic --> Event : operates on 1..1
+LotteryLogic --> EventRepository : uses (1)
+LotteryLogic --> NotificationRepository : sends notifications
+LotteryLogic --> ProfileRepository : updates user profiles

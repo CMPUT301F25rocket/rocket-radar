@@ -2,25 +2,51 @@
 title: qr package
 config:
   htmlLabels: false
+umlink:
+  select:
+    - field: package
+      pattern: com.rocket.radar.qr
 ---
 
 classDiagram
-class QRDialog { 
-+ String TAG$
-- Bitmap bitmap
-- BitmapDrawable drawable
-+ QRDialog(Context,String) QRDialog 
-+ onCreateDialog(Bundle) Dialog 
-- buttonClick(DialogInterface,int) void 
-- shareQrCode() void 
+direction LR
+
+%% ==========================================
+%% QR GENERATOR
+%% ==========================================
+
+class QRGenerator {
+    - Bitmap bitmap  <<annotated but unused instance field>>
+    + formatLink(String) : String
+    + generate(String) : Bitmap
 }
+%% citation: :contentReference[oaicite:0]{index=0}
 
-class QRGenerator { 
-+ generate(String)$ Bitmap 
+
+%% ==========================================
+%% QR DIALOG
+%% ==========================================
+
+class QRDialog {
+    - Bitmap bitmap
+    - BitmapDrawable drawable
+    - String link
+
+    + QRDialog(Context, String)
+    + onCreateDialog(Bundle) : Dialog
+    - buttonClick(DialogInterface,int)
+    - shareQrCode()
 }
+%% citation: :contentReference[oaicite:1]{index=1}
 
-class Bitmap
 
-QRGenerator --> Bitmap : generates
-QRDialog "1" o-- "1" Bitmap : displays
+%% ==========================================
+%% RELATIONSHIPS
+%% ==========================================
 
+QRDialog --> QRGenerator : "generates" 1..1
+QRDialog --> Bitmap : displays
+QRDialog --> BitmapDrawable : wraps bitmap
+QRDialog --> Intent : shares link via ACTION_SEND
+
+QRGenerator --> QrCode : encodes text to QR matrix

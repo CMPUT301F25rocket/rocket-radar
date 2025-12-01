@@ -7,6 +7,7 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.SetOptions;
+import com.rocket.radar.admin.AdminRepository;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +29,15 @@ public class ProfileRepository {
     public ProfileRepository() {
         this.db = FirebaseFirestore.getInstance();
     }
+
+    /**
+     * Constructor for testing ProfileRepository.
+     * @param db mock database
+     */
+    public ProfileRepository(FirebaseFirestore db, AdminRepository adminRepository) {
+        this.db = db;
+    }
+
 
     /**
      * Callback interface for reading profile data from Firestore.
@@ -93,12 +103,23 @@ public class ProfileRepository {
         if (profile.getPhoneNumber() != null) userMap.put("phoneNumber", profile.getPhoneNumber());
         if (profile.isNotificationsEnabled() != null) userMap.put("notificationsEnabled", profile.isNotificationsEnabled());
         if (profile.isGeolocationEnabled() != null) userMap.put("geolocationEnabled", profile.isGeolocationEnabled());
+        if (profile.getRole() != null) userMap.put("role", profile.getRole());
         if (profile.getOnWaitlistEventIds() != null) {
             userMap.put("onWaitlistEventIds", profile.getOnWaitlistEventIds());
         }
         if (profile.getOnMyEventIds() != null) {
             userMap.put("onMyEventIds", profile.getOnMyEventIds());
         }
+        if (profile.getOnInvitedEventIds() != null) {
+            userMap.put("onInvitedEventIds", profile.getOnInvitedEventIds());
+        }
+        if (profile.getAttendingEventIds() != null) {
+            userMap.put("attendingEventIds", profile.getAttendingEventIds());
+        }
+        if (profile.getCancelledEventIds() != null) {
+            userMap.put("cancelledEventIds", profile.getCancelledEventIds());
+        }
+
         db.collection("users")
                 .document(profile.getUid())
                 .set(userMap, SetOptions.merge()) // omitted fields remain untouched
@@ -117,15 +138,40 @@ public class ProfileRepository {
             callback.onError(new Exception("No authenticated user."));
             return;
         }
-        // delete user firestore
-        db.collection("users")
-                .document(profile.getUid())
-                .delete()
-                .addOnSuccessListener(aVoid -> {callback.onSuccess();;})
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Failed to delete Firestore document", e);
-                    callback.onError(e);
-                });
+
+        String uid = profile.getUid();
+
+        AdminRepository adminRepository = new AdminRepository();
+
+        // First remove user from all events
+        adminRepository.removeUserFromAllEvents(uid, () -> {
+            // Then delete notifications
+            db.collection("users")
+                    .document(uid)
+                    .collection("notifications")
+                    .get()
+                    .addOnSuccessListener(querySnapshot -> {
+                        for (var document : querySnapshot.getDocuments()) {
+                            document.getReference().delete();
+                        }
+                        // Finally delete user document
+                        db.collection("users")
+                                .document(uid)
+                                .delete()
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d(TAG, "User and notifications deleted successfully");
+                                    callback.onSuccess();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Failed to delete Firestore user document", e);
+                                    callback.onError(e);
+                                });
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Failed to retrieve notifications for deletion", e);
+                        callback.onError(e);
+                    });
+        }, callback::onError);
     }
 
     /**
@@ -185,5 +231,18 @@ public class ProfileRepository {
                 .update("lastKnownLocation", location)
                 .addOnSuccessListener(aVoid -> Log.d("ProfileViewModel", "User location successfully updated for UID: " + uid))
                 .addOnFailureListener(e -> Log.e("ProfileViewModel", "Error updating user location for UID: " + uid, e));
+    }
+
+    /**
+     * Updates the user's invited events list in Firestore by adding an event ID.
+     * @param uid The user ID.
+     * @param eventId The event ID to add to the invited list.
+     */
+    public void updateUserInvitedList(String uid, String eventId) {
+        db.collection("users")
+                .document(uid)
+                .update("onInvitedEventIds", FieldValue.arrayUnion(eventId))
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Userside invited events successfully updated for UID: " + uid))
+                .addOnFailureListener(e -> Log.e(TAG, "Error updating Userside invited events for UID: " + uid, e));
     }
 }

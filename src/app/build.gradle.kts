@@ -1,3 +1,5 @@
+import java.io.IOException
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.google.gms.google.services)
@@ -6,6 +8,15 @@ plugins {
 android {
     namespace = "com.rocket.radar"
     compileSdk = 36
+
+    sourceSets {
+        getByName("test") {
+            java.srcDir("src/testShared/java")
+        }
+        getByName("androidTest") {
+            java.srcDir("src/testShared/java")
+        }
+    }
 
     buildFeatures {
         // This enables the generation of classes that basically contain all elements of a view by
@@ -33,7 +44,58 @@ android {
         animationsDisabled = true
     }
 
+    // Complains about final when not abstract. It's magic. It's a feature. It's a magic feature.
+    abstract class StartFirebaseEmulation : DefaultTask() {
+        @Internal
+        var emulatorProcess: Process? = null
+
+        @TaskAction
+        fun startEmulators() {
+            try {
+                val process = ProcessBuilder("firebase", "emulators:start")
+                    .redirectErrorStream(true)
+                    .start()
+                val lines = process.inputStream.bufferedReader().lines()
+                for (line in lines) {
+                    logger.lifecycle(line)
+                    if (line.contains("All emulators ready!", ignoreCase = true)) break;
+                }
+                // Hmm yes, java rust.
+                emulatorProcess = if (process.isAlive) process else null
+            } catch (e: IOException) {
+                logger.error("Dear Bozo, you don't have `firebase` installed. You can install it with `npm install -g firebase-tools`. Yours sincerly, Gradle.")
+                logger.error(e.toString())
+            }
+        }
+    }
+
+    // The alternative to the gradle task was running all the test through terminal wrapping with
+    // firebase emulators:exec ..., but I that's annoying and I didn't want to overwrite the builtin
+    // test tasks.
+    //
+    tasks.register<StartFirebaseEmulation>("startFirebaseEmulation")
+    tasks.register("stopFirebaseEmulation") {
+        val startFirebaseEmulation = tasks.named<StartFirebaseEmulation>("startFirebaseEmulation")
+        mustRunAfter(startFirebaseEmulation)
+        doLast {
+            startFirebaseEmulation.get().emulatorProcess?.destroy()
+        }
+    }
+    // Only start Firebase emulator for instrumented tests (connectedAndroidTest, deviceAndroidTest)
+    tasks.matching { it.name.contains("AndroidTest") }.configureEach {
+        dependsOn("startFirebaseEmulation")
+        finalizedBy("stopFirebaseEmulation")
+    }
+
     buildTypes {
+        debug {
+            // Include parameter names in debug builds for better UML diagrams
+            tasks.withType<JavaCompile> {
+                if (name.contains("Debug")) {
+                    options.compilerArgs.add("-parameters")
+                }
+            }
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -52,10 +114,13 @@ dependencies {
     //implementation(files("C:/Users/bwood/AppData/Local/Android/Sdk/platforms/android-36/android.jar"))
     //Phone number authentication
     implementation("com.googlecode.libphonenumber:libphonenumber:8.13.27")
+    implementation(libs.core.splashscreen)
+    implementation(libs.places)
 
     //Unit Testing
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.mockito:mockito-core:4.11.0")
+    testImplementation("org.robolectric:robolectric:4.11.1")
 
     //Android Testing
     androidTestImplementation("org.mockito:mockito-android:4.11.0")
@@ -70,6 +135,8 @@ dependencies {
 
     androidTestUtil("androidx.test:orchestrator:1.4.2")
     androidTestImplementation("androidx.fragment:fragment-testing:1.6.2")
+
+    implementation("androidx.annotation:annotation:1.7.0")
 
     implementation(libs.appcompat)
     implementation(libs.material)

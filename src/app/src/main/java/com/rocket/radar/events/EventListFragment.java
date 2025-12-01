@@ -6,31 +6,30 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.TextView; // Import TextView
+import android.widget.TextView; 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.rocket.radar.MainActivity;
 import com.rocket.radar.R;
+import com.rocket.radar.admin.AdminModeManager;
 import com.rocket.radar.databinding.CategoryChipBinding;
-import com.rocket.radar.notifications.NotificationFragment;
-import com.rocket.radar.notifications.NotificationRepository; // Import NotificationRepository
+import com.rocket.radar.notifications.NotificationRepository; 
 import com.rocket.radar.profile.ProfileModel;
 import com.rocket.radar.profile.ProfileViewModel;
-
-import org.checkerframework.checker.units.qual.A;
-
 import java.util.Date;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * This fragment is responsible for displaying a list of events.
@@ -39,7 +38,8 @@ import java.util.stream.Collectors;
  * Outstanding issues: The "Attending" filter functionality is not yet implemented.
  */
 public class EventListFragment extends Fragment implements EventAdapter.OnEventListener {
-
+    private static final String ARG_EVENT = "event";
+    private static final String TAG = EventListFragment.class.getSimpleName();
     private RecyclerView eventRecyclerView;
     private EventAdapter adapter;
     private List<Event> displayedEvents;
@@ -52,16 +52,24 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
     private TextView notificationBadge;
     private NotificationRepository notificationRepository;
     private Button filterButton;
-    private List<Integer> categories;
     private ChipGroup chipGroup;
-    private ArrayList<String> selectedFilters;
     private FilterModel filterModel;
-
-
-
 
     public EventListFragment() {
         // Required empty public constructor
+    }
+
+    /**
+     * Factory method to create a new instance of EventListFragment with an event parameter.
+     * @param event the event to pass to the fragment
+     * @return a new instance of EventListFragment
+     */
+    public static EventListFragment newInstance(Event event) {
+        EventListFragment fragment = new EventListFragment();
+        Bundle args = new Bundle();
+        args.putSerializable(ARG_EVENT, event);
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
@@ -71,31 +79,52 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         notificationButton = view.findViewById(R.id.btnNotification);
         toggleGroup = view.findViewById(R.id.toggleGroup);
         notificationBadge = view.findViewById(R.id.notification_badge);
-        filterButton = view.findViewById(R.id.button_filter); // Initialize filter button
+        filterButton = view.findViewById(R.id.button_filter);
         chipGroup = view.findViewById(R.id.category_chip_group_event_list);
-        selectedFilters = new ArrayList<>();
         filterModel = new ViewModelProvider(requireActivity()).get(FilterModel.class);
 
-        Log.e("EventListFragment", "Lenght: " + filterModel.getFilters().getValue());
-
-        for (var category : Event.allEventCategories) {
-            CategoryChipBinding binding = CategoryChipBinding.inflate(inflater, chipGroup, false);
-            binding.getRoot().setText(category);
-            chipGroup.addView(binding.getRoot());
-        }
-
-        // initialize chips
+        // We want to hide the filter header by default.
         chipGroup.setVisibility(View.GONE);
-
+        chipGroup.setOnCheckedStateChangeListener(this::removeActiveFilter);
         return view;
     }
+
+    /**
+     * Removes filters that are no longer checked in the chip group.
+     * This method is called when the checked state of chips changes.
+     * @param group the chip group containing filter chips
+     * @param selected the list of selected chip IDs
+     */
+    public void removeActiveFilter(ChipGroup group, List<Integer> selected) {
+        for (int i = 0; i < group.getChildCount(); ++i) {
+            View child = group.getChildAt(i);
+            if (!(child instanceof Chip)) continue;
+            Chip chip = (Chip)child;
+            if (chip.isChecked()) continue;
+            String filterName = chip.getText().toString();
+            filterModel.removeFilterByName(filterName);
+        }
+        filterAndDisplayEvents();
+    }
+
+    /**
+     * Displays an active filter as a chip in the chip group.
+     * @param filter the event filter to display as a chip
+     */
+    public void showActiveFilter(FilterModel.EventFilter filter) {
+        CategoryChipBinding binding = CategoryChipBinding.inflate(getLayoutInflater(), chipGroup, false);
+        binding.getRoot().setText(filter.getFilterName());
+        binding.getRoot().setChecked(true);
+        chipGroup.addView(binding.getRoot());
+    }
+
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         // Initialization
-        eventRepository = new EventRepository();
+        eventRepository = EventRepository.getInstance();
         profileViewModel = new ViewModelProvider(requireActivity()).get(ProfileViewModel.class);
         allEvents = new ArrayList<>();
         displayedEvents = new ArrayList<>();
@@ -105,15 +134,12 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
 
         notificationRepository = new NotificationRepository();
 
-
         notificationButton.setOnClickListener(v -> {
-            NotificationFragment notificationFragment = new NotificationFragment();
-            if (getActivity() instanceof MainActivity) {
-                ((MainActivity) getActivity()).setBottomNavigationVisibility(View.GONE);
-                getActivity().getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.nav_host_fragment, notificationFragment)
-                        .addToBackStack(null)
-                        .commit();
+            AdminModeManager adminModeManager = AdminModeManager.getInstance(getContext());
+            if (currentUserProfile != null && currentUserProfile.getRole() == ProfileModel.UserRole.ADMIN && adminModeManager.isAdminModeOn()) {
+                Navigation.findNavController(v).navigate(R.id.action_event_list_fragment_to_all_notifications);
+            } else {
+                Navigation.findNavController(v).navigate(R.id.notificationFragment);
             }
         });
 
@@ -121,12 +147,11 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
             FilterEventsFragment filterFragment = new FilterEventsFragment();
             if (getActivity() != null) {
                 getActivity().getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.nav_host_fragment, filterFragment)
-                        .addToBackStack(null) // Allows user to go back to the event list
-                        .commit();
+                    .replace(R.id.nav_host_fragment, filterFragment)
+                    .addToBackStack(null) // Allows user to go back to the event list
+                    .commit();
             }
         });
-
 
         setupToggleListener();
 
@@ -136,15 +161,33 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         observeUnreadNotifications();
     }
 
+    /**
+     * Observes changes to the event repository and updates the displayed events list.
+     * Shows a loading indicator while fetching events.
+     */
     private void observeEvents() {
+        // START LOADING
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).setLoading(true, "Scanning Events...");
+        }
+
         eventRepository.getAllEvents().observe(getViewLifecycleOwner(), newEvents -> {
             Log.d("EventListFragment", "Data updated. " + newEvents.size() + " events received.");
             allEvents.clear();
             allEvents.addAll(newEvents);
             filterAndDisplayEvents();
+
+            // STOP LOADING
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).setLoading(false);
+            }
         });
     }
 
+    /**
+     * Observes changes to the user profile and updates the UI accordingly.
+     * Updates the displayed events and notification button UI when profile changes.
+     */
     private void observeUserProfile() {
         profileViewModel.getProfileLiveData().observe(getViewLifecycleOwner(), profile -> {
             currentUserProfile = profile;
@@ -174,9 +217,19 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
             notificationButton.setAlpha(0.5f);
             notificationBadge.setAlpha(0.0f);
         }
+
+        AdminModeManager adminModeManager = AdminModeManager.getInstance(getContext());
+        if (currentUserProfile != null && currentUserProfile.getRole() == ProfileModel.UserRole.ADMIN && adminModeManager.isAdminModeOn()) {
+            notificationBadge.setAlpha(0.0f);
+        } else {
+            notificationBadge.setAlpha(1.0f);
+        }
     }
 
-
+    /**
+     * Observes unread notifications and updates the notification badge.
+     * Displays the count of unread notifications or hides the badge if there are none.
+     */
     private void observeUnreadNotifications() {
         // Observe the list of notifications from the repository
         notificationRepository.getMyNotifications().observe(getViewLifecycleOwner(), notifications -> {
@@ -195,120 +248,91 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         });
     }
 
+    /**
+     * Sets up a listener for the toggle button group that filters events when selection changes.
+     * This allows users to switch between Discover, Waitlist, and Attending views.
+     */
     private void setupToggleListener() {
         toggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             filterAndDisplayEvents();
         });
     }
 
+    /**
+     * Filters and displays events based on the selected feed (Discover, Waitlist, or Attending)
+     * and any active filters from the filter model.
+     * Updates the chip group to show active filters and refreshes the RecyclerView adapter.
+     */
     private void filterAndDisplayEvents() {
-        List<Event> filteredList;
         if (allEvents == null || currentUserProfile == null) {
             return;
         }
-        // all selected by default so that all show, but visibility will still be set to gone for now
-        // if an event has the chip name in its categories field, show that event
-        // for testing purposes, we will hardcode the selectedFilters to have "Business" and "Food"
 
-        int checkedId = toggleGroup.getCheckedButtonId();
+        int selectedEventFeed = toggleGroup.getCheckedButtonId();
 
-        ArrayList<String> userWaitlistEventIds = currentUserProfile.getOnWaitlistEventIds();
-        if (userWaitlistEventIds == null) {
-            userWaitlistEventIds = new ArrayList<>();
-        }
+        final ArrayList<String> userWaitlistEventIds = currentUserProfile.getOnWaitlistEventIds();
+        final ArrayList<String> userAttendingEventIds = currentUserProfile.getAttendingEventIds();
 
-        if (checkedId == R.id.discover_filter_button) {
-            ArrayList<String> finalUserWaitlistEventIds = userWaitlistEventIds;
-
-            // display events who have the selectedFIlters as items in their categories attribute
-            for (Event event : allEvents) {
-                Log.d("EventListFragment", "Event: " + event.toString());
-                //Log.d("EventListFragment", "categories of event: " + event.getCategories().toString());
-                Log.d("EventListFragment", "date of event: " + event.getEventStartDate().toString());
-            }
-            selectedFilters = filterModel.getFilters().getValue();
-            if (selectedFilters.size() > 0) {
-                // Set selected chips
-                for (var selected : selectedFilters) {
-                    for (int i = 0; i < chipGroup.getChildCount(); ++i) {
-                        View view = chipGroup.getChildAt(i);
-                        if (view instanceof Chip) {
-                            Chip chip = (Chip) view;
-                            if (chip.getText().toString().equals(selected)) {
-                                chip.setChecked(true);
-                            }
-                        }
-                    }
-                }
-
-                // also set the chips visibility
-                chipGroup.setVisibility(View.VISIBLE);
-
-                // finally, display the filtered eventrs
-                ArrayList<String> finalSelectedFilters = selectedFilters;
-
-                Date selectedDate = filterModel.getDate().getValue();
-                if (selectedDate == null) {
-                    Log.e("EventListFragment", "selected date is null");
-                }
-
-
-
-                List<Event> intermediateList = allEvents.stream()
-                        .filter(event -> event.getCategories().containsAll(finalSelectedFilters))
-                        .filter(event -> !finalUserWaitlistEventIds.contains(event.getEventId()))
-                        .collect(Collectors.toList());
-
-                if (selectedDate != null) {
-                    Log.d("EventListFragment", "date selected: + " + selectedDate);
-
-                    for (Event event : allEvents) {
-                        Log.d("EventListFragment", "Event: " + event.toString());
-                        //Log.d("EventListFragment", "categories of event: " + event.getCategories().toString());
-                        Log.d("EventListFragment", "date of event: " + event.getEventStartDate().toString());
-
-                        Log.d("EventListFragment", "is date of event after selected date?: " + event.getEventStartDate().after(selectedDate));
-                    }
-
-                    filteredList = intermediateList.stream()
-                            .filter(event -> event.getEventStartDate().after(selectedDate))
-                            .collect(Collectors.toList());
-                } else {
-                    filteredList = intermediateList;
-                }
-            } else {
-                chipGroup.setVisibility(View.GONE);
-                filteredList = allEvents;
-            }
-        } else if (checkedId == R.id.waitlist_filter_button) {
-            ArrayList<String> finalUserWaitlistEventIds1 = userWaitlistEventIds;
-            filteredList = allEvents.stream()
-                    .filter(event -> finalUserWaitlistEventIds1.contains(event.getEventId()))
-                    .collect(Collectors.toList());
-        } else {
-            filteredList = new ArrayList<>();
-            //TODO: add other filter for attending
-        }
-
-
-
-        Log.d("EventListFragment", "Filtered list size: " + filteredList.size());
         displayedEvents.clear();
-        displayedEvents.addAll(filteredList);
+
+        // See if there are any active filters imposed by the filter model and if there are display
+        // them as chips.
+        chipGroup.removeAllViews();
+        if (filterModel.getFilters().findAny().isPresent()) {
+            chipGroup.setVisibility(View.VISIBLE);
+            // We will first add the date tag if it exist so that there is a little structure to the
+            // display.
+            filterModel.getFilters()
+                    .filter(eventFilter -> eventFilter.getFilterCategory().equals("eventDate"))
+                    .forEach(this::showActiveFilter);
+
+            // Then we can go on to display the category filters for the event.
+            filterModel.getFilters()
+                    .filter(eventFilter -> eventFilter.getFilterCategory().equals("category"))
+                    .forEach(this::showActiveFilter);
+        } else {
+            chipGroup.setVisibility(View.GONE);
+        }
+
+        // Fetch the events the current feed should contain by default.
+        Stream<Event> eventsForFeed;
+        if (selectedEventFeed == R.id.discover_filter_button) {
+            eventsForFeed = allEvents.stream()
+                    .filter(event -> userWaitlistEventIds == null
+                            || !userWaitlistEventIds.contains(event.getEventId()))
+                    .filter(event -> userAttendingEventIds == null
+                            || !userAttendingEventIds.contains(event.getEventId()));
+        } else if (selectedEventFeed == R.id.waitlist_filter_button) {
+            eventsForFeed = allEvents.stream()
+                    .filter(event -> userWaitlistEventIds == null
+                            || userWaitlistEventIds.contains(event.getEventId()));
+        } else if (selectedEventFeed == R.id.attending_filter_button) {
+            eventsForFeed = allEvents.stream()
+                    .filter(event ->  userAttendingEventIds == null
+                            || userAttendingEventIds.contains(event.getEventId()));
+        } else {
+            Log.e(TAG, "Unexpected event feed selected with id" + selectedEventFeed);
+            return;
+        }
+
+        filterModel
+            .filter(eventsForFeed)
+            .forEach(event -> displayedEvents.add(event));
+
         adapter.notifyDataSetChanged();
     }
 
     @Override
-    public void onEventClick(int position) {
-        Event clickedEvent = displayedEvents.get(position);
-        EventViewFragment eventViewFragment = EventViewFragment.newInstance(clickedEvent);
+    public void onEventClick(int position, View itemView) {
+        Event selectedEvent = displayedEvents.get(position);
 
-        if (getActivity() != null) {
-            getActivity().getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.nav_host_fragment, eventViewFragment)
-                    .addToBackStack(null)
-                    .commit();
-        }
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("event", selectedEvent);
+
+        Navigation.findNavController(itemView).navigate(
+                R.id.eventViewFragment,
+                bundle
+        );
     }
 
     @Override
@@ -320,7 +344,7 @@ public class EventListFragment extends Fragment implements EventAdapter.OnEventL
         }
 
         if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).setBottomNavigationVisibility(View.VISIBLE);
+            ((MainActivity) getActivity()).setBottomNavigationVisibility(android.view.View.VISIBLE);
         }
 
         filterAndDisplayEvents();

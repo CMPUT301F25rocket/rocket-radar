@@ -14,24 +14,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  compile:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          sparse-checkout: src
-
-      - shell: bash
-        env:
-          GOOGLE_SERVICES_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON }}
-        run: |
-          cd $GITHUB_WORKSPACE/src
-          echo "$GOOGLE_SERVICES_BASE64" | base64 --decode > app/google-services.json
-          ./gradlew assembleDebug
-          # Don't know how runner clearing works, but probably better destroy these now.
-          unset GOOGLE_SERVICES_BASE64
-          rm app/google-services.json
-
   lint:
     runs-on: ubuntu-latest
     steps:

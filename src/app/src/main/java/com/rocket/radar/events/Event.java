@@ -3,6 +3,7 @@ package com.rocket.radar.events;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.time.format.TextStyle;
@@ -19,7 +20,9 @@ import java.util.UUID;
 
 import com.google.firebase.firestore.Blob;
 import com.google.firebase.firestore.Exclude; // CORRECT: Using the Firestore Exclude
+import com.google.firebase.firestore.GeoPoint;
 import com.rocket.radar.eventmanagement.Time;
+import com.rocket.radar.uml.UmlAssociate;
 
 import java.io.Serializable;
 
@@ -58,23 +61,37 @@ public class Event implements Serializable {
     private Time eventStartTime;
     private Time eventEndTime;
     private Date registrationStartDate;
-    private Date registrationEndDate;
     private Date selectionStartDate;
-    private Date selectionEndDate;
     private Date finalSelectionDate;
     private Optional<Integer> waitlistCapacity;
     private boolean requireLocation;
     private int eventCapacity;
-    private Date lotteryDate;
+    private String organizerId;
 
-    private Time lotteryTime;
+    private String eventLocationName;
+
+    // Since GeoPoint is not Serializable, we might need to handle it carefully or exclude it from serialization
+    // if we pass Event objects via Intent/Bundle. However, Firestore handles GeoPoint fine.
+    // For Serializable, we can't use GeoPoint directly if we want to pass it in Bundle using Serializable.
+    // But Event implements Serializable.
+    // To avoid crashes when passing Event in Bundle, we should probably mark GeoPoint as transient
+    // and handle it manually, or just store lat/long as doubles.
+    // However, the prompt asks to save to Firebase as well. Firestore likes GeoPoint.
+    // Let's store separate lat/lng for serialization safety or create a custom DTO.
+    // Or we can make a transient GeoPoint and persistent double lat/lng.
+    // ACTUALLY: GeoPoint IS NOT Serializable.
+    // So if we put Event in a bundle, it will crash if GeoPoint is a field.
+    // We should store lat/lng and helper method to get/set GeoPoint.
+
+    private Double locationLatitude;
+    private Double locationLongitude;
+
 
     private Blob bannerImageBlob;
 
     // WARN: DO NOT REMOVE TRANSIENT. WE WILL CONSUME OUR FIRESTORE USAGE FAST (maybe).
     // We don't want this one serialized.
     private transient Bitmap bannerImage;
-    private Color color;
 
     /**
      * A list of user IDs for those on the waitlist for the event.
@@ -127,6 +144,20 @@ public class Event implements Serializable {
     }
 
     // Standard getters
+
+    /**
+     * Resizes the provided bitmap to the specific width and height.
+     *
+     * @param image  The original bitmap image.
+     * @param width  The target width.
+     * @param height The target height.
+     * @return A new Bitmap scaled to the specified dimensions.
+     */
+    public static Bitmap resizeBanner(Bitmap image, int width, int height) {
+        // Using 'true' for filter improves quality when scaling down
+        return Bitmap.createScaledBitmap(image, width, height, true);
+    }
+
     /**
      * Gets the title of the event.
      * @return The event title as a String.
@@ -142,6 +173,11 @@ public class Event implements Serializable {
      * @return The {@link Date} object representing the event's start date, or null if not set.
      */
     public Date getEventStartDate() { return eventStartDate != null ? eventStartDate : null;}
+    /**
+     * Formats the event start date for display purposes.
+     * Returns the date in format "DD\nMMM" where MMM is a three-letter uppercase abbreviation for the month.
+     * @return Formatted date string with day and month on separate lines, or empty string if date is not set.
+     */
     public String getFormattedDate() {
         // returns the date in format DD\nMMM where MMM three letter capital abbreviation for the month
         if (eventStartDate == null) return "";
@@ -172,59 +208,6 @@ public class Event implements Serializable {
     public void setEventId(String eventId) { this.eventId = eventId; }
 
 
-    /**
-     * Gets the associated color for the event as an ARGB integer.
-     *
-     * @return The integer representation of the event's color.
-     */
-    public int getColor() {
-        return color.toArgb();
-    }
-
-    /**
-     * Sets the color for the event from an ARGB integer.
-     *
-     * @param color The integer representation of the color.
-     */
-    public void setColor(int color) {
-        this.color = Color.valueOf(color);
-    }
-
-    /**
-     * Gets the time of the lottery draw.
-     *
-     * @return The {@link Time} of the lottery.
-     */
-    public Time getLotteryTime() {
-        return lotteryTime;
-    }
-
-    /**
-     * Sets the time of the lottery draw.
-     *
-     * @param lotteryTime The {@link Time} of the lottery.
-     */
-    public void setLotteryTime(Time lotteryTime) {
-        this.lotteryTime = lotteryTime;
-    }
-
-    /**
-     * Gets the date of the lottery draw.
-     *
-     * @return The {@link Date} of the lottery.
-     */
-    public Date getLotteryDate() {
-        return lotteryDate;
-    }
-
-    /**
-     * Sets the date of the lottery draw.
-     *
-     * @param lotteryDate The {@link Date} of the lottery.
-     */
-    public void setLotteryDate(Date lotteryDate) {
-        this.lotteryDate = lotteryDate;
-    }
 
     /**
      * Gets the maximum capacity of the event.
@@ -268,7 +251,7 @@ public class Event implements Serializable {
      * @return An {@link Integer} representing the waitlist capacity, or null if not set.
      */
     public Integer getWaitlistCapacity() {
-        return waitlistCapacity.orElse(null);
+        return waitlistCapacity != null ? waitlistCapacity.orElse(null) : null;
     }
 
     /**
@@ -298,23 +281,6 @@ public class Event implements Serializable {
         this.finalSelectionDate = finalSelectionDate;
     }
 
-    /**
-     * Gets the end date of the selection period.
-     *
-     * @return The selection end {@link Date}.
-     */
-    public Date getSelectionEndDate() {
-        return selectionEndDate;
-    }
-
-    /**
-     * Sets the end date of the selection period.
-     *
-     * @param selectionEndDate The selection end {@link Date}.
-     */
-    public void setSelectionEndDate(Date selectionEndDate) {
-        this.selectionEndDate = selectionEndDate;
-    }
 
     /**
      * Gets the start date of the selection period.
@@ -334,23 +300,6 @@ public class Event implements Serializable {
         this.selectionStartDate = selectionStartDate;
     }
 
-    /**
-     * Gets the end date of the registration period.
-     *
-     * @return The registration end {@link Date}.
-     */
-    public Date getRegistrationEndDate() {
-        return registrationEndDate;
-    }
-
-    /**
-     * Sets the end date of the registration period.
-     *
-     * @param registrationEndDate The registration end {@link Date}.
-     */
-    public void setRegistrationEndDate(Date registrationEndDate) {
-        this.registrationEndDate = registrationEndDate;
-    }
 
     /**
      * Gets the start date of the registration period.
@@ -412,7 +361,7 @@ public class Event implements Serializable {
      * @return The event end {@link Date}, or null if not set.
      */
     public Date getEventEndDate() {
-        return eventEndDate.orElse(null);
+        return eventEndDate != null ? eventEndDate.orElse(null) : null;
     }
 
     /**
@@ -422,6 +371,23 @@ public class Event implements Serializable {
      */
     public void setEventEndDate(Date eventEndDate) {
         this.eventEndDate = Optional.ofNullable(eventEndDate);
+    }
+
+
+    /**
+     * Sets the ID of the user who organized this event.
+     * @param organizerId The organizer's User ID.
+     */
+    public void setOrganizerId(String organizerId) {
+        this.organizerId = organizerId;
+    }
+
+    /**
+     * Gets the ID of the user who organized this event.
+     * @return The organizer's User ID.
+     */
+    public String getOrganizerId() {
+        return organizerId;
     }
 
     /**
@@ -439,8 +405,10 @@ public class Event implements Serializable {
      * @return A {@link List} of category strings.
      */
     public List<String> getCategories() {
-        return new ArrayList<>(categories);
+        return categories != null ? new ArrayList<>(categories) : new ArrayList<>();
     }
+
+
 
     /**
      * Sets the categories for the event.
@@ -489,324 +457,382 @@ public class Event implements Serializable {
 
     /**
      * Sets the detailed description of the event.
-     *
-     * @param description The event description.
+     * @param description The event description text.
      */
     public void setDescription(String description) {
         this.description = description;
     }
 
     /**
-     * Fetches the banner image. If it has not yet been decoded it will decode the image from the
-     * base64 image field.
-     * @return the banner image.
+     * Gets the banner image stored as a Firestore Blob.
+     * @return The banner image Blob, or null if not set.
+     */
+    public Blob getBannerImageBlob() {
+        return bannerImageBlob;
+    }
+
+    /**
+     * Sets the banner image as a Firestore Blob.
+     * @param bannerImageBlob The banner image Blob to store.
+     */
+    public void setBannerImageBlob(Blob bannerImageBlob) {
+        this.bannerImageBlob = bannerImageBlob;
+    }
+
+    /**
+     * Gets the banner image as a Bitmap.
+     * If the bitmap hasn't been decoded yet, it decodes it from the stored Blob.
+     * This method is excluded from Firestore serialization.
+     * @return The banner image Bitmap, or null if no image is set.
      */
     @com.google.firebase.firestore.Exclude
     public Bitmap getBannerImageBitmap() {
-        if (bannerImage == null) {
-            byte[] compressedBlob = bannerImageBlob.toBytes();
-            bannerImage = BitmapFactory.decodeByteArray(compressedBlob, 0, compressedBlob.length);
+        if (bannerImage == null && bannerImageBlob != null) {
+            byte[] bytes = bannerImageBlob.toBytes();
+            bannerImage = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
         }
         return bannerImage;
     }
 
     /**
-     * Gets the banner image as a Firestore {@link Blob}.
-     * This is the format used for database storage.
-     *
-     * @return The banner image as a Blob.
+     * Sets the banner image from a Bitmap.
+     * The bitmap is automatically compressed to JPEG format and stored as a Blob.
+     * @param bannerImage The banner image Bitmap to set.
      */
-    public Blob getBannerImageBlob() { return this.bannerImageBlob; }
+    public void setBannerImage(Bitmap bannerImage) {
+        this.bannerImage = bannerImage;
+        if (bannerImage != null) {
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            bannerImage.compress(Bitmap.CompressFormat.JPEG, 70, stream);
+            this.bannerImageBlob = Blob.fromBytes(stream.toByteArray());
+        }
+    }
+
+    // --- Location Support ---
+
     /**
-     * Sets the banner image from a Firestore {@link Blob}.
-     *
-     * @param data The banner image data as a Blob.
+     * Gets the name of the event location.
+     * @return The location name string, or null if not set.
      */
-    public void setBannerImageBlob(Blob data) { this.bannerImageBlob = data; }
+    public String getEventLocationName() {
+        return eventLocationName;
+    }
 
-    private static Bitmap resizeBanner(Bitmap image)
-    throws Exception {
-        // IMPORTANT: Make sure these are kept up to date.
-        // These are the dimensions in DP for the image on the event view page. This may result
-        // in blurriness on HDPI screens (not really sure) but we're covering it with a gradient
-        // anyways so we should be good.
-        final int targetWidth = 420;
-        final int targetHeight = 350;
+    /**
+     * Sets the name of the event location.
+     * @param eventLocationName The location name to set.
+     */
+    public void setEventLocationName(String eventLocationName) {
+        this.eventLocationName = eventLocationName;
+    }
 
-        int w = image.getWidth();
-        int h = image.getHeight();
-        if (w < targetWidth || h < targetHeight)
-            throw new IllegalArgumentException("Expected " + targetWidth + "x" + targetHeight + " image or larger");
+    /**
+     * Gets the latitude coordinate of the event location.
+     * @return The latitude as a Double, or null if not set.
+     */
+    public Double getLocationLatitude() {
+        return locationLatitude;
+    }
 
-        Bitmap oneDimensionFit;
-        if (w > targetWidth || h > targetHeight) {
-            // Rescale the image to fit the smaller dimension. This will get rid of more pixels
-            // than the crop so we do this first to reduce memory usage. In the case of a square
-            // we crop excess height.
-            if (w <= h) {
-                int scaleHeight = Math.round(h * ((float)targetWidth / w));
-                oneDimensionFit = Bitmap.createScaledBitmap(image, targetWidth,  scaleHeight, true);
-            } else {
-                int scaleWidth = Math.round(w * ((float)targetHeight / h));
-                oneDimensionFit = Bitmap.createScaledBitmap(image, scaleWidth, targetHeight, true);
-            }
+    /**
+     * Sets the latitude coordinate of the event location.
+     * @param locationLatitude The latitude to set.
+     */
+    public void setLocationLatitude(Double locationLatitude) {
+        this.locationLatitude = locationLatitude;
+    }
+
+    /**
+     * Gets the longitude coordinate of the event location.
+     * @return The longitude as a Double, or null if not set.
+     */
+    public Double getLocationLongitude() {
+        return locationLongitude;
+    }
+
+    /**
+     * Sets the longitude coordinate of the event location.
+     * @param locationLongitude The longitude to set.
+     */
+    public void setLocationLongitude(Double locationLongitude) {
+        this.locationLongitude = locationLongitude;
+    }
+
+    /**
+     * Helper to get location as GeoPoint for Firestore integration if needed.
+     * Note: Firestore might map Double fields automatically, but if we want a specific GeoPoint field in DB,
+     * we might need to construct it. However, keeping it simple with lat/long is safer for Serializable.
+     * If we want Firestore to see a GeoPoint, we can add a getter marked with @PropertyName or just let it store fields.
+     * Actually, Firestore handles GeoPoint specifically.
+     * Let's add a pseudo-property that Firestore can use if we map it manually, or just use lat/long.
+     * To keep it simple and Serializable, I'll just use lat/long fields in the class.
+     * But wait, if we want to query by location later, GeoPoint is better.
+     * I will add a getter/setter for GeoPoint that updates the lat/long fields,
+     * and mark the lat/long fields as @Exclude if I want only GeoPoint in DB, OR
+     * mark GeoPoint as @Exclude if I want lat/long in DB.
+     * The prompt says "saved into firebase". GeoPoint is standard.
+     */
+
+    /**
+     * Gets the event location as a GeoPoint object.
+     * This method is excluded from Firestore serialization.
+     * @return A GeoPoint containing the latitude and longitude, or null if location is not set.
+     */
+    @Exclude
+    public GeoPoint getEventGeoLocation() {
+        if (locationLatitude != null && locationLongitude != null) {
+            return new GeoPoint(locationLatitude, locationLongitude);
+        }
+        return null;
+    }
+
+    /**
+     * Sets the event location from a GeoPoint object.
+     * This method is excluded from Firestore serialization.
+     * @param geoPoint The GeoPoint to set, or null to clear the location.
+     */
+    @Exclude
+    public void setEventGeoLocation(GeoPoint geoPoint) {
+        if (geoPoint != null) {
+            this.locationLatitude = geoPoint.getLatitude();
+            this.locationLongitude = geoPoint.getLongitude();
         } else {
-            // Proof of early return correctness.
-            // ~(w < targetWidth || h < targetHeight) && ~(w > targetWidth || h > targetHeight)
-            // w >= targetWidth && h >= targetHeight) && w <= targetWidth && h <= targetHeight
-            // w >= targetWidth && w <= targetWidth && h >= targetHeight)  && h <= targetHeight
-            // w == targetWidth && h == targetHeight
-            // If our dimensions already match our target go ahead and assign.
-            return image;
+            this.locationLatitude = null;
+            this.locationLongitude = null;
         }
-
-        // Ok one of the dimensions by this point fits the image size. Figure out which one, and
-        // then along the other dimension center the image with a window of target size and crop
-        // to fit.
-        Bitmap cropped;
-        if (oneDimensionFit.getWidth() == targetWidth) {
-            // Crop along vertical axis.
-            int verticalSpace = oneDimensionFit.getHeight() - targetHeight;
-            cropped = Bitmap.createBitmap(oneDimensionFit, 0, verticalSpace / 2, targetWidth, targetHeight);
-        } else if (oneDimensionFit.getHeight() == targetHeight) {
-            // Crop along horizontal axis.
-            int horizontalSpace = oneDimensionFit.getWidth() - targetWidth;
-            cropped = Bitmap.createBitmap(oneDimensionFit, horizontalSpace / 2, 0, targetWidth, targetHeight);
-        } else {
-            throw new Exception("This should be unreachable");
-        }
-
-        return cropped;
     }
 
     /**
-     * Gets the list of user IDs who have cancelled their registration.
-     *
-     * @return An {@link ArrayList} of user ID strings. Returns an empty list if null.
+     * Accessor for Firestore to save GeoPoint.
+     * This is a bit tricky because if we have getGeoLocation and setGeoLocation, Firestore might use it.
+     * But we also have lat/long fields.
+     * Let's just store lat/long as doubles for now to avoid Serializable issues and Firestore complexities.
+     * Google Maps can take lat/long easily.
      */
-    public ArrayList<String> getEventCancelledIds() {
-        if (eventCancelledIds == null) {
-            eventCancelledIds = new ArrayList<>();
-        }
-        return eventCancelledIds;
-    }
+
 
     /**
-     * Sets the list of user IDs who have cancelled their registration.
-     *
-     * @param eventCancelledIds An {@link ArrayList} of user ID strings.
+     * Builder class for constructing Event objects using the Builder pattern.
+     * Provides a fluent interface for setting event properties.
      */
-    public void setEventCancelledIds(ArrayList<String> eventCancelledIds) {
-        this.eventCancelledIds = eventCancelledIds;
-    }
-
-    /**
-     * Gets the list of user IDs attending the event.
-     *
-     * @return An {@link ArrayList} of user ID strings. Returns an empty list if null.
-     */
-    public ArrayList<String> getEventAttendingIds() {
-        if (eventAttendingIds == null) {
-            eventAttendingIds = new ArrayList<>();
-        }
-        return eventAttendingIds;
-    }
-
-    /**
-     * Sets the list of user IDs attending the event.
-     *
-     * @param eventAttendingIds An {@link ArrayList} of user ID strings.
-     */
-    public void setEventAttendingIds(ArrayList<String> eventAttendingIds) {
-        this.eventAttendingIds = eventAttendingIds;
-    }
-
-    /**
-     * Gets the list of user IDs invited to the event.
-     *
-     * @return An {@link ArrayList} of user ID strings. Returns an empty list if null.
-     */
-    public ArrayList<String> getEventInvitedIds() {
-        if (eventInvitedIds == null) {
-            eventInvitedIds = new ArrayList<>();
-        }
-        return eventInvitedIds;
-    }
-
-    /**
-     * Sets the list of user IDs invited to the event.
-     *
-     * @param eventInvitedIds An {@link ArrayList} of user ID strings.
-     */
-    public void setEventInvitedIds(ArrayList<String> eventInvitedIds) {
-        this.eventInvitedIds = eventInvitedIds;
-    }
-
-    /**
-     * Gets the list of user IDs on the event's waitlist.
-     *
-     * @return An {@link ArrayList} of user ID strings. Returns an empty list if null.
-     */
-    public ArrayList<String> getEventWaitlistIds() {
-        if (eventWaitlistIds == null) {
-            eventWaitlistIds = new ArrayList<>();
-        }
-        return eventWaitlistIds;
-    }
-
-    /**
-     * Sets the list of user IDs on the event's waitlist.
-     *
-     * @param eventWaitlistIds An {@link ArrayList} of user ID strings.
-     */
-    public void setEventWaitlistIds(ArrayList<String> eventWaitlistIds) {
-        this.eventWaitlistIds = eventWaitlistIds;
-    }
-
     public static class Builder {
+        @UmlAssociate(selfCard = "1", label = "fills", otherCard = "1")
+        private com.rocket.radar.eventmanagement.EventGeneralFragment eventGeneralFragment;
+
+        @UmlAssociate(selfCard = "1", label = "fills", otherCard = "1")
+        private com.rocket.radar.eventmanagement.EventLotteryFragment eventLotteryFragment;
+
         private Event event;
 
-        /**
-         * Create a {@code Event.Builder} to modify an existing event.
-         * @param event The event to modify.
-         */
+        public Builder() {
+            event = new Event();
+            event.eventId = UUID.randomUUID().toString();
+        }
+        
         public Builder(Event event) {
             this.event = event;
         }
 
         /**
-         * Create a new event using the builder.
+         * Sets the event title.
+         * @param title The event title.
+         * @return This Builder instance for method chaining.
          */
-        public Builder() {
-            event = new Event();
-            event.eventId = UUID.randomUUID().toString(); // Generate a unique ID
-            event.categories = new TreeSet<>();
-            event.waitlistCapacity = Optional.empty();
-            event.eventEndDate = Optional.empty();
-        }
-
         public Builder title(String title) {
             event.eventTitle = title;
             return this;
         }
 
-        public Builder eventStartDate(Date date) {
-            event.eventStartDate = date;
+        /**
+         * Sets the event description.
+         * @param description The detailed event description.
+         * @return This Builder instance for method chaining.
+         */
+        public Builder description(String description) {
+            event.description = description;
             return this;
         }
 
-        public Builder eventEndDate(Date date) {
-            event.eventEndDate = Optional.of(date);
-            return this;
-        }
-
+        /**
+         * Sets the event tagline.
+         * @param tagline A short, catchy phrase for the event.
+         * @return This Builder instance for method chaining.
+         */
         public Builder tagline(String tagline) {
             event.tagline = tagline;
             return this;
         }
 
         /**
-         * Adds the categories in the array to this event.
-         * @param categories
-         * @return
+         * Sets the event categories.
+         * @param categories A list of category strings.
+         * @return This Builder instance for method chaining.
          */
-        public Builder categories(ArrayList<String> categories) {
-            event.categories.addAll(categories);
+        public Builder categories(List<String> categories) {
+            event.setCategories(categories);
             return this;
         }
 
         /**
-         * Add a single category to this event.
-         * @param category
-         * @return
+         * Sets the banner image from a Bitmap.
+         * @param bitmap The banner image as a Bitmap.
+         * @return This Builder instance for method chaining.
          */
-        public Builder category(String category) {
-            event.categories.add(category);
+        public Builder bannerImage(Bitmap bitmap) {
+            event.setBannerImage(bitmap);
             return this;
         }
 
-        public Builder description(String description) {
-            new Event();
-            event.description = description;
-            return this;
-        }
-
-        public Builder eventStartTime(Time time) {
-            event.eventStartTime = time;
-            return this;
-        }
-
-        public Builder eventEndTime(Time time) {
-            event.eventEndTime = time;
-            return this;
-        }
-
-        public Builder registrationStartDate(Date date) {
-            event.registrationStartDate = date;
-            return this;
-        }
-
-        public Builder registrationEndDate(Date date) {
-            event.registrationEndDate = date;
-            return this;
-        }
-
-        public Builder initialSelectionStartDate(Date date) {
-            event.selectionStartDate = date;
-            return this;
-        }
-
-        public Builder initialSelectionEndDate(Date date) {
-            event.selectionEndDate = date;
-            return this;
-        }
-
-        public Builder finalSelectionDate(Date date) {
-            event.finalSelectionDate = date;
-            return this;
-        }
-
+        /**
+         * Sets the waitlist capacity.
+         * @param capacity The waitlist capacity wrapped in Optional, or empty Optional for unlimited.
+         * @return This Builder instance for method chaining.
+         */
         public Builder waitlistCapacity(Optional<Integer> capacity) {
             event.waitlistCapacity = capacity;
             return this;
         }
 
-        public Builder requireLocation(Boolean value) {
-            event.requireLocation = value;
-            return this;
-        }
-
-        public Builder eventCapacity(Integer capacity) {
+        /**
+         * Sets the event capacity.
+         * @param capacity The maximum number of attendees.
+         * @return This Builder instance for method chaining.
+         */
+        public Builder eventCapacity(int capacity) {
             event.eventCapacity = capacity;
             return this;
         }
 
-        public Builder lotteryDate(Date date) {
-            event.lotteryDate = date;
+        /**
+         * Sets the event start date.
+         * @param date The date when the event starts.
+         * @return This Builder instance for method chaining.
+         */
+        public Builder eventStartDate(Date date) {
+            event.eventStartDate = date;
             return this;
         }
 
-        public Builder lotteryTime(Time time) {
-            event.lotteryTime = time;
+        /**
+         * Sets the event end date.
+         * @param date The date when the event ends.
+         * @return This Builder instance for method chaining.
+         */
+        public Builder eventEndDate(Date date) {
+            event.setEventEndDate(date);
             return this;
         }
 
-        public Builder bannerImage(Bitmap image) throws Exception {
-            Bitmap resized = resizeBanner(image);
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            resized.compress(Bitmap.CompressFormat.JPEG, 70, outputStream);
-            event.bannerImageBlob = Blob.fromBytes(outputStream.toByteArray());
-            event.bannerImage = resized;
+        /**
+         * Sets the event start time.
+         * @param time The time when the event starts.
+         * @return This Builder instance for method chaining.
+         */
+        public Builder eventStartTime(Time time) {
+            event.eventStartTime = time;
             return this;
         }
 
-        public Builder color(Color color) {
-            event.color = color;
+        /**
+         * Sets the event end time.
+         * @param time The time when the event ends.
+         * @return This Builder instance for method chaining.
+         */
+        public Builder eventEndTime(Time time) {
+            event.eventEndTime = time;
             return this;
         }
 
+        /**
+         * Sets the registration start date.
+         * @param date The date when registration opens.
+         * @return This Builder instance for method chaining.
+         */
+        public Builder registrationStartDate(Date date) {
+            event.registrationStartDate = date;
+            return this;
+        }
+
+        /**
+         * Sets the initial selection start date.
+         * @param date The date when the initial lottery selection begins.
+         * @return This Builder instance for method chaining.
+         */
+        public Builder initialSelectionStartDate(Date date) {
+            event.selectionStartDate = date;
+            return this;
+        }
+
+        /**
+         * Sets the final selection date.
+         * @param date The final date for lottery selection.
+         * @return This Builder instance for method chaining.
+         */
+        public Builder finalSelectionDate(Date date) {
+            event.finalSelectionDate = date;
+            return this;
+        }
+
+        /**
+         * Sets the event location.
+         * @param geoPoint The geographic coordinates of the event location.
+         * @param name The name of the event location.
+         * @return This Builder instance for method chaining.
+         */
+        public Builder location(GeoPoint geoPoint, String name) {
+            event.setEventGeoLocation(geoPoint);
+            event.setEventLocationName(name);
+            return this;
+        }
+
+        /**
+         * Sets whether location tracking is required for this event.
+         * @param require true if location is required, false otherwise.
+         * @return This Builder instance for method chaining.
+         */
+        public Builder requireLocation(boolean require) {
+            event.setRequireLocation(require);
+            return this;
+        }
+
+        /**
+         * Builds and returns the Event object.
+         * @return The constructed Event instance.
+         */
         public Event build() {
             return event;
         }
+    }
+
+    /**
+     * Gets the list of user IDs on the event waitlist.
+     * @return An ArrayList of user IDs, or an empty list if none are waitlisted.
+     */
+    public ArrayList<String> getEventWaitlistIds() {
+        return eventWaitlistIds != null ? eventWaitlistIds : new ArrayList<>();
+    }
+
+    /**
+     * Gets the list of user IDs who have been invited to the event.
+     * @return An ArrayList of user IDs, or an empty list if none are invited.
+     */
+    public ArrayList<String> getEventInvitedIds() {
+        return eventInvitedIds != null ? eventInvitedIds : new ArrayList<>();
+    }
+
+    /**
+     * Gets the list of user IDs who are attending the event.
+     * @return An ArrayList of user IDs, or an empty list if none are attending.
+     */
+    public ArrayList<String> getEventAttendingIds() {
+        return eventAttendingIds != null ? eventAttendingIds : new ArrayList<>();
+    }
+
+    /**
+     * Gets the list of user IDs who have cancelled their event registration.
+     * @return An ArrayList of user IDs, or an empty list if none have cancelled.
+     */
+    public ArrayList<String> getEventCancelledIds() {
+        return eventCancelledIds != null ? eventCancelledIds : new ArrayList<>();
     }
 }

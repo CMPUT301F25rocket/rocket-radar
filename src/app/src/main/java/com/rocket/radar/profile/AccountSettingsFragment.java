@@ -16,6 +16,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.rocket.radar.R;
+import com.rocket.radar.admin.AdminModeManager;
 
 // cite: toast code for save button based on https://developer.android.com/guide/topics/ui/notifiers/toasts, accessed: November 3, 2025
 
@@ -26,10 +27,11 @@ import com.rocket.radar.R;
  */
 public class AccountSettingsFragment extends Fragment {
 
-    private MaterialButton backButton, saveButton, deleteButton;
+    private MaterialButton backButton, saveButton, deleteButton, adminButton;
     private TextInputEditText usernameField, emailField, phoneNumberField;
     private MaterialSwitch notificationsEnabled, geolocationEnabled;
     private ProfileViewModel profileViewModel;
+    private AdminModeManager adminModeManager;
 
     private String uid;
 
@@ -54,11 +56,13 @@ public class AccountSettingsFragment extends Fragment {
         backButton = view.findViewById(R.id.back_button);
         saveButton = view.findViewById(R.id.save_button);
         deleteButton = view.findViewById(R.id.delete_button);
+        adminButton = view.findViewById(R.id.admin_button);
         usernameField = view.findViewById(R.id.usernameField);
         emailField = view.findViewById(R.id.emailField);
         phoneNumberField = view.findViewById(R.id.phoneField);
         notificationsEnabled = view.findViewById(R.id.notification_switch);
         geolocationEnabled = view.findViewById(R.id.geolocation_switch);
+        adminModeManager = AdminModeManager.getInstance(requireContext());
         backButton.setOnClickListener(v -> {
             NavHostFragment.findNavController(this).navigateUp();
         });
@@ -72,6 +76,19 @@ public class AccountSettingsFragment extends Fragment {
             return false;
         });
 
+        // cite: The following 11 lines are from Claude "If I change the manager to use live data, how should I refactor Account Settings?", 2025-11-14
+        adminModeManager.getAdminModeLiveData().observe(getViewLifecycleOwner(), isAdminMode -> {
+            adminButton.setText(isAdminMode ? "SWITCH BACK TO NORMAL" : "SWITCH TO ADMINISTRATOR");
+        });
+
+        adminButton.setOnClickListener(v -> {
+            boolean newState = !adminModeManager.isAdminModeOn();
+            adminModeManager.setAdminModeOn(newState);
+            Toast.makeText(getContext(),
+                    "Admin mode " + (newState ? "enabled" : "disabled"),
+                    Toast.LENGTH_SHORT).show();
+        });
+
         profileViewModel = new ViewModelProvider(requireActivity()).get(ProfileViewModel.class);
         profileViewModel.getProfileLiveData().observe(getViewLifecycleOwner(), profile -> {
             if (profile == null) {
@@ -80,6 +97,7 @@ public class AccountSettingsFragment extends Fragment {
                 phoneNumberField.setText("");
                 notificationsEnabled.setChecked(false);
                 geolocationEnabled.setChecked(false);
+                adminButton.setVisibility(View.GONE);
                 uid = null;
                 return;
             }
@@ -90,6 +108,12 @@ public class AccountSettingsFragment extends Fragment {
             // cite: the following two lines are from ChatGPT, "What is the safest way to check for a True Boolean in Java?", accessed: October 27, 2025
             notificationsEnabled.setChecked(Boolean.TRUE.equals(profile.isNotificationsEnabled()));
             geolocationEnabled.setChecked(Boolean.TRUE.equals(profile.isGeolocationEnabled()));
+
+            if (profile.getRole() == ProfileModel.UserRole.ADMIN) {
+                adminButton.setVisibility(View.VISIBLE);
+            } else {
+                adminButton.setVisibility(View.GONE);
+            }
         });
 
         saveButton.setOnClickListener( v -> {
@@ -131,6 +155,7 @@ public class AccountSettingsFragment extends Fragment {
                 profile.setPhoneNumber(phone);
                 profile.setNotificationsEnabled(notificationsEnabled.isChecked());
                 profile.setGeolocationEnabled(geolocationEnabled.isChecked());
+                profile.setRole(ProfileModel.UserRole.ADMIN); // debug line to make you admin
                 profileViewModel.updateProfile(profile);
             }
             Toast saveToast = Toast.makeText(this.getContext(), "Account settings saved!", Toast.LENGTH_SHORT);

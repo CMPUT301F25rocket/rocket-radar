@@ -18,9 +18,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.MutableLiveData;
 
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.widget.Autocomplete;
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.firestore.GeoPoint;
 import com.maxkeppeler.sheets.calendar.CalendarSheet;
 import com.maxkeppeler.sheets.calendar.SelectionMode;
 import com.maxkeppeler.sheets.clock.ClockSheet;
@@ -31,10 +36,14 @@ import com.rocket.radar.R;
 import com.rocket.radar.databinding.ActivityCreateEventBinding;
 import com.rocket.radar.events.Event;
 import com.rocket.radar.events.EventRepository;
+import com.rocket.radar.uml.UmlAggregate;
+import com.rocket.radar.uml.UmlAssociate;
 
 import org.w3c.dom.Text;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -42,106 +51,165 @@ import kotlin.Unit;
 
 /**
  * Activity that walks a user through filling out the various pieces of information needed to create
- * an event. This activity makes heavy use of view and databinding. Here are some relevant pieces of 
+ * an event. This activity makes heavy use of view and databinding. Here are some relevant pieces of
  * information:
  * - https://developer.android.com/reference/com/google/android/material/bottomsheet/BottomSheetBehavior
  * - https://stackoverflow.com/questions/55682256/android-set-bottom-sheet-state-in-xml
  * - https://medium.com/@mananwason/bottoms-sheets-in-android-280c03280072
  */
 public class CreateEventActivity extends AppCompatActivity implements BottomSheetProvider {
+    /** Logging tag for this activity. */
     public static final String TAG = CreateEventActivity.class.getSimpleName();
+
+    /** View binding for the create event layout. */
     ActivityCreateEventBinding binding;
-    CreateEventModel model;
+
+    /** Observable tracking which section (tab) is currently active in the wizard. */
+    private MutableLiveData<Section> currentSection;
+
+    /** Repository for creating and managing events in Firestore. */
     EventRepository eventRepository;
 
+    /** Fragment handling the general information section of event creation. */
+    @UmlAggregate(selfCard = "1", label = "hosts", otherCard = "1")
     private EventGeneralFragment eventGeneralFragment;
-    private EventDateTimeFragment eventDateTimeFragment;
-    private EventDeadlinesFragment eventDeadlinesFragment;
-    private EventLotteryFragment eventLotteryFragment;
-    private EventStyleFragment eventStyleFragment;
 
+    /** Fragment handling the lottery/draw settings section of event creation. */
+    @UmlAggregate(selfCard = "1", label = "hosts", otherCard = "1")
+    private EventLotteryFragment eventLotteryFragment;
+
+    /** ViewModel managing general event creation data. */
+    @UmlAggregate(selfCard = "1", label = "watches", otherCard = "1")
+    private EventGeneralViewModel eventGeneralViewModel;
+
+    /** ViewModel managing lottery/draw settings data. */
+    @UmlAggregate(selfCard = "1", label = "watches", otherCard = "1")
+    private EventLotteryViewModel eventLotteryViewModel;
+
+    /** The currently displayed fragment. */
     private Fragment fragment;
 
+    /**
+     * Initializes the activity, sets up the tab layout, toolbar, and fragment navigation.
+     * Configures event submission handling and validation.
+     *
+     * @param savedInstanceState If the activity is being re-initialized after
+     *     previously being shut down then this Bundle contains the data it most
+     *     recently supplied in {@link #onSaveInstanceState}.
+     */
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        eventRepository = new EventRepository();
+        eventRepository = EventRepository.getInstance();
+
+        // Initialize Places API
+        if (!Places.isInitialized()) {
+            Places.initialize(getApplicationContext(), getString(R.string.my_google_api_key));
+        }
 
         // These three lines took way too long to write. ʕノ•ᴥ•ʔノ ︵ ┻━┻
         // WARN: Make sure when you create variables you call setMyVarName(...) on the binding.
         binding = ActivityCreateEventBinding.inflate(getLayoutInflater());
-        model = new CreateEventModel();
+        currentSection = new MutableLiveData<>(Section.GENERAL);
 
         // NOTE: may be better to lazy load these but I don't want to.
         eventGeneralFragment = new EventGeneralFragment();
-        eventDateTimeFragment = new EventDateTimeFragment();
-        eventDeadlinesFragment = new EventDeadlinesFragment();
         eventLotteryFragment = new EventLotteryFragment();
-        eventStyleFragment = new EventStyleFragment();
 
-        // Main navigation buttons
-        binding.createEventWizardNavLeftButton.setOnClickListener(btn -> {
-            if (model.getSection().getValue() == Section.firstSection) {
-                Intent intent = new Intent();
-                setResult(RESULT_CANCELED, intent);
-                CreateEventActivity.this.finish();
-            } else {
-                model.prevSection();
+        // Set up toolbar
+        binding.createEventToolbar.setNavigationOnClickListener(v -> {
+            Intent intent = new Intent();
+            setResult(RESULT_CANCELED, intent);
+            CreateEventActivity.this.finish();
+        });
+
+        // Set up tabs
+        for (Section section : Section.values()) {
+            binding.createEventTabLayout.addTab(
+                binding.createEventTabLayout.newTab().setText(section.getTitle())
+            );
+        }
+
+        // Set up tab selection listener
+        binding.createEventTabLayout.addOnTabSelectedListener(new com.google.android.material.tabs.TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(com.google.android.material.tabs.TabLayout.Tab tab) {
+                currentSection.setValue(Section.values()[tab.getPosition()]);
+            }
+
+            @Override
+            public void onTabUnselected(com.google.android.material.tabs.TabLayout.Tab tab) {
+            }
+
+            @Override
+            public void onTabReselected(com.google.android.material.tabs.TabLayout.Tab tab) {
             }
         });
 
-        binding.createEventWizardNavRightButton.setOnClickListener(btn -> {
-            if (model.getSection().getValue() == Section.lastSection) {
-                try {
-                    Event.Builder builder = new Event.Builder();
-                    builder = eventGeneralFragment.extract(builder);
-                    builder = eventDateTimeFragment.extract(builder);
-                    builder = eventDeadlinesFragment.extract(builder);
-                    builder = eventLotteryFragment.extract(builder);
-                    builder = eventStyleFragment.extract(builder);
+        // Set up submit button in toolbar
+        binding.createEventSubmitButtonToolbar.setOnClickListener(btn -> {
+            try {
+                // Perform validation for each input fragment.
+                // TODO: This could use a refactor into a method but I'm lazy
+                if (!eventGeneralFragment.valid(eventGeneralFragment)) {
+                    binding.createEventTabLayout.selectTab(binding.createEventTabLayout.getTabAt(0));
+                    new MaterialAlertDialogBuilder(CreateEventActivity.this)
+                        .setTitle("Incomplete Information")
+                        .setMessage("Please fill in all required fields in the General section")
+                        .setPositiveButton("OK", null)
+                        .show();
+                    return;
+                }
 
-                    String uuid = eventRepository.createEvent(builder.build());
-                    Intent intent = new Intent(CreateEventActivity.this, MainActivity.class);
-                    intent.setAction(getString(R.string.intent_action_show_qr));
-                    intent.putExtra("eventId", uuid);
-                    // TODO: Ideally we want end this activity but it breaks the intents so
-                    // this is for later. Even though this is kindof broken as it is.
-                    // setResult(RESULT_OK, intent);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                    startActivity(intent);
-                    CreateEventActivity.this.finish();
-                } catch (Exception e) {
-                    Log.e(TAG, "Create event failure: ", e);
-                    MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(CreateEventActivity.this);
-                    builder.setTitle("Something went wrong")
-                            .setMessage(e.toString())
-                            .setNeutralButton("Ok", (dialogInterface, which) -> {
-                                dialogInterface.dismiss();
-                            })
-                            .create()
-                            .show();
+                if (!eventLotteryFragment.valid(eventLotteryFragment)) {
+                    binding.createEventTabLayout.selectTab(binding.createEventTabLayout.getTabAt(1));
+                    new MaterialAlertDialogBuilder(CreateEventActivity.this)
+                        .setTitle("Incomplete Information")
+                        .setMessage("Please fill in all required fields in the Details section")
+                        .setPositiveButton("OK", null)
+                        .show();
+                    return;
                 }
-            } else {
-                if (fragment instanceof InputFragment) {
-                    model.nextSection((InputFragment) fragment);
-                } else {
-                    Log.e(TAG, "Fragment " + fragment.getTag() + " is not an input fragment");
-                }
+
+                Event.Builder builder = new Event.Builder();
+                builder = eventGeneralFragment.extract(builder);
+                builder = eventLotteryFragment.extract(builder);
+
+                String uuid = eventRepository.createEvent(builder.build());
+                Intent intent = new Intent(CreateEventActivity.this, MainActivity.class);
+                intent.setAction(getString(R.string.intent_action_show_qr));
+                intent.putExtra("eventId", uuid);
+                // TODO: Ideally we want end this activity but it breaks the intents so
+                // this is for later. Even though this is kindof broken as it is.
+                // setResult(RESULT_OK, intent);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                CreateEventActivity.this.finish();
+            } catch (Exception e) {
+                Log.e(TAG, "Create event failure: ", e);
+                MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(CreateEventActivity.this);
+                builder.setTitle("Something went wrong")
+                        .setMessage(e.toString())
+                        .setNeutralButton("Ok", (dialogInterface, which) -> {
+                            dialogInterface.dismiss();
+                        })
+                        .create()
+                        .show();
             }
         });
 
         setContentView(binding.getRoot());
+
+        // Handle window insets for edge-to-edge display
         EdgeToEdge.enable(this);
-
-
-        // Bind the model to the views.
-        binding.setCreateEvent(model);
-        binding.setLifecycleOwner(this);
+        binding.createEventAppBar.setOnApplyWindowInsetsListener((v, insets) -> {
+            int topInset = insets.getSystemWindowInsetTop();
+            v.setPadding(0, topInset, 0, 0);
+            return insets;
+        });
 
         // Observe section changes and swap fragments accordingly
-        model.getSection().observe(this, section -> {
-            navigateToSection(section);
-        });
+        currentSection.observe(this, this::navigateToSection);
     }
 
     /**
@@ -150,22 +218,12 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
      * @param section The section to navigate to
      */
     private void navigateToSection(Section section) {
-
         switch (section) {
             case GENERAL:
                 fragment = eventGeneralFragment;
                 break;
-            case DATETIME:
-                fragment = eventDateTimeFragment;
-                break;
-            case DEADLINES:
-                fragment = eventDeadlinesFragment;
-                break;
             case LOTTERY:
                 fragment = eventLotteryFragment;
-                break;
-            case STYLE:
-                fragment = eventStyleFragment;
                 break;
             default:
                 Log.e(TAG, "Unknown section: " + section);
@@ -243,7 +301,6 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
             return Unit.INSTANCE;
         });
     }
-
 
     @Override
     public void onDestroy() {

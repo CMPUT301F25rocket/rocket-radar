@@ -1,113 +1,122 @@
 package com.rocket.radar.notifications;
 
-/**
- * A {@link Fragment} that displays a list of notifications for the current user.
- * It uses a {@link RecyclerView} to present the data and communicates with a
- * {@link NotificationRepository} to fetch and observe notification data from Firestore.
- *
- * This fragment manages the UI state, showing a "no notifications" message when the list
- * is empty. It also handles navigation, allowing the user to return to the previous screen.
- * The sorting of notifications (unread first, then by date) is handled within this class.
- */
-
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.TextView; // Make sure this is imported
+import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.rocket.radar.MainActivity;
-import com.rocket.radar.R;
-import java.util.ArrayList;
 
+import com.rocket.radar.R;
+import com.rocket.radar.events.Event;
+import com.rocket.radar.events.EventRepository;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ * A Fragment that displays a list of notifications for the current user.
+ *
+ * <p>This fragment observes a LiveData stream from {@link NotificationRepository} to
+ * show real-time updates (like event invitations or lottery wins). It implements a
+ * "bulk fetch" mechanism to pre-load {@link Event} data for all notifications before
+ * displaying them, ensuring that images and titles are available immediately to the adapter.</p>
+ *
+ * <p><strong>Outstanding Issues:</strong>
+ * <ul>
+ *   <li>The bulk fetch logic in {@link #observeNotifications()} is nested and slightly complex;
+ *       it could be refactored into a ViewModel or Repository method to separate data logic from the UI controller.</li>
+ * </ul>
+ * </p>
+ */
 public class NotificationFragment extends Fragment {
 
     private RecyclerView notificationRecyclerView;
-    private TextView emptyNotificationsTextView; // We need this again
+    private TextView emptyNotificationsTextView;
     private Button backButton;
 
     private NotificationAdapter adapter;
     private NotificationRepository notificationRepository;
-    private RecyclerView.AdapterDataObserver adapterObserver; // Declare the observer
+    private RecyclerView.AdapterDataObserver adapterObserver;
 
     /**
-     * Inflates the fragment's layout and initializes view and repository instances.
-     * This method is called to create the view hierarchy associated with the fragment.
+     * Called to have the fragment instantiate its user interface view.
+     * This implementation inflates the notification list layout and initializes UI references.
      *
-     * @param inflater The LayoutInflater object that can be used to inflate any views in the fragment.
-     * @param container If non-null, this is the parent view that the fragment's UI should be attached to.
-     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
-     * @return The View for the fragment's UI, or null.
+     * @param inflater           The LayoutInflater object that can be used to inflate
+     *                           any views in the fragment.
+     * @param container          If non-null, this is the parent view that the fragment's
+     *                           UI should be attached to.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed
+     *                           from a previous saved state as given here.
+     * @return Return the View for the fragment's UI.
      */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.notification_list, container, false);
-
         notificationRepository = new NotificationRepository();
-
-        // Find all the views again
         notificationRecyclerView = view.findViewById(R.id.notification_recycler_view);
         emptyNotificationsTextView = view.findViewById(R.id.empty_notifications_text);
         backButton = view.findViewById(R.id.back_arrow);
-
         return view;
     }
 
     /**
-     * Called immediately after {@link #onCreateView(LayoutInflater, ViewGroup, Bundle)} has returned,
-     * but before any saved state has been restored in to the view. This is where final view
-     * initialization, such as setting up RecyclerView, click listeners, and observers, should occur.
+     * Called immediately after {@link #onCreateView(LayoutInflater, ViewGroup, Bundle)}
+     * has returned, but before any saved state has been restored in to the view.
+     * This method sets up the RecyclerView, click listeners, and begins observing data.
      *
-     * @param view The View returned by {@link #onCreateView}.
-     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     * @param view               The View returned by {@link #onCreateView(LayoutInflater, ViewGroup, Bundle)}.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed
+     *                           from a previous saved state as given here.
      */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         setupRecyclerView();
         setupClickListeners();
         observeNotifications();
     }
 
-    /**
-     * Configures the RecyclerView, its layout manager, and the custom adapter.
-     * It also sets up a {@link RecyclerView.AdapterDataObserver} to monitor changes in the
-     * adapter's data set and toggle the visibility of the empty state view.
-     */
     private void setupRecyclerView() {
-        // Use the original adapter that does NOT handle the empty state
-        adapter = new NotificationAdapter(getContext(), new ArrayList<>(), notificationRepository);
+        EventRepository eventRepository = new EventRepository();
+
+        adapter = new NotificationAdapter(
+                getContext(),
+                new ArrayList<>(),
+                notificationRepository,
+                eventRepository
+        );
+
         notificationRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         notificationRecyclerView.setAdapter(adapter);
 
-        // Create an observer that will react to any changes in the adapter's data.
         adapterObserver = new RecyclerView.AdapterDataObserver() {
             @Override
             public void onChanged() {
                 super.onChanged();
                 checkEmpty();
             }
-
             @Override
             public void onItemRangeInserted(int positionStart, int itemCount) {
                 super.onItemRangeInserted(positionStart, itemCount);
                 checkEmpty();
             }
-
             @Override
             public void onItemRangeRemoved(int positionStart, int itemCount) {
                 super.onItemRangeRemoved(positionStart, itemCount);
                 checkEmpty();
             }
-
             void checkEmpty() {
-                // This is the guaranteed correct way to check if the adapter is empty.
                 if (adapter.getItemCount() == 0) {
                     emptyNotificationsTextView.setVisibility(View.VISIBLE);
                     notificationRecyclerView.setVisibility(View.GONE);
@@ -117,18 +126,10 @@ public class NotificationFragment extends Fragment {
                 }
             }
         };
-
-        // Register the observer with the adapter.
         adapter.registerAdapterDataObserver(adapterObserver);
-
-        // Perform an initial check in case the LiveData is already populated
         checkEmpty();
     }
 
-    /**
-     * Sets up the click listener for the back button, which pops the back stack to
-     * return the user to the previous screen.
-     */
     private void setupClickListeners() {
         backButton.setOnClickListener(v -> {
             if (getParentFragmentManager() != null) {
@@ -137,34 +138,69 @@ public class NotificationFragment extends Fragment {
         });
     }
 
-    /**
-     * Subscribes to the notification data stream from the {@link NotificationRepository}.
-     * When new data is received, it sorts the notifications (unread first, then by date)
-     * and updates the adapter.
-     */
     private void observeNotifications() {
         notificationRepository.getMyNotifications().observe(getViewLifecycleOwner(), newNotifications -> {
-            Log.d("NotificationFragment", "Data updated. " + newNotifications.size() + " notifications received.");
+            Log.d("NotificationFragment", "Data updated. " + newNotifications.size() + " notifications.");
 
             newNotifications.sort((n1, n2) -> {
                 int readCompare = Boolean.compare(n1.isReadStatus(), n2.isReadStatus());
-                if (readCompare != 0) { return readCompare; }
+                if (readCompare != 0) return readCompare;
                 if (n1.getTimestamp() != null && n2.getTimestamp() != null) {
                     return n2.getTimestamp().compareTo(n1.getTimestamp());
                 }
                 return 0;
             });
 
-            // The registered observer will handle showing/hiding the empty view automatically.
-            adapter.setNotifications(newNotifications);
+            // 1. PRE-FETCH: Identify all Event IDs needed
+            List<String> eventIdsToFetch = new ArrayList<>();
+            for (Notification n : newNotifications) {
+                if (n.getEventId() != null && !eventIdsToFetch.contains(n.getEventId())) {
+                    eventIdsToFetch.add(n.getEventId());
+                }
+            }
+
+            if (eventIdsToFetch.isEmpty()) {
+                adapter.setNotifications(newNotifications);
+                return;
+            }
+
+            // 2. Bulk Fetch Events
+            EventRepository eventRepo = new EventRepository();
+            List<Event> loadedEvents = new ArrayList<>();
+            AtomicInteger counter = new AtomicInteger(eventIdsToFetch.size());
+
+            for (String id : eventIdsToFetch) {
+                eventRepo.getEventById(id, new EventRepository.SingleEventListener() {
+                    @Override
+                    public void onEventLoaded(Event event) {
+                        if (event != null) {
+                            loadedEvents.add(event);
+                        }
+                        checkCompletion();
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        checkCompletion();
+                    }
+
+                    private void checkCompletion() {
+                        if (counter.decrementAndGet() == 0) {
+                            // All events fetched!
+                            if (isAdded() && getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    // 3. Update Adapter with Cache AND Notifications
+                                    adapter.updateEventCache(loadedEvents);
+                                    adapter.setNotifications(newNotifications);
+                                });
+                            }
+                        }
+                    }
+                });
+            }
         });
     }
 
-    /**
-     * Checks if the adapter is empty and updates the visibility of the RecyclerView and
-     * the empty state TextView accordingly. This provides a user-friendly message when
-     * there are no notifications to display.
-     */
     private void checkEmpty() {
         if (adapter != null && emptyNotificationsTextView != null && notificationRecyclerView != null) {
             if (adapter.getItemCount() == 0) {
@@ -178,33 +214,15 @@ public class NotificationFragment extends Fragment {
     }
 
     /**
-     * Called when the view hierarchy associated with the fragment is being removed.
-     * This method is responsible for cleaning up resources, such as unregistering the
-     * {@link RecyclerView.AdapterDataObserver} to prevent memory leaks and restoring
-     * the visibility of the main activity's bottom navigation.
+     * Called when the view previously created by {@link #onCreateView} has
+     * been detached from the fragment.
+     * This implementation unregisters the data observer to prevent memory leaks.
      */
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // It's crucial to unregister the observer to prevent memory leaks.
         if (adapter != null && adapterObserver != null) {
             adapter.unregisterAdapterDataObserver(adapterObserver);
-        }
-        if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).setBottomNavigationVisibility(View.VISIBLE);
-        }
-    }
-
-    /**
-     * Called when the fragment is visible to the user and actively running.
-     * This implementation ensures the bottom navigation bar is hidden while the
-     * notification screen is displayed, providing more screen real estate.
-     */
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).setBottomNavigationVisibility(View.GONE);
         }
     }
 }

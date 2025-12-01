@@ -22,6 +22,11 @@ import com.rocket.radar.R;
 import com.rocket.radar.profile.ProfileModel;
 import com.rocket.radar.profile.ProfileViewModel;
 
+/**
+ * Fragment for collecting initial user information during the first-time login flow.
+ * This fragment prompts the user to enter their username, email, and phone number,
+ * validates the inputs, and creates or updates their profile in Firebase.
+ */
 public class LoginStartScanningFragment extends Fragment {
     private Button button_continue;
     private static final String TAG = "MainActivity";
@@ -37,7 +42,11 @@ public class LoginStartScanningFragment extends Fragment {
     private boolean isObserverInitialized = false;
 
     /**
-     * Inflates the layout for this fragment has three input fields for email, email, and phone number.
+     * Inflates the layout for this fragment which has three input fields for username, email, and phone number.
+     * @param inflater The LayoutInflater object that can be used to inflate any views in the fragment.
+     * @param container If non-null, this is the parent view that the fragment's UI should be attached to.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed from a previous saved state.
+     * @return The root view of the fragment's layout.
      */
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         ((MainActivity) requireActivity()).setBottomNavigationVisibility(View.GONE);
@@ -101,13 +110,13 @@ public class LoginStartScanningFragment extends Fragment {
             FirebaseUser user = mAuth.getCurrentUser();
             if (user != null && user.getUid() != null) {
                 String uid = user.getUid();
-                ProfileModel defaultProfile = new ProfileModel(uid, username, email, phoneNumber, null, true, true, false);
+                ProfileModel defaultProfile = new ProfileModel(uid, username, email, phoneNumber, null, true, true,ProfileModel.UserRole.ORGANIZER);
                 profileViewModel.updateProfile(defaultProfile);
             } else {
                 // fallback: force Firebase to reload or sign in again
                 mAuth.signInAnonymously().addOnSuccessListener(result -> {
                     String uid = result.getUser().getUid();
-                    ProfileModel defaultProfile = new ProfileModel(uid, username, email, phoneNumber, null, true, true, false);
+                    ProfileModel defaultProfile = new ProfileModel(uid, username, email, phoneNumber, null, true, true, ProfileModel.UserRole.ORGANIZER);
                     profileViewModel.updateProfile(defaultProfile);
                 });
             }
@@ -171,7 +180,7 @@ public class LoginStartScanningFragment extends Fragment {
      * Saves the user profile to the profileViewModel.
      */
     private void saveProfile(String uid) {
-        ProfileModel defaultProfile = new ProfileModel(uid, username, email, phoneNumber, null, true, true, false);
+        ProfileModel defaultProfile = new ProfileModel(uid, username, email, phoneNumber, null, true, true, ProfileModel.UserRole.ORGANIZER);
         profileViewModel.updateProfile(defaultProfile);
     }
 }

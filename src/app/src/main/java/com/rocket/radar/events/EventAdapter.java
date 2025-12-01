@@ -1,11 +1,3 @@
-/**
- * EventAdapter is a custom RecyclerView.Adapter that takes a list of Event objects
- * and binds them to the `event_list_item` layout. It's responsible for creating
- * ViewHolders for each item and populating them with the event's data.
- *
- * This adapter also implements an OnEventListener interface to handle click events on
- * individual items, delegating the action to the hosting Fragment or Activity.
- */
 package com.rocket.radar.events;
 
 import android.content.Context;
@@ -23,17 +15,20 @@ import com.rocket.radar.R;
 
 import java.util.List;
 
+/**
+ * RecyclerView adapter for displaying a list of events.
+ * Each event is shown with its banner image, title, tagline, and formatted date.
+ */
 public class EventAdapter extends RecyclerView.Adapter<EventAdapter.MyViewHolder> {
     Context context;
     List<Event> eventList;
-    private OnEventListener onEventListener; // <- Add listener member
+    private OnEventListener onEventListener;
 
     /**
-     * Constructs the EventAdapter.
-     *
-     * @param context         The context from which the adapter is created.
-     * @param eventList       The list of Event objects to display.
-     * @param onEventListener The listener that will handle item clicks.
+     * Constructs an EventAdapter with event data and a click listener.
+     * @param context The context for accessing resources.
+     * @param eventList The list of events to display.
+     * @param onEventListener The listener for handling event item clicks.
      */
     public EventAdapter(Context context, List<Event> eventList, OnEventListener onEventListener) {
         this.context = context;
@@ -46,7 +41,6 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.MyViewHolder
     public EventAdapter.MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(context);
         View view = inflater.inflate(R.layout.event_list_item, parent, false);
-        // Pass listener to ViewHolder
         return new MyViewHolder(view, onEventListener);
     }
 
@@ -60,11 +54,9 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.MyViewHolder
             if (bannerBitmap != null) {
                 holder.eventImage.setImageBitmap(bannerBitmap);
             } else {
-                // Fallback to default image if bitmap conversion fails
                 holder.eventImage.setImageResource(event.getImage());
             }
         } else {
-            // Use default image resource if no banner blob exists
             holder.eventImage.setImageResource(event.getImage());
         }
 
@@ -79,19 +71,18 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.MyViewHolder
     }
 
     /**
-     * A ViewHolder that describes an item view and metadata about its place within the RecyclerView.
-     * It also implements View.OnClickListener to handle clicks on each item.
+     * ViewHolder for event list items.
+     * Holds references to the views for an event and handles click events.
      */
     public static class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         ImageView eventImage;
         TextView eventTitle, tagline, date;
-        OnEventListener onEventListener; // <- Add listener member
+        OnEventListener onEventListener;
 
         /**
-         * Constructs the MyViewHolder.
-         *
-         * @param itemView        The view for a single list item.
-         * @param onEventListener The listener to be notified of click events.
+         * Constructs a ViewHolder for an event item.
+         * @param itemView The root view of the event list item layout.
+         * @param onEventListener The listener to notify when the item is clicked.
          */
         public MyViewHolder(@NonNull View itemView, OnEventListener onEventListener) {
             super(itemView);
@@ -101,25 +92,27 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.MyViewHolder
             tagline = itemView.findViewById(R.id.event_tagline_text);
 
             this.onEventListener = onEventListener;
-            itemView.setOnClickListener(this); // Set the click listener on the whole item
+            itemView.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
-            onEventListener.onEventClick(getAdapterPosition());
+            int position = getBindingAdapterPosition();
+            if (position != RecyclerView.NO_POSITION && onEventListener != null) {
+                onEventListener.onEventClick(position, itemView);
+            }
         }
     }
 
     /**
-     * An interface for receiving click events from items in the RecyclerView.
-     * The hosting Activity or Fragment must implement this interface to respond
-     * to user interactions.
+     * Callback interface for handling event item click events.
      */
     public interface OnEventListener {
         /**
-         * Called when a view has been clicked.
-         * @param position The position of the clicked item in the adapter.
+         * Called when an event item is clicked.
+         * @param position The position of the clicked event in the adapter.
+         * @param itemView The view that was clicked.
          */
-        void onEventClick(int position);
+        void onEventClick(int position, View itemView);
     }
 }

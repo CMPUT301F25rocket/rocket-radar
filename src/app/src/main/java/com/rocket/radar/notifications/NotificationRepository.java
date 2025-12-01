@@ -16,6 +16,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.WriteBatch;
 import com.rocket.radar.R;
+import com.rocket.radar.events.Event;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,14 +26,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Repository class for managing notifications.
- * This class handles all the data operations related to notifications, such as fetching,
- * marking as read, and sending notifications to users or groups. It interacts directly
- * with the Firebase Firestore database to manage notification data.
  *
- * The data model is a "fan-out" model where a single notification content is stored in a top-level
- * 'notifications' collection, and then references (stubs) to this content are distributed to each
- * relevant user's sub-collection ('users/{uid}/notifications'). This stub also contains user-specific
- * metadata like the read status.
+ * <p>This class handles all data operations related to notifications, such as fetching,
+ * marking as read, and sending notifications to users or groups. It interacts directly
+ * with the Firebase Firestore database using a "fan-out" data model.</p>
+ *
+ * <p>In this model, a single notification content document is stored in a top-level
+ * 'notifications' collection. References (stubs) to this content are then distributed
+ * to each relevant user's sub-collection ('users/{uid}/notifications'), which also
+ * holds user-specific metadata like the read status.</p>
+ *
+ * <p><strong>Outstanding Issues:</strong>
+ * <ul>
+ *   <li>The {@link #sendNotificationToGroup} method performs multiple chained async operations which can be fragile;
+ *       consider using Cloud Functions for more reliable fan-out operations.</li>
+ * </ul>
+ * </p>
  */
 public class NotificationRepository {
 
@@ -49,6 +58,23 @@ public class NotificationRepository {
         if (currentUser != null) {
             // Set the reference to the specific user's notification sub-collection
             this.userNotificationsRef = db.collection("users").document(currentUser.getUid()).collection("notifications");
+        }
+    }
+
+
+    /**
+     * Constructs a NotificationRepository for a specific user ID (Test Constructor).
+     * <strong>Note:</strong> This should primarily be used for testing purposes.
+     *
+     * @param userId The UID of the user to fetch notifications for.
+     */
+    public NotificationRepository(String userId) {
+        if (userId != null && !userId.isEmpty()) {
+            this.userNotificationsRef = db.collection("users")
+                    .document(userId)
+                    .collection("notifications");
+        } else {
+            Log.e(TAG, "Provided userId is null or empty. userNotificationsRef will be null.");
         }
     }
 
@@ -192,7 +218,7 @@ public class NotificationRepository {
                         Log.d(TAG, "Preparing to send notification to " + usersToNotify.size() + " enabled users.");
 
                         // 5. Create and fan out the notification ONLY to the filtered list.
-                        createAndFanOutNotification(title, body, usersToNotify);
+                        createAndFanOutNotification(title, body, eventId, usersToNotify);
 
                     }).addOnFailureListener(e -> Log.e(TAG, "Failed to fetch one or more user profiles.", e));
 
@@ -201,11 +227,17 @@ public class NotificationRepository {
 
     /**
      * Helper method to create the main notification content and fan it out to the specified users.
+     *
+     * @param title           The notification title.
+     * @param body            The notification body.
+     * @param eventId         The associated event ID.
+     * @param usersToNotify   The list of user UIDs to receive the notification stub.
      */
-    private void createAndFanOutNotification(String title, String body, List<String> usersToNotify) {
+    private void createAndFanOutNotification(String title, String body, String eventId, List<String> usersToNotify) {
         Map<String, Object> newNotificationContent = new HashMap<>();
         newNotificationContent.put("eventTitle", title);
         newNotificationContent.put("notificationType", body);
+        newNotificationContent.put("eventId", eventId);
         newNotificationContent.put("image", R.drawable.ic_radar);
         newNotificationContent.put("timestamp", FieldValue.serverTimestamp());
 
@@ -229,6 +261,98 @@ public class NotificationRepository {
                             .addOnFailureListener(e -> Log.e(TAG, "Failed to commit batch for notification fan-out.", e));
 
                 }).addOnFailureListener(e -> Log.e(TAG, "Failed to create main notification content.", e));
+    }
+
+    /**
+     * Fetches all notifications from the global collection, ordered by timestamp.
+     * This is primarily used for administrative purposes or debugging.
+     *
+     * @return A LiveData list of all global notifications.
+     */
+    public LiveData<List<Notification>> getAllNotifications() {
+        MutableLiveData<List<Notification>> allNotificationsLiveData = new MutableLiveData<>();
+
+        db.collection("notifications")
+                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .addSnapshotListener((snapshot, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "Listen failed on global notifications collection.", error);
+                        allNotificationsLiveData.postValue(new ArrayList<>());
+                        return;
+                    }
+
+                    if (snapshot == null || snapshot.isEmpty()) {
+                        Log.d(TAG, "No notifications found in global collection.");
+                        allNotificationsLiveData.postValue(new ArrayList<>());
+                        return;
+                    }
+
+                    List<Notification> allNotifications = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : snapshot) {
+                        Notification notification = doc.toObject(Notification.class);
+                        if (notification != null) {
+                            notification.setUserNotificationId(doc.getId());
+                            allNotifications.add(notification);
+                        }
+                    }
+
+                    Log.d(TAG, "Fetched " + allNotifications.size() + " notifications from global collection.");
+                    allNotificationsLiveData.postValue(allNotifications);
+                });
+
+        return allNotificationsLiveData;
+    }
+
+    /**
+     * Sends a notification specifically to the organizer of an event.
+     * Use this for system alerts like "Lottery Ready" or "Registration Deadline Passed".
+     *
+     * @param title   The title of the notification.
+     * @param body    The body text.
+     * @param event The ID of the event whose organizer should be notified.
+     */
+    public void sendNotificationToOrganizer(String title, String body, Event event) {
+        if (event == null) {
+            Log.e(TAG, "Event ID is missing. Cannot notify organizer.");
+            return;
+        }
+
+        String eventId = event.getEventId();
+
+
+        // 1. Fetch the event to find the organizer's ID
+        db.collection("events").document(eventId).get()
+                .addOnSuccessListener(eventSnapshot -> {
+                    if (!eventSnapshot.exists()) {
+                        Log.e(TAG, "Event not found: " + eventId);
+                        return;
+                    }
+
+                    String organizerId = event.getOrganizerId();
+                    if (organizerId == null || organizerId.isEmpty()) {
+                        Log.e(TAG, "Organizer ID not found for event: " + eventId);
+                        return;
+                    }
+
+                    // 2. Check if the organizer has notifications enabled
+                    db.collection("users").document(organizerId).get()
+                            .addOnSuccessListener(userDoc -> {
+                                if (Boolean.FALSE.equals(userDoc.getBoolean("notificationsEnabled"))) {
+                                    Log.d(TAG, "Organizer " + organizerId + " has disabled notifications. Skipping.");
+                                    return;
+                                }
+
+                                // 3. Reuse the existing fan-out logic for a single user list
+                                List<String> usersToNotify = new ArrayList<>();
+                                usersToNotify.add(organizerId);
+
+                                createAndFanOutNotification(title, body, eventId, usersToNotify);
+                                Log.d(TAG, "Notification sent to organizer: " + organizerId);
+                            })
+                            .addOnFailureListener(e -> Log.e(TAG, "Failed to fetch organizer profile.", e));
+
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to fetch event to find organizer.", e));
     }
 
 

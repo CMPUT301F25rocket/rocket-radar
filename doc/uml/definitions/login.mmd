@@ -1,0 +1,41 @@
+---
+title: login package
+config:
+  htmlLabels: false
+umlink:
+  select:
+  - field: package
+    pattern: com.rocket.radar.login
+---
+classDiagram
+class LoginCriteriaFragment {
+  -button_back: ImageButton
+  +onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) View
+}
+class LoginStartScanningFragment {
+  -button_continue: Button
+  -TAG: String$
+  -username: String
+  -email: String
+  -phoneNumber: String
+  -deviceId: String
+  -uid: String
+  -profileViewModel: ProfileViewModel
+  -mAuth: FirebaseAuth
+  -isObserverInitialized: boolean
+  +onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) View
+  -setupUI(view: View) void
+  +onResume() void
+  -updateOrCreateUser() void
+  -saveProfile(uid: String) void
+}
+class LoginViewFragment {
+  ~mAuth: FirebaseAuth
+  -button_start_scanning: Button
+  -button_criteria: Button
+  +onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) View
+  +onViewCreated(view: View, savedInstanceState: Bundle) void
+}
+LoginCriteriaFragment --|> Fragment
+LoginStartScanningFragment --|> Fragment
+LoginViewFragment --|> Fragment

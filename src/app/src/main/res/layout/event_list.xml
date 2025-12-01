@@ -94,20 +94,25 @@
 
     </LinearLayout>
 
-
-    <include
-        android:id="@+id/category_chip_group_event_list"
-        layout="@layout/category_chip_group"
-        android:layout_width="wrap_content"
+    <HorizontalScrollView
+        android:id="@+id/chip_scroll_view"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
+        android:paddingHorizontal="12dp"
+        android:scrollbars="none"
         app:layout_constraintBottom_toTopOf="@id/event_list_recycler_view"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/linearLayout" />
+        app:layout_constraintTop_toBottomOf="@id/linearLayout">
 
+        <include
+            android:id="@+id/category_chip_group_event_list"
+            layout="@layout/category_chip_group"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:singleLine="true" />
 
+    </HorizontalScrollView>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/event_list_recycler_view"
@@ -119,6 +124,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/category_chip_group_event_list" />
+        app:layout_constraintTop_toBottomOf="@id/chip_scroll_view" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
