@@ -181,6 +181,7 @@ public class EventViewFragment extends Fragment {
         TextView eventDate = view.findViewById(R.id.event_date);
         TextView eventDescription = view.findViewById(R.id.event_desc);
         TextView eventWaitlistSize = view.findViewById(R.id.waitlist_size);
+        TextView signupDeadlineText = view.findViewById(R.id.signup_deadline_text);
 
         LinearLayout locationContainer = view.findViewById(R.id.location_container);
         TextView eventLocationName = view.findViewById(R.id.event_location_name);
@@ -205,6 +206,10 @@ public class EventViewFragment extends Fragment {
             if (event.getEventStartDate() != null) { // Check event.getDate() for null
                 String FormattedDate = DateFormat.getDateInstance(DateFormat.FULL).format(event.getEventStartDate());
                 eventDate.setText(FormattedDate);
+            }
+            if (event.getSelectionStartDate() != null) {
+                String formattedDeadline = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.SHORT).format(event.getSelectionStartDate());
+                signupDeadlineText.setText(formattedDeadline);
             }
             eventDescription.setText(event.getDescription());
 
