@@ -31,6 +31,15 @@ public class ProfileRepository {
     }
 
     /**
+     * Constructor for testing ProfileRepository.
+     * @param db mock database
+     */
+    public ProfileRepository(FirebaseFirestore db, AdminRepository adminRepository) {
+        this.db = db;
+    }
+
+
+    /**
      * Callback interface for reading profile data from Firestore.
      * Used to handle asynchronous read operations.
      */
