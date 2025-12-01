@@ -65,7 +65,7 @@ public class UserFragment extends Fragment  implements EventAdapter.OnEventListe
         }
     }
 
-    private ImageButton deleteButton;
+    private MaterialButton deleteButton;
 
     private MaterialButton backButton;
     private TextView profileName, profilePhone, profileEmail;

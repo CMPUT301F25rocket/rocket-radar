@@ -37,10 +37,10 @@
 
         <ImageView
             android:id="@+id/profile_image"
-            android:layout_width="128dp"
+            android:layout_width="64dp"
             android:layout_height="128dp"
             android:layout_alignParentStart="true"
-            android:layout_marginStart="32dp"
+            android:layout_marginStart="52dp"
             android:scaleType="centerCrop"
             android:src="@drawable/ic_person_fill_24dp" />
 
@@ -54,16 +54,29 @@
             android:text="Anonymous User"
             android:textSize="20sp" />
 
-        <ImageButton
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/delete_button"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
-            android:layout_marginTop="12dp"
-            android:layout_marginEnd="19dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/delete_24dp" />
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:backgroundTint="@color/button_background_color"
+            android:elevation="4dp"
+            android:text="Delete"
+            android:textSize="12sp"
+            android:textColor="@android:color/black"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            app:icon="@drawable/delete_24dp"
+            app:iconPadding="2dp"
+            app:iconTint="@android:color/black"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
 
         <TextView
             android:id="@+id/profile_email"
