@@ -1,18 +1,9 @@
----
-title: profile package
-config:
-  htmlLabels: false
-umlink:
-  select:
-    - field: package
-      pattern: com.rocket.radar.profile
----
 classDiagram
 direction LR
 
-%% =====================================================
+%% =========================
 %% MODEL — User Profile
-%% =====================================================
+%% =========================
 
 class ProfileModel {
     - String uid
@@ -58,7 +49,6 @@ class ProfileModel {
     + getCancelledEventIds() : ArrayList<String>
     + addCancelledEventId(String)
 }
-%% citation: :contentReference[oaicite:0]{index=0}
 
 class UserRole {
     <<enum>>
@@ -67,9 +57,9 @@ class UserRole {
     ADMIN
 }
 
-%% =====================================================
+%% =========================
 %% VALIDATION UTILITY
-%% =====================================================
+%% =========================
 
 class InputValidator {
     <<utility>>
@@ -77,12 +67,10 @@ class InputValidator {
     + isValidPhone(String) : boolean
     + cleanText(TextInputEditText) : String
 }
-%% citation: :contentReference[oaicite:1]{index=1}
 
-
-%% =====================================================
-%% REPOSITORY — Firestore CRUD + Event List Updates
-%% =====================================================
+%% =========================
+%% REPOSITORY
+%% =========================
 
 class ProfileRepository {
     - FirebaseFirestore db
@@ -97,23 +85,23 @@ class ProfileRepository {
     + updateUserInvitedList(String,String)
 }
 
-<<interface>> ReadCallback {
+class ReadCallback {
+    <<interface>>
     + onProfileLoaded(ProfileModel)
     + onError(Exception)
 }
 
-<<interface>> WriteCallback {
+class WriteCallback {
+    <<interface>>
     + onSuccess()
     + onError(Exception)
 }
-%% citation: :contentReference[oaicite:2]{index=2}
 
 ProfileRepository --> ProfileModel : CRUD
 
-
-%% =====================================================
-%% VIEWMODEL — LiveData + Firestore Listener
-%% =====================================================
+%% =========================
+%% VIEWMODEL
+%% =========================
 
 class ProfileViewModel {
     - FirebaseFirestore db
@@ -131,15 +119,13 @@ class ProfileViewModel {
     + getProfile(String)
     + updateLastLogin(String)
 }
-%% citation: :contentReference[oaicite:3]{index=3}
 
 ProfileViewModel --> ProfileRepository : uses
 ProfileViewModel --> ProfileModel : exposes LiveData
 
-
-%% =====================================================
-%% FRAGMENT — Account Settings Screen
-%% =====================================================
+%% =========================
+%% ACCOUNT SETTINGS UI
+%% =========================
 
 class AccountSettingsFragment {
     - MaterialButton backButton
@@ -158,16 +144,14 @@ class AccountSettingsFragment {
     + onCreateView()
     + confirmAccountDelete()
 }
-%% citation: :contentReference[oaicite:4]{index=4}
 
 AccountSettingsFragment --> ProfileViewModel : observes & updates
 AccountSettingsFragment --> InputValidator : validates input
 AccountSettingsFragment --> AdminModeManager : toggles admin mode
 
-
-%% =====================================================
-%% FRAGMENT — Profile Display + Event Filtering
-%% =====================================================
+%% =========================
+%% PROFILE UI
+%% =========================
 
 class ProfileFragment {
     - ImageButton accountSettingsButton
@@ -192,22 +176,16 @@ class ProfileFragment {
     + onEventClick(int,View)
     + onResume()
 }
-%% citation: :contentReference[oaicite:5]{index=5}
 
 ProfileFragment --> ProfileViewModel : observes
-ProfileFragment --> ProfileModel : uses user state
+ProfileFragment --> ProfileModel : uses
 ProfileFragment --> EventRepository : fetches events
-ProfileFragment --> EventAdapter : displays current events
-ProfileFragment --> EventHistoryAdapter : displays event history
+ProfileFragment --> EventAdapter : displays events
+ProfileFragment --> EventHistoryAdapter : displays history
 
-
-%% =====================================================
+%% =========================
 %% RELATIONAL OVERVIEW
-%% =====================================================
+%% =========================
 
 ProfileRepository --> FirebaseFirestore : reads/writes
 ProfileViewModel --> ProfileRepository : business logic
-AccountSettingsFragment --> ProfileViewModel : editing
-ProfileFragment --> ProfileViewModel : display
-ProfileFragment --> EventRepository : event logic
-InputValidator --> AccountSettingsFragment : input sanitation
