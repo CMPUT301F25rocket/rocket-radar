@@ -21,7 +21,16 @@ import java.util.Map;
  * Notifications also get sent when some of these admin actions occur, like updating a user role or deleting an event.
  */
 public class AdminRepository {
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private final FirebaseFirestore db;
+
+    public AdminRepository() {
+        this(FirebaseFirestore.getInstance());
+    }
+
+    // Constructor for testing
+    public AdminRepository(FirebaseFirestore firestore) {
+        this.db = firestore;
+    }
 
     /**
      * Gets all the users in the collection and populates a list of profile models for each user.
