@@ -33,6 +33,7 @@ import com.rocket.radar.R;
 import com.rocket.radar.databinding.CategoryChipBinding;
 import com.rocket.radar.databinding.ViewInputEventGeneralBinding;
 import com.rocket.radar.events.Event;
+import com.rocket.radar.uml.UmlAssociate;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -46,7 +47,10 @@ import java.util.Optional;
 public class EventGeneralFragment extends Fragment implements InputFragment, OnMapReadyCallback {
     private static final String TAG = EventGeneralFragment.class.getSimpleName();
     private ViewInputEventGeneralBinding binding;
+
+    @UmlAssociate(selfCard = "1", label = "stores input data", otherCard = "1")
     private EventGeneralViewModel viewModel;
+
     private ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
     private GoogleMap googleMap;
     private AutocompleteSupportFragment autocompleteFragment;

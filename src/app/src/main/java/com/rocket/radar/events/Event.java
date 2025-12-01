@@ -22,6 +22,7 @@ import com.google.firebase.firestore.Blob;
 import com.google.firebase.firestore.Exclude; // CORRECT: Using the Firestore Exclude
 import com.google.firebase.firestore.GeoPoint;
 import com.rocket.radar.eventmanagement.Time;
+import com.rocket.radar.uml.UmlAssociate;
 
 import java.io.Serializable;
 
@@ -546,6 +547,12 @@ public class Event implements Serializable {
 
     // Builder pattern
     public static class Builder {
+        @UmlAssociate(selfCard = "1", label = "fills", otherCard = "1")
+        private com.rocket.radar.eventmanagement.EventGeneralFragment eventGeneralFragment;
+
+        @UmlAssociate(selfCard = "1", label = "fills", otherCard = "1")
+        private com.rocket.radar.eventmanagement.EventLotteryFragment eventLotteryFragment;
+
         private Event event;
 
         public Builder() {

@@ -36,6 +36,8 @@ import com.rocket.radar.R;
 import com.rocket.radar.databinding.ActivityCreateEventBinding;
 import com.rocket.radar.events.Event;
 import com.rocket.radar.events.EventRepository;
+import com.rocket.radar.uml.UmlAggregate;
+import com.rocket.radar.uml.UmlAssociate;
 
 import org.w3c.dom.Text;
 
@@ -61,8 +63,17 @@ public class CreateEventActivity extends AppCompatActivity implements BottomShee
     private MutableLiveData<Section> currentSection;
     EventRepository eventRepository;
 
+    @UmlAggregate(selfCard = "1", label = "hosts", otherCard = "1")
     private EventGeneralFragment eventGeneralFragment;
+
+    @UmlAggregate(selfCard = "1", label = "hosts", otherCard = "1")
     private EventLotteryFragment eventLotteryFragment;
+
+    @UmlAggregate(selfCard = "1", label = "watches", otherCard = "1")
+    private EventGeneralViewModel eventGeneralViewModel;
+
+    @UmlAggregate(selfCard = "1", label = "watches", otherCard = "1")
+    private EventLotteryViewModel eventLotteryViewModel;
 
     private Fragment fragment;
 

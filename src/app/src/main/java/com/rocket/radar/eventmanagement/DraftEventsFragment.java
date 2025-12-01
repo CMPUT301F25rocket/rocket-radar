@@ -21,10 +21,14 @@ import com.rocket.radar.MainActivity;
 import com.rocket.radar.databinding.ActivityCreateEventBinding;
 import com.rocket.radar.databinding.FragmentDraftEventsBinding;
 import com.rocket.radar.profile.ProfileViewModel;
+import com.rocket.radar.uml.UmlNavigate;
 
 
 public class DraftEventsFragment extends Fragment {
     FragmentDraftEventsBinding binding;
+
+    @UmlNavigate(selfCard = "1", label = "starts", otherCard = "1")
+    private CreateEventActivity createEventActivity;
 
     // AI slop. But this is actually kindof neat. I'll need to read into the docs for this.
     private final ActivityResultLauncher<Intent> createEventLauncher =

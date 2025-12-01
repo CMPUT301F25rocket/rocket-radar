@@ -5,11 +5,24 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
 
+import com.rocket.radar.uml.UmlAssociate;
+import com.rocket.radar.uml.UmlCompose;
+import com.rocket.radar.uml.UmlNavigate;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Optional;
 
 public class EventLotteryViewModel extends ViewModel {
+    @UmlAssociate(selfCard = "1", label = "stores input data", otherCard = "1")
+    private EventLotteryFragment eventLotteryFragment;
+
+    @UmlCompose(selfCard = "1", label = "stores", otherCard = "1")
+    private Section section;
+
+    @UmlNavigate(selfCard = "1", label = "changes", otherCard = "1")
+    private Section currentSection;
+
     private final SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy/MM/dd");
 
     // Lottery fields

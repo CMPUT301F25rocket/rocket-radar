@@ -15,6 +15,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.rocket.radar.databinding.ViewInputEventLotteryBinding;
 import com.rocket.radar.events.Event;
+import com.rocket.radar.uml.UmlAssociate;
 
 import java.util.Date;
 import java.util.Optional;
@@ -27,7 +28,10 @@ import java.util.Optional;
 public class EventLotteryFragment extends Fragment implements InputFragment {
     private static final String TAG = EventLotteryFragment.class.getSimpleName();
     private ViewInputEventLotteryBinding binding;
+
+    @UmlAssociate(selfCard = "1", label = "stores input data", otherCard = "1")
     private EventLotteryViewModel viewModel;
+
     private BottomSheetProvider bottomSheetProvider;
 
     @Nullable

@@ -5,10 +5,23 @@ import android.net.Uri;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.rocket.radar.uml.UmlAssociate;
+import com.rocket.radar.uml.UmlCompose;
+import com.rocket.radar.uml.UmlNavigate;
+
 import java.util.ArrayList;
 import java.util.Optional;
 
 public class EventGeneralViewModel extends ViewModel {
+    @UmlAssociate(selfCard = "1", label = "stores input data", otherCard = "1")
+    private EventGeneralFragment eventGeneralFragment;
+
+    @UmlCompose(selfCard = "1", label = "stores", otherCard = "1")
+    private Section section;
+
+    @UmlNavigate(selfCard = "1", label = "changes", otherCard = "1")
+    private Section currentSection;
+
     public MutableLiveData<String> title;
     public MutableLiveData<String> description;
     public MutableLiveData<String> tagline;
