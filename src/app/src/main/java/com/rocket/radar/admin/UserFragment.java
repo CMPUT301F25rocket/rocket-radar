@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  */
 public class UserFragment extends Fragment  implements EventAdapter.OnEventListener {
     private static final String USER_PROFILE = "userProfile";
-    private static final String FIRST_ADMIN = "aKCDdxvbKmgAnhE0elNxMTTKlck1";
+    private static final String FIRST_ADMIN = "rPj3i4Y51VdV4P3n0jzLORxvcf52";
     private ProfileModel userProfile;
     private AdminRepository adminRepository;
     private AutoCompleteTextView roleDropdown;
