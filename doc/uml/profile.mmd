@@ -57,11 +57,15 @@ class ProfileModel {
     + addAttendingEventId(String)
     + getCancelledEventIds() : ArrayList<String>
     + addCancelledEventId(String)
-
-    <<enum>> UserRole { ENTRANT, ORGANIZER, ADMIN }
 }
 %% citation: :contentReference[oaicite:0]{index=0}
 
+class UserRole {
+    <<enum>>
+    ENTRANT
+    ORGANIZER
+    ADMIN
+}
 
 %% =====================================================
 %% VALIDATION UTILITY
