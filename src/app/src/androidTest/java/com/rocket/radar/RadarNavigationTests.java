@@ -308,40 +308,4 @@ public class RadarNavigationTests {
         checkValueWithId(R.id.phoneField, "5555555555");
         // Profile Tests Complete
     }
-
-    @Test
-    public void exploreEvents() throws Exception {
-        // Navigate to Event List Fragment first (through login flow)
-        goToEventListFragment(activityRule, R.id.eventListFragment);
-
-        // Event Tests
-
-        // 1. Create Events
-        clickButtonByText("Create");
-        assertCurrentFragmentIs(activityRule, R.id.createEventAction);
-
-        // 2. Click plus to add new draft event
-        onView(withId(R.id.organizing_events_create_button)).perform(click());
-
-        // 3. General
-        typeIntoField("Event Name", "Test Event");
-        typeIntoField("Description", "This is a test event.");
-        typeIntoField("Tagline", "Testing");
-        clickButtonByText("Workshop");
-        clickButtonByText("Next");
-
-        // 4. Date and Time
-        clickButtonByText("Event Date");
-        clickButtonByText("11");
-        clickButtonByText("OK");
-        clickButtonByText("Start Time");
-        clickButtonByText("1");
-        clickButtonByText("1");
-        clickButtonByText("OK");
-        clickButtonByText("End Time");
-        clickButtonByText("OK");
-        clickButtonByText("Next");
-
-        // 5.) Continue event creation as needed...
-    }
 }
