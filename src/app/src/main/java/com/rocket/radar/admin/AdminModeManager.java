@@ -41,6 +41,11 @@ public class AdminModeManager {
     private NavController navController;
     private Context context;
 
+    /**
+     * Private constructor for singleton of AdminModeManager.
+     * Responsible for initializing SharedPreferences, LiveData, Firestore, and FirebaseAuth instances.
+     * @param context global information interface on environment of app, used to access shared preferences
+     */
     private AdminModeManager(Context context) {
         this.context = context.getApplicationContext();
         prefs = this.context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -49,6 +54,11 @@ public class AdminModeManager {
         auth = FirebaseAuth.getInstance();
     }
 
+    /**
+     * Returns the singleton instance of AdminModeManager
+     * @param context The context used to initialize the manager
+     * @return The singleton AdminModeManager instance.
+     */
     public static synchronized AdminModeManager getInstance(Context context) {
         if (instance == null) {
             instance = new AdminModeManager(context);
@@ -138,16 +148,28 @@ public class AdminModeManager {
         }
     }
 
+    /**
+     * Getter for if admin mode is on.
+     * @return True if admin mode is on, false otherwise.
+     */
     public boolean isAdminModeOn() {
         return prefs.getBoolean(KEY_ADMIN_MODE, false);
     }
 
+    /**
+     * Setter for admin mode.
+     * @param on the boolean to set the admin mode to.
+     */
     public void setAdminModeOn(boolean on) {
         prefs.edit().putBoolean(KEY_ADMIN_MODE, on).apply();
         adminModeLiveData.setValue(on);
         Log.d(TAG, "Admin mode set to: " + on);
     }
 
+    /**
+     * Getter for the admin mode live data.
+     * @return live data boolean wrapper of admin mode live data.
+     */
     public LiveData<Boolean> getAdminModeLiveData() {
         return adminModeLiveData;
     }
