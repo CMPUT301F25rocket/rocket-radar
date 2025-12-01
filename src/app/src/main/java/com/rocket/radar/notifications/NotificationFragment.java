@@ -22,7 +22,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-
+/**
+ * A Fragment that displays a list of notifications for the current user.
+ *
+ * <p>This fragment observes a LiveData stream from {@link NotificationRepository} to
+ * show real-time updates (like event invitations or lottery wins). It implements a
+ * "bulk fetch" mechanism to pre-load {@link Event} data for all notifications before
+ * displaying them, ensuring that images and titles are available immediately to the adapter.</p>
+ *
+ * <p><strong>Outstanding Issues:</strong>
+ * <ul>
+ *   <li>The bulk fetch logic in {@link #observeNotifications()} is nested and slightly complex;
+ *       it could be refactored into a ViewModel or Repository method to separate data logic from the UI controller.</li>
+ * </ul>
+ * </p>
+ */
 public class NotificationFragment extends Fragment {
 
     private RecyclerView notificationRecyclerView;
@@ -33,6 +47,18 @@ public class NotificationFragment extends Fragment {
     private NotificationRepository notificationRepository;
     private RecyclerView.AdapterDataObserver adapterObserver;
 
+    /**
+     * Called to have the fragment instantiate its user interface view.
+     * This implementation inflates the notification list layout and initializes UI references.
+     *
+     * @param inflater           The LayoutInflater object that can be used to inflate
+     *                           any views in the fragment.
+     * @param container          If non-null, this is the parent view that the fragment's
+     *                           UI should be attached to.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed
+     *                           from a previous saved state as given here.
+     * @return Return the View for the fragment's UI.
+     */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.notification_list, container, false);
@@ -43,6 +69,15 @@ public class NotificationFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Called immediately after {@link #onCreateView(LayoutInflater, ViewGroup, Bundle)}
+     * has returned, but before any saved state has been restored in to the view.
+     * This method sets up the RecyclerView, click listeners, and begins observing data.
+     *
+     * @param view               The View returned by {@link #onCreateView(LayoutInflater, ViewGroup, Bundle)}.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed
+     *                           from a previous saved state as given here.
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -178,6 +213,11 @@ public class NotificationFragment extends Fragment {
         }
     }
 
+    /**
+     * Called when the view previously created by {@link #onCreateView} has
+     * been detached from the fragment.
+     * This implementation unregisters the data observer to prevent memory leaks.
+     */
     @Override
     public void onDestroyView() {
         super.onDestroyView();

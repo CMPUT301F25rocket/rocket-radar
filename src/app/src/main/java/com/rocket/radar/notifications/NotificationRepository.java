@@ -26,14 +26,22 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Repository class for managing notifications.
- * This class handles all the data operations related to notifications, such as fetching,
- * marking as read, and sending notifications to users or groups. It interacts directly
- * with the Firebase Firestore database to manage notification data.
  *
- * The data model is a "fan-out" model where a single notification content is stored in a top-level
- * 'notifications' collection, and then references (stubs) to this content are distributed to each
- * relevant user's sub-collection ('users/{uid}/notifications'). This stub also contains user-specific
- * metadata like the read status.
+ * <p>This class handles all data operations related to notifications, such as fetching,
+ * marking as read, and sending notifications to users or groups. It interacts directly
+ * with the Firebase Firestore database using a "fan-out" data model.</p>
+ *
+ * <p>In this model, a single notification content document is stored in a top-level
+ * 'notifications' collection. References (stubs) to this content are then distributed
+ * to each relevant user's sub-collection ('users/{uid}/notifications'), which also
+ * holds user-specific metadata like the read status.</p>
+ *
+ * <p><strong>Outstanding Issues:</strong>
+ * <ul>
+ *   <li>The {@link #sendNotificationToGroup} method performs multiple chained async operations which can be fragile;
+ *       consider using Cloud Functions for more reliable fan-out operations.</li>
+ * </ul>
+ * </p>
  */
 public class NotificationRepository {
 
@@ -53,8 +61,13 @@ public class NotificationRepository {
         }
     }
 
-    // FOR TESTING ONLY
-    // DO NOT USE
+
+    /**
+     * Constructs a NotificationRepository for a specific user ID (Test Constructor).
+     * <strong>Note:</strong> This should primarily be used for testing purposes.
+     *
+     * @param userId The UID of the user to fetch notifications for.
+     */
     public NotificationRepository(String userId) {
         if (userId != null && !userId.isEmpty()) {
             this.userNotificationsRef = db.collection("users")
@@ -214,6 +227,11 @@ public class NotificationRepository {
 
     /**
      * Helper method to create the main notification content and fan it out to the specified users.
+     *
+     * @param title           The notification title.
+     * @param body            The notification body.
+     * @param eventId         The associated event ID.
+     * @param usersToNotify   The list of user UIDs to receive the notification stub.
      */
     private void createAndFanOutNotification(String title, String body, String eventId, List<String> usersToNotify) {
         Map<String, Object> newNotificationContent = new HashMap<>();
@@ -245,6 +263,12 @@ public class NotificationRepository {
                 }).addOnFailureListener(e -> Log.e(TAG, "Failed to create main notification content.", e));
     }
 
+    /**
+     * Fetches all notifications from the global collection, ordered by timestamp.
+     * This is primarily used for administrative purposes or debugging.
+     *
+     * @return A LiveData list of all global notifications.
+     */
     public LiveData<List<Notification>> getAllNotifications() {
         MutableLiveData<List<Notification>> allNotificationsLiveData = new MutableLiveData<>();
 

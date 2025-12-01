@@ -44,7 +44,18 @@ import java.util.ArrayList;
 import java.util.Date;
 
 /**
- Main activity that handles user authentication, navigation, and location services.
+ * The central entry point and primary container for the application's UI.
+ *
+ * <p>This Activity manages the bottom navigation bar, handles authentication initialization
+ * (including anonymous sign-in), requests necessary runtime permissions (Notification, Location),
+ * and orchestrates deep link handling for QR code scans. It also hosts the loading overlay
+ * used throughout the app.</p>
+ *
+ * <p><strong>Outstanding Issues:</strong>
+ * <ul>
+ *   <li>The deep link handling logic in {@link #onResume()} needs refactoring to be more robust and testable.</li>
+ * </ul>
+ * </p>
  */
 public class MainActivity extends AppCompatActivity {
     private NavBarBinding navBarBinding;
@@ -104,6 +115,12 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Initializes the activity, sets up navigation, and requests necessary permissions.
+     * This includes setting up the bottom navigation listener, admin mode observers,
+     * and initializing Firebase services.
+     *
+     * @param savedInstanceState If the activity is being re-initialized after
+     *     previously being shut down then this Bundle contains the data it most
+     *     recently supplied in {@link #onSaveInstanceState}.  <b><i>Note: Otherwise it is null.</i></b>
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -169,6 +186,11 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Controls the visibility of the global loading overlay.
+     *
+     * @param isLoading True to show the loading screen, false to hide it.
+     */
     public void setLoading(boolean isLoading) {
         if (loadingManager == null) return;
         if (isLoading) {
@@ -178,6 +200,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Controls the visibility of the global loading overlay with a custom message.
+     *
+     * @param isLoading True to show the loading screen, false to hide it.
+     * @param message   The text message to display while loading (e.g. "Scanning Events...").
+     */
     public void setLoading(boolean isLoading, String message) {
         if (loadingManager == null) return;
         if (isLoading) {
@@ -186,8 +214,10 @@ public class MainActivity extends AppCompatActivity {
             loadingManager.hide();
         }
     }
+
     /**
-     * Requests notification permission for Android 13 and above.
+     * Requests notification permission for Android 13 (Tiramisu) and above.
+     * Does nothing on older Android versions.
      */
     private void askNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -199,7 +229,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Handles user sign-in and intent actions when the activity starts.
+     * Called after {@link #onCreate} — or after {@link #onRestart} when the activity had been stopped,
+     * but is now again being displayed to the user.
+     * This method checks the current Firebase Auth status and either signs in anonymously or
+     * handles the existing user sign-in flow.
      */
     @Override
     public void onStart() {
@@ -213,9 +246,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * This was devised by a moron. By default when a new intent is provided to an activity it is
-     * ignored. This override ensures that it is not ignored.
-     * @param intent The new intent that was given to the activity
+     * Called after {@link #onCreate} — or after {@link #onRestart} when the activity had been stopped,
+     * but is now again being displayed to the user.
+     * This method checks the current Firebase Auth status and either signs in anonymously or
+     * handles the existing user sign-in flow.
      */
     @Override
     protected void onNewIntent(@NonNull Intent intent) {
@@ -224,7 +258,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * If an
+     * Called after {@link #onRestoreInstanceState}, {@link #onRestart}, or {@link #onPause}.
+     * This implementation handles deep links (QR scans) to navigate directly to specific events,
+     * and restores the navigation bar state.
      */
     @Override
     protected void onResume() {

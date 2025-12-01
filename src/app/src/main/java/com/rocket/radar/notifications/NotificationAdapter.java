@@ -26,7 +26,18 @@ import java.util.Map;
 
 /**
  * Adapter for the RecyclerView in the notifications screen.
- * It displays notifications, handles image loading (with caching), and sets up shared element transitions.
+ *
+ * <p>This adapter binds {@link Notification} objects to views, separating them into
+ * unread and previously read sections. It handles asynchronous image loading (with an
+ * internal cache to prevent flickering), manages read/unread status updates, and
+ * orchestrates shared element transitions when navigating to an event details view.</p>
+ *
+ * <p><strong>Outstanding Issues:</strong>
+ * <ul>
+ *   <li>The shared element transition logic is complex and duplicated between the Navigation Component
+ *       path and the manual FragmentTransaction fallback. This should ideally be unified.</li>
+ * </ul>
+ * </p>
  */
 public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -39,7 +50,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private final NotificationRepository repository;
     private final EventRepository eventRepository;
 
-    // NEW: Cache to store pre-loaded events so images display instantly
     private final Map<String, Event> eventCache = new HashMap<>();
 
     private int lastClickedPosition = -1;
@@ -47,14 +57,35 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     private OnItemClickListener onItemClickListener;
 
+    /**
+     * Interface definition for a callback to be invoked when an item in this list has been clicked.
+     */
     public interface OnItemClickListener {
+        /**
+         * Called when an item has been clicked.
+         *
+         * @param position The position of the item in the adapter.
+         */
         void onItemClick(int position);
     }
 
+    /**
+     * Registers a callback to be invoked when an item in this RecyclerView has been clicked.
+     *
+     * @param listener The callback that will run.
+     */
     public void setOnItemClickListener(OnItemClickListener listener) {
         this.onItemClickListener = listener;
     }
 
+    /**
+     * Constructs a new NotificationAdapter.
+     *
+     * @param context          The context in which the adapter is running.
+     * @param notificationList The initial list of notifications to display.
+     * @param repository       The repository used to update notification read status.
+     * @param eventRepository  The repository used to fetch event details for images and navigation.
+     */
     public NotificationAdapter(Context context,
                                List<Notification> notificationList,
                                NotificationRepository repository,
@@ -65,6 +96,12 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         this.eventRepository = eventRepository;
     }
 
+    /**
+     * Updates the list of notifications displayed by the adapter.
+     * This method recalculates the separator position for read/unread items and refreshes the view.
+     *
+     * @param newNotifications The new list of notifications.
+     */
     public void setNotifications(List<Notification> newNotifications) {
         notificationList.clear();
         notificationList.addAll(newNotifications);
@@ -72,7 +109,13 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         notifyDataSetChanged();
     }
 
-    // NEW: Method to populate the cache from the Fragment before binding
+    /**
+     * Populates the internal event cache with a bulk list of events.
+     * This is typically called by the hosting Fragment after pre-fetching data to ensure
+     * images load instantly without individual network calls during binding.
+     *
+     * @param events The list of Event objects to cache.
+     */
     public void updateEventCache(List<Event> events) {
         for (Event event : events) {
             if (event != null && event.getEventId() != null) {
@@ -96,6 +139,13 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }
     }
 
+    /**
+     * Returns the view type of the item at position for the purposes of view recycling.
+     *
+     * @param position position to query
+     * @return integer value identifying the type of the view needed to represent the item at position.
+     *         (VIEW_TYPE_NOTIFICATION, VIEW_TYPE_SEPARATOR, or VIEW_TYPE_EMPTY)
+     */
     @Override
     public int getItemViewType(int position) {
         if (notificationList.isEmpty()) {
@@ -107,6 +157,15 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         return VIEW_TYPE_NOTIFICATION;
     }
 
+    /**
+     * Called when RecyclerView needs a new {@link RecyclerView.ViewHolder} of the given type to represent
+     * an item.
+     *
+     * @param parent   The ViewGroup into which the new View will be added after it is bound to
+     *                 an adapter position.
+     * @param viewType The view type of the new View.
+     * @return A new ViewHolder that holds a View of the given view type.
+     */
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -123,6 +182,16 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         return new NotificationViewHolder(view);
     }
 
+    /**
+     * Called by RecyclerView to display the data at the specified position.
+     * This method updates the contents of the {@link RecyclerView.ViewHolder#itemView} to reflect
+     * the item at the given position, including handling image loading, text styling for read status,
+     * and click listeners.
+     *
+     * @param holder   The ViewHolder which should be updated to represent the contents of the
+     *                 item at the given position in the data set.
+     * @param position The position of the item within the adapter's data set.
+     */
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         switch (holder.getItemViewType()) {
@@ -290,9 +359,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                     isOrganizer = true;
                 }
             }
-            // -------------------------------------------------------------
 
-            // Use the newInstance that accepts the isOrganizer flag
             EventViewFragment fragment = EventViewFragment.newInstance(event, isOrganizer);
 
             android.transition.TransitionSet transitionSet = new android.transition.TransitionSet();
@@ -313,6 +380,12 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }
     }
 
+    /**
+     * Returns the total number of items in the data set held by the adapter.
+     * This includes the actual notifications plus an optional separator item.
+     *
+     * @return The total number of items in this adapter.
+     */
     @Override
     public int getItemCount() {
         int count = notificationList.size();
@@ -320,6 +393,11 @@ public class NotificationAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         return count;
     }
 
+    /**
+     * Gets the position of the last item that was clicked.
+     *
+     * @return The adapter position of the last clicked item.
+     */
     public int getLastClickedPosition() {
         return lastClickedPosition;
     }
