@@ -15,9 +15,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * This class is responsible for admin related firestore functions in the data layer.
+ * This includes fetching users, deleting users, deleting events.
+ * Notifications also get sent when some of these admin actions occur, like updating a user role or deleting an event.
+ */
 public class AdminRepository {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
+    /**
+     * Gets all the users in the collection and populates a list of profile models for each user.
+     * @param listener custom interface defining logic that occurs when the get finishes.
+     */
     public void getAllUsers(OnCompleteListener<List<ProfileModel>> listener) {
         db.collection("users")
                 .get()
@@ -37,10 +46,21 @@ public class AdminRepository {
                 });
     }
 
+    /**
+     * A listener interface for receiving a callback when an asynchronous
+     * getAllUsers operation has completed.
+     * @param <T> The type of the result returned when the operation completes
+     */
     public interface OnCompleteListener<T> {
         void onComplete(T result);
     }
 
+    /**
+     * This function deletes a given user, including removing their id from all event related sub collections.
+     * This also deletes all the notifications references that are stored as a subcollection with the user id.
+     * @param profile the user to delete.
+     * @param callback the logic to happen when the function completes.
+     */
     public void deleteUser(ProfileModel profile, DeleteUserCallback callback) {
         String uid = profile.getUid();
 
@@ -71,55 +91,65 @@ public class AdminRepository {
                     });
         }, callback::onError);
     }
+
+    /**
+     * Removes all references to the given user from every event's membership subcollections.
+     *
+     * @param uid The ID of the user being removed.
+     * @param onComplete Called once deletions have been requested.
+     * @param onError Called if any deletion request fails.
+     */
     private void removeUserFromAllEvents(String uid, Runnable onComplete, OnErrorCallback onError) {
-        db.collection("events").get()
-                .addOnSuccessListener(querySnapshot -> {
-                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
-                        Event event = doc.toObject(Event.class);
+        String[] subcollections = {"attendingUsers", "waitlistedUsers", "invitedUsers", "cancelledUsers"};
 
-                        boolean wasModified = false;
+        db.collection("events")
+                .get()
+                .addOnSuccessListener(eventsSnapshot -> {
+                    for (var eventDoc : eventsSnapshot.getDocuments()) {
+                        String eventId = eventDoc.getId();
 
-                        // Remove user from all status lists
-                        if (event.getEventAttendingIds().remove(uid)) {
-                            wasModified = true;
-                        }
-                        if (event.getEventWaitlistIds().remove(uid)) {
-                            wasModified = true;
-                        }
-                        if (event.getEventInvitedIds().remove(uid)) {
-                            wasModified = true;
-                        }
-                        if (event.getEventCancelledIds().remove(uid)) {
-                            wasModified = true;
-                        }
-
-                        // Update the event if any lists were modified
-                        if (wasModified) {
-                            doc.getReference().update(
-                                    "eventAttendingIds", event.getEventAttendingIds(),
-                                    "eventWaitlistIds", event.getEventWaitlistIds(),
-                                    "eventInvitedIds", event.getEventInvitedIds(),
-                                    "eventCancelledIds", event.getEventCancelledIds()
-                            ).addOnFailureListener(e -> {
-                                Log.e("AdminRepository", "Failed to update event " + doc.getId(), e);
-                                onError.onError(e);
-                            });
+                        for (String sub : subcollections) {
+                            db.collection("events")
+                                    .document(eventId)
+                                    .collection(sub)
+                                    .document(uid) // doc ID is the user ID
+                                    .delete()
+                                    .addOnFailureListener(e -> {
+                                        Log.e("Cleanup", "Failed to delete user " + uid
+                                                + " from " + sub + " in event " + eventId, e);
+                                        onError.onError(e);
+                                    });
                         }
                     }
+
                     onComplete.run();
                 })
-                .addOnFailureListener(e -> {
-                    Log.e("AdminRepository", "Failed to query events for user removal", e);
-                    onError.onError(e);
-                });
+                .addOnFailureListener(onError::onError);
     }
 
+
+    /**
+     * Callback interface for deleting a user.
+     */
     public interface DeleteUserCallback {
+        /**
+         * Logic for when delete is successful.
+         */
         void onSuccess();
+
+        /**
+         * Logic for when delete fails.
+         * @param e Exception that occured.
+         */
         void onError(Exception e);
     }
 
-
+    /**
+     * Updates the role for the user using the ProfileModel state enum.
+     * @param profile profile to update.
+     * @param role the new role to set.
+     * @param callback logic for when the update finished.
+     */
     public void updateUserRole(ProfileModel profile, ProfileModel.UserRole role, updateCallback callback) {
         String uid = profile.getUid();
         ProfileModel.UserRole oldRole = profile.getRole();
@@ -163,11 +193,31 @@ public class AdminRepository {
         }
     }
 
+    /**
+     * Callback for when update user role finishes.
+     */
     public interface updateCallback {
+        /**
+         * Logic for success.
+         */
         void onSuccess();
+
+        /**
+         * Logic for update fail.
+         * @param e the Exception that occurred.
+         */
         void onError(Exception e);
     }
 
+    /**
+     * This function deletes a given event.
+     * It removes the event from all users.
+     * It removes all notifications about the event.
+     * It deletes all of the events subcollections.
+     * It sends notifications to everyone associated with the event.
+     * @param eventId The id of the event to delete.
+     * @param callback Logic for when the delete event finishes.
+     */
     public void deleteEvent(String eventId, DeleteEventCallback callback) {
         if (eventId == null || eventId.isEmpty()) {
             callback.onError(new IllegalArgumentException("Event ID cannot be null or empty"));
@@ -213,6 +263,13 @@ public class AdminRepository {
                     callback.onError(e);
                 });
     }
+
+    /**
+     * This function deletes all the subcollections stored at a given event document id.
+     * @param eventId The event id
+     * @param onSuccess Logic for when the delete is successful.
+     * @param onError Logic for when the delete errors.
+     */
     private void deleteEventSubcollections(String eventId, Runnable onSuccess, OnErrorCallback onError) {
         String[] subcollections = {"attendingUsers", "waitlistedUsers", "invitedUsers", "cancelledUsers"};
 
@@ -233,7 +290,10 @@ public class AdminRepository {
 
     /**
      * Removes an event from all user profiles that reference it.
-     * Scans all users and removes the event ID from their onMyEventIds list.
+     *  Scans all users and removes the event ID from their onMyEventIds list.
+     * @param eventId the event to remove from all users.
+     * @param onComplete Logic for when it completes.
+     * @param onError Logic for when it fails.
      */
     private void removeEventFromAllUsers(String eventId, Runnable onComplete, OnErrorCallback onError) {
         db.collection("users").get()
@@ -257,6 +317,12 @@ public class AdminRepository {
                 });
     }
 
+    /**
+     * Removes all notifications associated with an event.
+     * @param eventId the event id to remove notifications about.
+     * @param onComplete logic for when the removal completes.
+     * @param onError logic for when the removal errors.
+     */
     private void removeNotificationsAboutEvent(String eventId, Runnable onComplete, OnErrorCallback onError) {
         db.collection("notifications")
                 .get()
@@ -281,6 +347,13 @@ public class AdminRepository {
                 });
     }
 
+    /**
+     * This function deletes all the events a given user has created.
+     * @param uid the user id to delete the user's events.
+     * @param eventIds The event ids that the user has.
+     * @param onComplete Logic for when the delete completes.
+     * @param onError Logic for when the delete fails.
+     */
     private void deleteUserEvents(String uid, ArrayList<String> eventIds, Runnable onComplete, OnErrorCallback onError) {
         if (eventIds == null || eventIds.isEmpty()) {
             onComplete.run();
@@ -310,12 +383,30 @@ public class AdminRepository {
         }
     }
 
+    /**
+     * Callback interface for deleting an event.
+     */
     public interface DeleteEventCallback {
+        /**
+         * Logic for success.
+         */
         void onSuccess();
+
+        /**
+         * Logic for failure
+         * @param e Exception
+         */
         void onError(Exception e);
     }
 
+    /**
+     * General interface for errors.
+     */
     public interface OnErrorCallback {
+        /**
+         * Logic for when an error is thrown.
+         * @param e Exception
+         */
         void onError(Exception e);
     }
 
@@ -442,8 +533,11 @@ public class AdminRepository {
                 });
     }
 
-    /**
+     /**
      * Helper method to send notifications to a list of users.
+     * @param eventId eventId associated with notification.
+     * @param eventTitle title of event associated with notification.
+     * @param userIds user id's to send notification to.
      */
     private void sendNotificationToUsers(String eventId, String eventTitle, ArrayList<String> userIds) {
         if (userIds.isEmpty()) {
@@ -501,6 +595,9 @@ public class AdminRepository {
                 });
     }
 
+    /**
+     * One time clean up function I used because I accidentally added a notification with a null image.
+     */
     public void cleanupNotifications() {
         db.collection("notifications")
                 .get()
