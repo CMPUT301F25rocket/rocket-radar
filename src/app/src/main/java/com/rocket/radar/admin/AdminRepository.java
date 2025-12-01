@@ -379,7 +379,7 @@ public class AdminRepository {
 
     /**
      * Sends notifications to all users associated with an event when it is deleted.
-     * This includes users on the waitlist, attending list, and invited list.
+     * This includes users from the subcollections: attendingUsers, waitlistedUsers, invitedUsers, and cancelledUsers.
      *
      * @param eventId The ID of the event being deleted
      * @param eventTitle The title of the event being deleted
@@ -398,77 +398,106 @@ public class AdminRepository {
                         return;
                     }
 
-                    // Combine all user lists (waitlist, attending, invited)
-                    ArrayList<String> allUserIds = new ArrayList<>();
-                    if (event.getEventWaitlistIds() != null) {
-                        allUserIds.addAll(event.getEventWaitlistIds());
-                    }
-                    if (event.getEventAttendingIds() != null) {
-                        allUserIds.addAll(event.getEventAttendingIds());
-                    }
-                    if (event.getEventInvitedIds() != null) {
-                        allUserIds.addAll(event.getEventInvitedIds());
-                    }
+                    // Get the organizer ID
+                    String organizerId = event.getOrganizerId();
 
-                    // Remove duplicates
-                    ArrayList<String> uniqueUserIds = new ArrayList<>(new java.util.HashSet<>(allUserIds));
+                    // Collect all user IDs from subcollections
+                    java.util.HashSet<String> allUserIds = new java.util.HashSet<>();
 
-                    if (uniqueUserIds.isEmpty()) {
-                        Log.d("AdminRepository", "No users associated with event: " + eventId);
-                        return;
+                    // Add organizer first
+                    if (organizerId != null) {
+                        allUserIds.add(organizerId);
                     }
 
-                    // Create the notification content
-                    Map<String, Object> notificationContent = new HashMap<>();
-                    notificationContent.put("eventTitle", eventTitle);
-                    notificationContent.put("notificationType", "This event has been deleted by an admin.");
-                    notificationContent.put("eventId", null);
-                    notificationContent.put("image", R.drawable.ic_radar);
-                    notificationContent.put("timestamp", com.google.firebase.firestore.FieldValue.serverTimestamp());
+                    String[] subcollections = {"attendingUsers", "waitlistedUsers", "invitedUsers", "cancelledUsers"};
+                    final int[] remainingFetches = {subcollections.length};
 
-                    // Add to top-level notifications collection
-                    db.collection("notifications").add(notificationContent)
-                            .addOnSuccessListener(notificationRef -> {
-                                // Fan out to each unique user
-                                for (String userId : uniqueUserIds) {
-                                    // Check if user has notifications enabled
-                                    db.collection("users").document(userId).get()
-                                            .addOnSuccessListener(userDoc -> {
-                                                if (Boolean.FALSE.equals(userDoc.getBoolean("notificationsEnabled"))) {
-                                                    Log.d("AdminRepository", "User " + userId + " has notifications disabled. Skipping.");
-                                                    return;
-                                                }
+                    for (String subcollection : subcollections) {
+                        db.collection("events").document(eventId).collection(subcollection)
+                                .get()
+                                .addOnSuccessListener(querySnapshot -> {
+                                    // Each document ID in the subcollection is a user ID
+                                    for (var doc : querySnapshot.getDocuments()) {
+                                        allUserIds.add(doc.getId());
+                                    }
 
-                                                // Create user-specific stub
-                                                Map<String, Object> userStub = new HashMap<>();
-                                                userStub.put("readStatus", false);
-                                                userStub.put("notificationRef", notificationRef);
-
-                                                // Add to user's notification subcollection
-                                                db.collection("users")
-                                                        .document(userId)
-                                                        .collection("notifications")
-                                                        .add(userStub)
-                                                        .addOnSuccessListener(aVoid -> {
-                                                            Log.d("AdminRepository", "Event deletion notification sent to user: " + userId);
-                                                        })
-                                                        .addOnFailureListener(e -> {
-                                                            Log.e("AdminRepository", "Failed to add notification to user " + userId, e);
-                                                        });
-                                            })
-                                            .addOnFailureListener(e -> {
-                                                Log.e("AdminRepository", "Failed to fetch user: " + userId, e);
-                                            });
-                                }
-
-                                Log.d("AdminRepository", "Event deletion notifications sent to " + uniqueUserIds.size() + " users");
-                            })
-                            .addOnFailureListener(e -> {
-                                Log.e("AdminRepository", "Failed to create event deletion notification", e);
-                            });
+                                    // Check if all subcollections have been fetched
+                                    remainingFetches[0]--;
+                                    if (remainingFetches[0] == 0) {
+                                        // All subcollections fetched, now send notifications
+                                        sendNotificationToUsers(eventId, eventTitle, new ArrayList<>(allUserIds));
+                                    }
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e("AdminRepository", "Failed to fetch " + subcollection + " for event: " + eventId, e);
+                                    remainingFetches[0]--;
+                                    if (remainingFetches[0] == 0) {
+                                        sendNotificationToUsers(eventId, eventTitle, new ArrayList<>(allUserIds));
+                                    }
+                                });
+                    }
                 })
                 .addOnFailureListener(e -> {
                     Log.e("AdminRepository", "Failed to fetch event for deletion notification", e);
+                });
+    }
+
+    /**
+     * Helper method to send notifications to a list of users.
+     */
+    private void sendNotificationToUsers(String eventId, String eventTitle, ArrayList<String> userIds) {
+        if (userIds.isEmpty()) {
+            Log.d("AdminRepository", "No users associated with event: " + eventId);
+            return;
+        }
+
+        // Create the notification content
+        Map<String, Object> notificationContent = new HashMap<>();
+        notificationContent.put("eventTitle", eventTitle);
+        notificationContent.put("notificationType", "This event has been deleted by an admin.");
+        notificationContent.put("eventId", null);
+        notificationContent.put("image", R.drawable.ic_radar);
+        notificationContent.put("timestamp", com.google.firebase.firestore.FieldValue.serverTimestamp());
+
+        // Add to top-level notifications collection
+        db.collection("notifications").add(notificationContent)
+                .addOnSuccessListener(notificationRef -> {
+                    // Fan out to each unique user
+                    for (String userId : userIds) {
+                        // Check if user has notifications enabled
+                        db.collection("users").document(userId).get()
+                                .addOnSuccessListener(userDoc -> {
+                                    if (Boolean.FALSE.equals(userDoc.getBoolean("notificationsEnabled"))) {
+                                        Log.d("AdminRepository", "User " + userId + " has notifications disabled. Skipping.");
+                                        return;
+                                    }
+
+                                    // Create user-specific stub
+                                    Map<String, Object> userStub = new HashMap<>();
+                                    userStub.put("readStatus", false);
+                                    userStub.put("notificationRef", notificationRef);
+
+                                    // Add to user's notification subcollection
+                                    db.collection("users")
+                                            .document(userId)
+                                            .collection("notifications")
+                                            .add(userStub)
+                                            .addOnSuccessListener(aVoid -> {
+                                                Log.d("AdminRepository", "Event deletion notification sent to user: " + userId);
+                                            })
+                                            .addOnFailureListener(e -> {
+                                                Log.e("AdminRepository", "Failed to add notification to user " + userId, e);
+                                            });
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e("AdminRepository", "Failed to fetch user: " + userId, e);
+                                });
+                    }
+
+                    Log.d("AdminRepository", "Event deletion notifications sent to " + userIds.size() + " users");
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("AdminRepository", "Failed to create event deletion notification", e);
                 });
     }
 

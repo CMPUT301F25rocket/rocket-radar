@@ -182,6 +182,13 @@ public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceStat
             notificationButton.setAlpha(0.5f);
             notificationBadge.setAlpha(0.0f);
         }
+
+        AdminModeManager adminModeManager = AdminModeManager.getInstance(getContext());
+        if (currentUserProfile != null && currentUserProfile.getRole() == ProfileModel.UserRole.ADMIN && adminModeManager.isAdminModeOn()) {
+            notificationBadge.setAlpha(0.0f);
+        } else {
+            notificationBadge.setAlpha(1.0f);
+        }
     }
 
     private void observeUnreadNotifications() {
